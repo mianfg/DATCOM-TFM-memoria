@@ -1,0 +1,188 @@
+% !TeX root = ../libro.tex
+% !TeX encoding = utf8
+
+\chapter{Sobre el código de este trabajo}\label{ap:codigo-trabajo}
+
+Junto a esta memoria, el trabajo incluye un repositorio de código accesible desde:
+\begin{adjustwidth}{30pt}{}
+    \href{https://github.com/mianfg-DGIIM/TFG}{https://github.com/mianfg-DGIIM/TFG}
+\end{adjustwidth}
+El repositorio tiene la siguiente estructura de archivos y directorios:
+\vspace{8pt}
+\dirtree{%
+.1 /TFG.
+.2 memoria\DTcomment{Memoria del trabajo}.
+.3 memoria.pdf\DTcomment{Archivo PDF de esta memoria}.
+.3 tex\DTcomment{Contiene el código en \LaTeX{ }{ }de la memoria}.
+.4 memoria.tex.
+.4 ....
+.2 codigo\DTcomment{Todo el código del trabajo}.
+.3 maquinas\_turing\DTcomment{Contiene descripciones de máquinas de Turing}.
+.4 mas\_a\_que\_b.mt.
+.4 ....
+.3 adivina\_consistente.py.
+.3 ....
+}
+\vspace{8pt}
+En la carpeta \texttt{codigo} se encuentran:
+\begin{itemize}
+    \item Por una parte, las descripciones de máquinas de Turing comentadas en la \cref{prop:python-a-monocinta}, como archivos \texttt{.mt} dentro de la carpeta \texttt{maquinas\_turing}.
+    \item Los programas desarrollados en este trabajo, junto con algunos otros.
+\end{itemize}
+
+\section{Cómo ejecutar los programas}
+
+Los programas de la carpeta \texttt{codigo} pueden ejecutarse importando las funciones necesarias en el intérprete de Python. En la librería \texttt{utilidades.py} aparecen múltiples funciones que se usan en varios programas, y que son útiles para poder ejecutar otros. A modo de ejemplo, si queremos ejecutar la función \texttt{simula\_turing\_mult} de \texttt{simula\_turing.py}, haremos:
+\begin{lstlisting}[numbers=none,frame=none]
+TFG/codigo$ python
+>>> from utilidades import leer
+>>> from simula_turing import simula_turing_mult
+>>> codificacion = leer('./maquinas_turing/mas_a_que_b.mt')
+>>> entrada = 'abaaabbb'
+>>> simula_turing_mult(codificacion, entrada)
+'q_0 : X X X X X X X X [_] (rechaza)'
+\end{lstlisting}
+
+\section{Índice de programas}
+
+%\footnotesize
+\begin{tabularx}{\textwidth}{L{0.3} L{0.5} L{0.2}}
+\midrule
+Programa & Descripción & ¿Ejecutable? \\
+\midrule
+\texttt{adivina\_consistente.py} \linebreak \small{(\cref{lst:adivina-consistente})} & Usado en la prueba del \cref{teo:incompletitud-sintactica}: de ser el sistema lógico completo, este programa decidiría \hyperref[prob:adivina-consistente]{\textsc{AdivinaConsistente}} \vspace{4pt} & no [NE1] \\
+
+\texttt{c\_d.py} \linebreak \small{(\cref{lst:c-d})} & Usado para probar que si un programa es decidible, su complementario también (\cref{prop:c-decidible}) \vspace{4pt} & no [NE2] \\
+
+\texttt{c\_diagonal.py}$^\lozenge$ \linebreak \small{(\cref{lst:c-diagonal})} & Si \hyperref[prob:diagonal]{\textsc{Diagonal}} fuese decidible, este programa decidiría el problema \hyperref[prob:c-diagonal]{\textsc{C-Diagonal}} (\cref{prop:universal-no-decidible}) \vspace{4pt} & sí \\
+
+\texttt{diagonal.py}$^\lozenge$ \linebreak \small{(\cref{lst:diagonal})} & Si \hyperref[prob:universal]{\textsc{Universal}} fuese decidible, este programa decidiría \hyperref[prob:diagonal]{\textsc{Diagonal}} (\cref{prop:universal-no-decidible}) \vspace{4pt} & sí \\
+
+\texttt{diagonal\_a\_universal.py} \linebreak \small{(\cref{lst:diagonal-a-universal})} & Implementa la reducción de \hyperref[prob:diagonal]{\textsc{Diagonal}} a \hyperref[prob:universal]{\textsc{Universal}} \vspace{4pt} & sí \\
+
+\texttt{es\_prueba\_peano.py} & Este programa es capaz de comprobar si una secuencia de fórmulas es prueba de otra fórmula en \hyperref[sl:peano]{\textbf{Peano}} \vspace{4pt} & no impl. [NI1] \\
+
+\texttt{es\_teorema\_peano.py}$^\lozenge$ \linebreak \small{(\cref{lst:es-teorema-peano})} & Este programa hace \hyperref[prob:es-teorema-peano]{\textsc{EsTeoremaPeano}} semidecidible (\cref{prop:es-teorema-peano-semidecidible}) \vspace{4pt} & no [NE3] \\
+
+\texttt{es\_teorema\_S.py} \linebreak \small{(\cref{lst:es-teorema-s})} & Prueba que \hyperref[prob:es-teorema]{\textsc{EsTeorema}} es decidible para sistemas lógicos sintácticamente consistentes (\cref{prop:es-teorema-consistente-decidible}) \vspace{4pt} & no [NE4] \\
+
+\texttt{funcion\_con\_objeto}\linebreak\texttt{\_codificado.py} \linebreak \small{(\cref{lst:funcion-con-objeto-codificado})} & Este programa muestra que los programas SISO no imponen una restricción sobre los programas que podemos decidir: podemos aceptar como entrada y devolver como salida cualquier programa debidamente codificado (en este caso, mediante la librería nativa \texttt{picke}) \vspace{4pt} & sí \\
+
+\texttt{godel.py} \linebreak \small{(\cref{lst:godel})} & Programa central en la demostración de la versión semántica del Primer Teorema de Incompletitud en el caso general (\cref{teo:incompletitud-semantica}) \vspace{4pt} & no [NE5] \\
+
+\texttt{godel\_peano.py}$^\lozenge$ \linebreak \small{(\cref{lst:godel-peano})} & Programa central en la demostración de la versión semántica del Primer Teorema de Incompletitud para \hyperref[sl:peano]{\textbf{Peano}} (\cref{teo:incompletitud-peano}) \vspace{2pt} & no [NE6] \\
+
+\midrule
+\end{tabularx}
+\vspace*{-0.2cm}
+\begin{tabla}
+\caption{Índice de programas usados en este trabajo}
+\label{tab:indice-programas}
+\end{tabla}
+\vspace*{-1cm}
+
+\newpage
+
+\vspace*{0.9cm}
+
+\begin{tabularx}{\textwidth}{L{0.3} L{0.5} L{0.2}}
+\midrule
+Programa & Descripción & ¿Ejecutable? \\
+\midrule
+\texttt{ignora\_entrada.py}$^\lozenge$ \linebreak \small{(\cref{lst:ignora-entrada})} \vspace{4pt} & Permite ignorar la entrada y ejecutar programas y entradas almacenados en disco & sí \\
+
+\texttt{maquina\_universal.py} \linebreak \small{(\cref{lst:maquina-universal})} & Implementa una máquina universal en Python, es decir, una función que acepta como entradas un programa en Python y una entrada, y ejecuta el programa en Python con dicha entrada \vspace{4pt} & sí \\
+
+\texttt{maquina\_universal}\linebreak\texttt{\_parada.py}$^\lozenge$ \linebreak \small{(\cref{lst:maquina-universal-parada})} \vspace{4pt} & Programa usado para demostrar que \hyperref[prob:parada]{\textsc{Parada}} es no decidible (\cref{prop:parada-no-decidible}) & sí \\
+
+\texttt{mas\_a\_que\_b.py} \linebreak \small{(\cref{lst:mas-a-que-b})} & Este programa decide el problema \hyperref[prob:mas-a-que-b]{\textsc{MásAQueB}} (\cref{prop:masaqueb-decidible}) \vspace{4pt} & sí \\
+
+\texttt{mas\_a\_que\_b\_v2.py} \linebreak \small{(\cref{lst:mas-a-que-b-v2})} & Este programa decide el problema \hyperref[prob:mas-a-que-b]{\textsc{MásAQueB}}, aceptando cualquier palabra como entrada \vspace{4pt} & sí \\
+
+\texttt{modifica\_adivina}\linebreak\texttt{\_consistente.py}  \linebreak \small{(\cref{lst:modifica-adivina-consistente})} & Usado para probar la no decidibilidad de \hyperref[prob:adivina-consistente]{\textsc{AdivinaConsistente}} (\cref{prop:adivina-consistente-no-decidible}) \vspace{4pt} & no [NE7] \\
+
+\texttt{parada\_a\_parada\_en}\linebreak\texttt{\_vacio.py} \linebreak \small{(\cref{lst:parada-a-parada-en-vacio})} \vspace{4pt} & Implementa la reducción de \hyperref[prob:parada]{\textsc{Parada}} a \hyperref[prob:parada-en-vacio]{\textsc{ParadaEnVacío}} & no [NE8] \\
+
+\texttt{parada\_a\_peano.py} & Traduce una afirmación del tipo \emph{``$P$ para con entrada vacía''} a una fórmula de \hyperref[sl:peano]{\textbf{Peano}} \vspace{4pt} & no impl. [NI2] \\
+
+\texttt{parada\_en\_vacio\_a\_es}\linebreak\texttt{\_verdadero\_peano.py}$^\lozenge$ \linebreak \small{(\cref{lst:parada-en-vacio-a-es-verdadero-peano})} \vspace{4pt} & Implementa la reducción de \hyperref[prob:parada-en-vacio]{\textsc{ParadaEnVacío}} a \hyperref[prob:es-verdadero-peano]{\textsc{EsVerdaderoPeano}} & no [NE9] \\
+
+\texttt{si.py} \linebreak \small{(\cref{lst:si})} \vspace{4pt} & Este programa decide el problema \hyperref[prob:si]{\textsc{Sí}} & sí \\
+
+\texttt{simula\_turing.py} \linebreak \small{(\cref{lst:simula-turing})} & Este programa simula una máquina de Turing. Puede usarse con cualquiera de las máquinas de la carpeta \texttt{maquinas\_turing} \vspace{4pt} & sí \\
+
+\texttt{simula\_turing}\linebreak\texttt{\_decision.py} & Este programa es una variación de \texttt{simula\_turing.py} para hacer que el programa sea de decisión (siempre se devuelve \palabra{sí} o \palabra{no}). Este programa no se usa en el trabajo, pero se deja para experimentación \vspace{2pt} & sí \\
+\midrule
+\end{tabularx}
+\vspace*{-0.2cm}
+\begin{tabla}
+\caption*{Tabla A.1. (cont.): Índice de programas usados en este trabajo}
+\label{tab:indice-programas}
+\end{tabla}
+
+
+\newpage
+
+\vspace*{0.9cm}
+
+\begin{tabularx}{\textwidth}{L{0.3} L{0.5} L{0.2}}
+\midrule
+Programa & Descripción & ¿Ejecutable? \\
+\midrule
+\texttt{suma\_binaria.py}$^\lozenge$ & Este programa decide los problemas \hyperref[prob:es-teorema]{\textsc{EsTeorema}} y \hyperref[prob:es-verdadero]{\textsc{EsVerdadero}} para todos los sistemas lógicos derivados del sistema formal \hyperref[sf:suma-binaria]{\textsc{SumaBinaria}} (incluyendo la decidibilidad del problema \hyperref[prob:es-teorema]{\textsc{EsTeorema}} de este sistema formal) \vspace{4pt} & sí \\
+
+\texttt{turing.py} & Este programa incluye una clase \texttt{Turing} que encapsula la simulación de \texttt{simula\_turing.py} \vspace{4pt} & sí \\
+
+\texttt{universal.py} & Este programa hace el problema \hyperref[prob:universal]{\textsc{Universal}} semidecidible. Esto no es probado en el trabajo, pero se deja aquí para permitir la experimentación \vspace{4pt} & sí \\
+
+\texttt{universal\_a\_parada.py}$^\lozenge$ \linebreak \small{(\cref{lst:universal-a-parada})} & Implementa la reducción de \hyperref[prob:universal]{\textsc{Universal}} a \hyperref[prob:parada]{\textsc{Parada}} \vspace{4pt} & no [NE10] \\
+
+\texttt{utilidades.py} & Este programa implementa funciones que se usan en el resto de programas (``utilidades'') \vspace{2pt} & sí \\
+
+\midrule
+\end{tabularx}
+\vspace*{-0.2cm}
+\begin{tabla}
+\caption*{Tabla A.1. (cont.): Índice de programas usados en este trabajo}
+\label{tab:indice-programas}
+\end{tabla}
+
+Los programas indicados con $^\lozenge$ están basados en programas de \cite{MacCormick2018}; en concreto:
+
+\begin{itemize}
+    \item Los programas \texttt{c\_diagonal.py} y \texttt{diagonal.py} son inmediatos de implementar, y son prácticamente idénticos a los programas de la figura 3.7 de \cite{MacCormick2018}.
+    \item El programa \texttt{es\_teorema\_peano.py} se basa en el programa de la figura 16.5 de \cite{MacCormick2018}.
+    \item El programa \texttt{godel\_peano.py} se basa en el programa de la figura 16.8 de \cite{MacCormick2018}. Usamos la nomenclatura en \emph{strings} de la artimética de Peano que definimos en la \cref{tab:peano-string}.
+    \item El programa \texttt{ignora\_entrada.py} se basa en el programa de la figura 6.9 de \cite{MacCormick2018}.
+    \item El programa \texttt{maquina\_universal\_parada.py} se basa en el primer programa de la figura 7.10 de \cite{MacCormick2018}. Devolvemos el valor \palabra{sí} para hacer que el programa sea de decisión.
+    \item El programa \texttt{parada\_en\_vacio\_a\_es\_verdadero\_peano.py} se basa en el programa de la figura 16.6 de \cite{MacCormick2018}.
+    \item El programa \texttt{suma\_binaria.py} usa las expresiones regulares que figuran en el programa \texttt{binAd.py} de la librería de código de \cite{MacCormick2018}. Además, se incluye el código correspondiente a las reglas del resto de sistemas lógicos del capítulo, y se reestructura el código para poder evaluar las fórmulas en cualquiera de estos sistemas.
+    \item El programa \texttt{universal\_a\_parada.py} se basa en el segundo programa de la figura 7.10 de \cite{MacCormick2018}. Reestructuramos el código para hacerlo más legible.
+\end{itemize}
+
+\subsection*{Justificación de programas no ejecutables}
+
+Algunos de los programas que aparecen en la carpeta \texttt{codigo} no son ejecutables. Los motivos de esto se explican a continuación.
+
+\begin{enumerate}[label={[}NE\arabic*{]},wide = 0pt,widest={100}, leftmargin =*]
+    \item Las funciones \texttt{parada\_a\_S} y \texttt{es\_prueba\_S} no están implementadas, pues corresponden a un sistema lógico cualquiera (sería necesario crear una implementación concreta para cada sistema lógico), pero su existencia es probada.
+    \item La función \texttt{d} no existe (este programa es ilustrativo). Basta probar a sustituir \texttt{d} por cualquier otro programa de decisión.
+    \item La función \texttt{es\_prueba\_peano} no está implementada (véase [NI1]).
+    \item La función \texttt{es\_prueba\_S} no está implementada (véase [NE1]).
+    \item Las funciones \texttt{es\_teorema\_G} y \texttt{parada\_a\_G} no están implementadas, pues corresponden a un sistema formal cualquiera (sería necesario crear una implementación concreta para cada sistema lógico), pero su existencia se supone.
+    \item La función \texttt{parada\_a\_peano} no está implementada (véase [NI2]).
+    \item No puede escribirse dado que \textsc{AdivinaConsistente} es no decidible (y no está implementado).
+    \item Es una reducción en la que \texttt{parada\_en\_vacio} es un oráculo.
+    \item Es una reducción en la que \texttt{es\_verdadero\_peano} es un oráculo, y donde \texttt{parada\_a\_peano} no está implementada (véase [NI2]), pero NO es un oráculo (su existencia se prueba).
+    \item Es una reducción en la que \texttt{parada} es un oráculo (de hecho no está implementada porque no es computable).
+\end{enumerate}
+
+\subsection*{Justificación de programas no implementados}
+
+Dos de los programas a los que hacemos referencia en este trabajo no han sido implementados. A continuación se concreta el por qué.
+
+\begin{enumerate}[label={[}NI\arabic*{]},wide = 0pt,widest={NI1,NI}, leftmargin =*]
+    \item[{[}NI1, NI2{]}] Implementar estas funciones sería un trabajo muy arduo, que se deja como posible en un futuro (véase el \cref{ch:trabajo-futuro}).
+\end{enumerate}
+
+\endinput

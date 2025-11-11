@@ -1,0 +1,80 @@
+% !TeX root = ../main.tex
+% !TeX encoding = utf8
+
+\setpartpreamble[c][0.75\linewidth]{%
+    \bigskip
+    (WIP) Introduction to the problem and state of the art
+}
+\part{Rule extraction}\label{part:rule-extraction}
+
+% ==========
+
+\chapter{Problem statement}\label{ch:problem-statement}
+
+(WIP)
+
+% ==========
+
+\chapter{Implementation}\label{ch:implementation}
+
+(WIP: use iterative approach)
+
+\section{First approach}
+
+\section{Fine-tuning}
+
+\section{Retrieval Augmented Generation (RAG)}
+
+\section{Extract methods instead of rules}
+
+\section{Direct Preference Optimization (DPO)}
+
+\section{Improve diagram parsing}
+
+\section{Other }
+
+\subsection{Role of LLMs}
+
+LLMs have demonstrated a significant capability to interpret natural language descriptions and domain-specific documentation to generate various types of rules, ranging from physical invariants to anomaly detection rules and control logic. It has been shown that LLMs can be used for anomaly detection in time series \cite{russell-gilbert_aad-llm_2024, russell-gilbert_raad-llm_2025, ansari_chronos_2024}, improving some classical algorithms by incorporating knowledge of the problem's domain. This is due to their advanced capabilities in understanding, reasoning, and generating human-like text. They can automate complex information processing tasks, significantly reducing the manual effort and speeding up processes.
+
+Prior research has shown some key properties that make LLMs suitable for these applications:
+
+\begin{itemize}
+    \item \textbf{Versatile reasoning and generalization:} LLMs can infer physical relationships from system descriptions and adapt to various industrial control applications, unlike traditional machine learning models. Frameworks like INVARLLM \cite{abshari_llm-assisted_2024} leverage LLMs to automatically extract invariants from Cyber-Physical Systems' (CPS) deployment documentation. These invariants are consistent physical or logical relationships among system variables that can be identified from textual information, capturing procedural logic and operational constraints not easily discoverable from data alone. LLMs can also generalize to new scenarios with minimal examples \cite{song_pre-trained_2023}.
+    \item \textbf{Contextual understanding:} LLMs can process and understand large amounts of unstructured data, such as maintenance logs, technical manuals, and operational notes, as well as scientific text \cite{dagdelen_structured_2024, xia_enhance_2024}. This allows them to identify subtle patterns and correlations that purely numerical models might overlook, providing richer contextual insights.
+    \item \textbf{Code generation:} LLMs can translate natural language descriptions into executable code for various purposes, including PLC (Programmable Logic Controller) code \cite{fakih_llm4plc_2024}, as well as logical rules.
+    \item \textbf{Automation and control:} these models can interpret user tasks in natural language, generate production plans, and perform operations on physical systems, making industrial automation more flexible and intuitive \cite{xia_control_2024}.
+\end{itemize}
+
+\subsection{Information extraction}
+
+Besides this, LLMs are also adept at extracting information from multiple sources, being able to understand and use unstructured or semi-structured data effectively. Being able to pass information to these models effectively is critical, as they can sometimes suffer from hallucinations.
+
+Multiple applications of these capabilities have been shown. LLMs can be fine-tuned to extract structured scientific knowledge from research papers, specifically in the chemistry field \cite{dagdelen_structured_2024}. The extracted information can be formatted as simple English or structured JSON objects. They can be also useful in interpreting Piping and Instrumentation Diagrams (P\&IDs), alongside semantic information and image recognition \cite{alimin_talking_2025}.
+
+\subsection{Rule generation}
+
+However, research on generating rules from documentation and diagrams is much more scarce. (WIP)
+
+\subsection{Trust}
+
+Ensuring the reliability and trustworthiness of LLM outputs is critical, especially in sensitive or high-stakes applications.
+
+The ``gold standard'' for assessing LLM performance is considered to be human evaluation, as it provides a comprehensive benchmark that automated metrics might miss. Frameworks like HumanELY \cite{awasthi_humanely_2023} propose structured approaches with metrics like relevance, coverage, coherence, harm, and comparison to provide consistent and measurable evaluations. Another approach for evaluating outputs in industrial settings is the usage of \emph{digital twins}, by means of a simulated environment \cite{gill_leveraging_2025}.
+
+Another approach is to understand \emph{how} LLMs arrive at their decisions. Language-Based Explanations (LBEs) can leverage their natural language processing capabilities to translate their decision-making into text, making their outputs more understandable and increasing transparency \cite{brown_enhancing_2024}. Chain-of-Thought (CoT) prompting is used to encourage LLMs to ``show their work'' by generating intermediate reasoning steps, enhancing explainability and reliability \cite{wip}.
+
+Finally, confidence elicitation can be used by prompting LLMs to explicitly state their confidence level alongside their answers. Frameworks like SteerConf \cite{zhou_steerconf_2025} calibrate the model's responses by ``steering'' the model's confidence scores (e.g., to be ``very catious'' or ``confident''). This helps calibrate the reported confidence. Consistency in confidence scores across different steering levels indicates higher certainty.
+
+\subsection{Reinforcement Learning / Human in the Loop}
+
+Another way to enhance the reliability of language models is to use Reinforcement Learning (RL). RL has been increasingly used to improve LLMs, helping them align with desired behaviors and improve performance by adapting dynamically based on preference scores. \cite{wang_reinforcement_2025}
+
+Reinforcement Learning from Human Feedback (RLHF) is a widely adopted technique where human evaluators provide feedback on LLM outputs. While effective, high-quality human annotations can be costly and time-consuming \cite{steenhoek_reinforcement_2025}. Reinforcement Learning from AI Feedback (RLAIF) leverages LLMs to provide feedbacks, replacing human annotators in the feedback loop \cite{wang_reinforcement_2025}.
+
+Other methods include Direct Preference Optimization (DPO) and In-Context Learning (ICL), which simplify this process by directly using human preference data to train LLMs, bypassing the need for a reward model \cite{li_automated_2024, wang_reinforcement_2025}.
+
+\section{Survival prediction}
+
+
+\endinput

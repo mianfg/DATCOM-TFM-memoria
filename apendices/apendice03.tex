@@ -1,0 +1,103 @@
+% !TeX root = ../libro.tex
+% !TeX encoding = utf8
+
+\chapter{Descripción de la aritmética de Peano}\label{ap:peano}
+
+A continuación se especifica con detalle el sistema lógico \textbf{Peano}, correspondiente a la aritmética de Peano de \emph{Principia Mathematica} \cite{Whitehead1927} y descrito por Gödel en su publicación en la que demostró el Primer Teorema de Incompletitud \cite{Godel1931}. Los contenidos del \cref{sl:peano} se corresponden a una traducción de tal artículo en \cite{Godel1992}, con la ayuda de \cite{Hirzel2000}.
+
+En el artículo original de Gödel, los símbolos usados son diferentes. En la \cref{tab:peano-simbolos} se especifican tales diferencias.
+
+\begin{sistemalogico}[Aritmética de Peano (\textbf{Peano})]\label{sl:peano}
+Describimos las fórmulas del \emph{lenguaje} de \textbf{Peano} como sigue:
+
+\begin{itemize}
+    \item[I.] Las \emph{constantes}: $\neg$, $\vee$, $\forall$, $0$, $S$, $($ y $)$ (véase la \cref{tab:peano-simbolos}).
+    \item[II.] Las \emph{variables de tipo uno} (individuales, son números naturales incluyendo el $0$): $x_1, y_1, z_1, ...$
+    
+    Las \emph{variables de tipo dos} (clases de individuos, subconjuntos de $\mathbb{N}$): $x_2, y_2, z_2, ...$
+
+    Las \emph{variables de tipo tres} (clases de clases de individuos, subconjuntos de subconjuntos de $\mathbb{N}$): $x_3, y_3, z_3, ...$
+
+    Y sigue con un tipo para cada número natural.
+\end{itemize}
+
+Una nota: las variables para las funciones de dos o más términos son superfluas como signos básicos, ya que las relaciones pueden ser definidas como clases de pares ordenados y los pares ordenados pueden ser definidos como clases de clases, por ejemplo, el par ordenado $a,b$ por $((a), (a,b))$ donde $(x,y)$ significa la clase cuyos elementos son $x$ e $y$, y $x$ la clase cuyo único elemento es $x$.
+
+Por un \emph{signo de primer tipo} entendemos una combinación de signos de la forma:$$a, S(a), S(S(a)), S(S(S(a))), ...$$
+donde $a$ es bien $0$ o una variable de primer tipo. En el primer caso llamamos a tal símbolo un \emph{símbolo numérico}. Para $n>1$ entendemos un \emph{símbolo de tipo $n$-ésimo} lo mismo que una \emph{variable de tipo $n$-ésimo}. Las combinaciones de los símbolos de la forma $a(b)$, donde $b$ es un símbolo de tipo $n$ y $a$ es un símbolo de tipo $n+1$, se llaman \emph{fórmulas elementales}.
+
+Las \emph{fórmulas} [del sistema lógico] las definimos como la menor clase que contiene todas las fórmulas elementales y, además, con cualquier $a$ y $b$ las siguientes: $\neg (a)$, $(a) \vee (b)$, $\forall x : (a)$ (donde $x$ es cualquier variable). Llamamos a $(a)\vee(b)$ la \emph{disyunción} de $a$ y $b$, a $\neg(a)$ la \emph{negación} y a $\forall x : (a)$ la \emph{generalización} de $a$. Una fórmula en la que no hay ninguna variable libre\footnote{Las variables libres son aquellas que no son cuantificadas por un $\forall$ o un $\exists$.} se llama \emph{fórmula proposicional}. [...]
+
+Denotamos como $\text{Subst } a\binom{v}{b}$ (donde $a$ es una fórmula, $v$ es una variable y $b$ es un símbolo del mismo tipo que $v$) a la fórmula que se deriva a partir de $a$ reemplazando todas las ocurrencias de $v$, donde sean libres, por $b$.
+
+Decimos que una fórmula $a$ es una \emph{elevación de tipo} de otra fórmula $b$ si podemos obtener $b$ incrementando el tipo de todas las variables de $a$ por el mismo número.
+
+Las fórmulas siguientes (I-V) son los \emph{axiomas} [de nuestro sistema lógico]. Los indicamos con las abreviaturas $\wedge$, $\Rightarrow$, $\iff$, $\exists$ y $=$\footnote{Observa que: $p\wedge q$ se define como $\not(\not p \vee \not q)$, $p\Rightarrow q$ como $\neg p \vee q$, $p \iff q$ como $(\neg p \vee q) \wedge (\neg q \vee p)$, $\exists x : p$ como $\neg\forall x: \neg p$, y $=$ como $\forall x_2 : (x_2(x_1) \Rightarrow x_2(y_1))$.} y sujetos a las convenciones usuales para eliminar paréntesis:\footnote{Eliminamos los paréntesis cuando no dé lugar a confusión.}
+\begin{itemize}
+    \item[I.] \begin{align*}
+        \text{(P1)} &\;\;\;\; \neg(S(x_1)=0) \\
+        \text{(P2)} &\;\;\;\; S(x_1)=S(y_1) \Rightarrow x_1=y_1 \\
+        \text{(P3)} &\;\;\;\; \left(x_2(0)\wedge\forall x_1 : x_2(x_1) \Rightarrow x_2(S(x_1))\right) \Rightarrow \forall x_1 : x_2(x_1)
+    \end{align*}
+    \item[II.] Toda fórmula derivada de insertar cualquier fórmula para $p$, $q$ y $r$ en los esquemas siguientes:
+    \begin{align}
+        \text{(P4)} &\;\;\;\; p \vee p \Rightarrow p \\
+        \text{(P5)} &\;\;\;\; p \Rightarrow p \vee q \\
+        \text{(P6)} &\;\;\;\; p \vee q \Rightarrow q \vee p \\
+        \text{(P7)} &\;\;\;\; (p \Rightarrow q) \Rightarrow (r \vee p \Rightarrow r \vee q)
+    \end{align}
+    \item[III.] Cada fórmula obtenida de los dos esquemas:
+    \begin{align}
+        \text{(P8)} &\;\;\;\; (\forall v : a) \Rightarrow \text{Subst } a\binom{v}{c} \\
+        \text{(P9)} &\;\;\;\; (\forall v : b \vee a) \Rightarrow (b \vee \forall v : a)
+    \end{align}
+
+    haciendo las siguientes sustituciones para $a$, $v$, $b$ y $c$ (y realizando en (P8) la operación denotada por Subst): para cada cualquier fórmula $a$, cualquier variable $v$, para una fórmula cualquiera $b$ en la que $v$ no aparece de forma libre, y para $c$ un signo del mismo tipo que $v$, de modo que $c$ no contenga una variable que esté enlazada a $a$ en un lugar donde $v$ sea libre.\footnote{$c$ es bien $0$, bien un signo de la forma $S(S(S...(u)..)$ donde $u$ es $0$ o una variable de tipo $1$.}
+
+    \item[IV.] Cada fórmula obtenida del esquema:
+    $$
+    \text{(P10)} \;\;\;\; \exists u : \forall v : (u(v) \iff a)
+    $$
+    insertando en el lugar de $v$ y $u$ cualquier variable de tipo $n$ y $n+1$, respectivamente, y en $a$ una fórmula sin ocurrencias libres de $u$. Este axioma es el de \emph{reducibilidad}.\footnote{Un axioma de la teoría de conjuntos.}
+
+    \item[V.] Cualquier fórmula obtenida de la siguiente mediante elevación de tipo (y la fórmula en sí misma):
+    $$
+    \text{(P11)} \;\;\;\; \left(\forall x_1 : (x_2(x_1)\iff y_2(x_1))\right)\Rightarrow x_2=y_2
+    $$
+
+    Este axioma nos indica que una clase está completamente determinada por sus elementos.
+\end{itemize}
+
+Una fórmula $c$ se llama \emph{consecuencia inmediata} de $a$ y $b$ si $a$ es la fórmula $(\neg (b))\vee (c)$, y una \emph{consecuencia inmediata} de [únicamente] $a$ si $c$ es la fórmula $\forall v : a$, donde $v$ es cualquier variable. La clase de [\emph{teoremas}] es definida como la menor clase de fórmulas que contiene a los axiomas y que es cerrada bajo la operación ``consecuencia inmediata''.
+
+Una fórmula de \textbf{Peano} es \emph{verdadera} si es cierta interpretándola como una afirmación lógica sobre los números naturales.
+\end{sistemalogico}
+
+\vfill
+% ====================
+\begin{tabla}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}ccl@{}}
+\toprule
+Símbolo & Notación original (Gödel) & Descripción \\ \midrule
+$\neg$ & $\sim$ & Negación \\
+$\vee$ & $\vee$ & Disyunción \\
+$\forall$ & $\Pi$ & Cuantificador universal \\
+$S$ & $f$ & Sucesor \\
+$($ & $($ & Paréntesis de apertura \\
+$)$ & $)$ & Paréntesis de cierre \\
+$\exists$ & $(Ex)$ & Cuantificador existencial \\
+$:$ & $\textbf{.}$ & Tal que \\
+$\Rightarrow$ & $\supset$ & Implicación \\
+$\iff$ & $\equiv$ & Coimplicación \\
+$=$ & $=$ & Igualdad \\\bottomrule
+\end{tabular}
+\end{table}
+\vspace{-8pt}
+\caption{Correspondencia entre los símbolos usados en este trabajo y los símbolos usados originalmente por Gödel \cite{Godel1931}}
+\label{tab:peano-simbolos}
+\end{tabla}
+% ====================
+\vfill
+\endinput

@@ -1,0 +1,47 @@
+% !TeX root = ../libro.tex
+% !TeX encoding = utf8
+%
+%*******************************************************
+% Summary
+%*******************************************************
+
+\selectlanguage{english}
+\chapter{Summary}
+
+%An english summary of the project (around 800 and 1500 words are recommended).
+
+%File: \texttt{preliminares/summary.tex}
+
+We begin this Bachelor's Thesis with \hyperref[ch:motivacion]{Chapter 1}, which highlights the motivation behind this work, as well as the main goals to be achieved. Immediately after, in \hyperref[ch:historia]{Chapter 2}, we give a brief historical contextualization of the topics covered in this writing.
+
+The theoretical development starts in \hyperref[ch:programas-python-maquinas-turing]{Chapter 3}, whose \hyperref[sec:programas-python]{Section 3.1} introduces a specific subset of Python programs, namely \emph{SISO programs}, and we observe this class is as expressive as the class of all Python programs. Next, in \hyperref[sec:maquinas-turing]{Section 3.2}, we delve into \emph{Turing machines}, the main mathematical tool of our analysis. In \hyperref[sec:equivalencia]{Section 3.3} we introduce new and equivalent computing models, until we arrive at the main result of this chapter: the fact that Turing machines can emulate Python programs, and vice versa; in other words, Python programs and Turing machines are equivalent. This will allow us to use Python programs conveniently, instead of having to specify precise descriptions of Turing machines. We conclude the chapter introducing the Church-Turing thesis in \hyperref[sec:church-turing]{Section 3.4}, and realizing that the equivalence result proved can be an argument in its favor.
+
+We define mathematically in \hyperref[sec:problemas-decidibles]{Section 4.1} the notion of \emph{computational problem}, and we discuss Python programs (and, equivalently, Turing machines), can solve them. We call \emph{decidable} any problem that can be solved by a program that never halts. In \hyperref[sec:universalidad]{Section 4.2} we observe a Python program can emulate itself, which leads us in \hyperref[sec:problemas-no-decidibles]{Section 4.3} to the existence of undecidable problems. In \hyperref[sec:problemas-semidecidibles]{Section 4.4} we relax the halting condition to obtain \emph{semidecidable} problems. Afterwards, we introduce in \hyperref[sec:reducciones]{Section 4.5} the \emph{reduction} technique, which allows us to obtain new, undecidable problems, including the most important one for this thesis in \hyperref[sec:problema-parada]{Section 4.6}: the \emph{halting problem}.
+
+In order to prove the main result of this work, it is necessary to introduce a formalization of the concepts of \emph{proof} and \emph{truth}. This is precisely what we do when introducing \emph{formal systems} \hyperref[sec:sistemas-formales]{Section 4.1} and \emph{logical systems} in \hyperref[sec:sistemas-logicos]{Section 4.2}. Formal systems are \emph{syntactic}: they formalize what a \emph{theorem} is, a provable \emph{formula} from a set of \emph{axioms} and \emph{inference rules}. On the other hand, logical systems incorporate to formal systems a semantic component: \emph{truth}. In \hyperref[sec:solidez-completitud-decidibilidad]{Sections 5.3} and \hyperref[sec:consistencia]{5.5} we present essential properties of the aforementioned systems, which relate semantic and syntactic concepts. We highlight in \hyperref[sec:aritmetica-peano]{Section 5.4} the introduction of \emph{Peano arithmetic}: a logical system of especial significance.
+
+As colophon, we proceed to prove the First Incompleteness Theorem in \hyperref[ch:teorema-incompletitud]{Chapter 6}: we do so first from Peano arithmetic in \hyperref[sec:primera-aproximacion]{Section 6.1}, and then we generalize it by means of two versions. The first one, of a semantic nature, is proven in \hyperref[sec:version-semantica]{Section 6.2}, and allows us (under some computational hypotheses) to find true but unprovable statements in a logical system. Next, the syntactic version of \hyperref[sec:version-sintactica]{Section 6.3}, closer to Gödel's, allows us to find unprovable statements in formal systems. We finish the study of this theorem in \hyperref[sec:consecuencias]{Section 6.4}, with some important mathematical (\hyperref[subsec:segundo-problema-hilbert]{Section 6.4.1}) and philosophical (\hyperref[subsec:mente-humana-tesis-church-turing]{Section 6.4.2}) consequences.
+
+Finally, we wrap up with some conclusions in \hyperref[ch:conclusiones]{Chapter 7}, and some final words for further work in \hyperref[ch:trabajo-futuro]{Chapter 8}.
+
+% ====================
+%\begin{sidewaysfigure}
+%\centering
+%\input{fig/summary-extended}
+%\end{sidewaysfigure}
+% ====================
+
+\begin{landscape}
+% ====================
+\begin{figure}[H]
+
+\centering
+\raisebox{-15.5cm}[0pt][0pt]{%
+\resizebox{\linewidth}{!}{\input{fig/summary-extended}}
+}
+\end{figure}
+% ====================
+\end{landscape}
+
+\selectlanguage{spanish} 
+\endinput

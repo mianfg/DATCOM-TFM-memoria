@@ -1,0 +1,67 @@
+% !TeX root = ../libro.tex
+% !TeX encoding = utf8
+
+%*******************************************************
+% Little Dirty Titlepage
+%*******************************************************
+
+\thispagestyle{empty}
+
+\begin{center}
+  \large  
+
+  \vspace*{\stretch{1}}
+
+  \begingroup
+  \Large{\varDocumento} \\[18pt]
+  \huge{\varTitulo}
+  \bigskip
+  \endgroup
+
+  \textrm{\miNombre}
+
+  \vspace{\stretch{5}}
+
+\end{center}  
+
+\newpage
+\thispagestyle{empty}
+
+\hfill
+
+\vfill
+
+\textbf{Alumno}\\
+\miNombre
+\medskip
+
+\emph{\varTitulo\\(\varSubtitulo)}\\
+\varDocumento. Curso académico \miCurso
+\bigskip
+
+\begin{minipage}[t]{0.45\textwidth} %0.25
+  \flushleft
+  \textbf{Responsables de tutorización}\\
+  \medskip
+  \miTutor
+\end{minipage}
+\begin{minipage}[t]{0.10\textwidth} %0.25
+  \hspace{1cm}
+\end{minipage}
+%\begin{minipage}[t]{0.45\textwidth}
+%  \flushleft
+%  \miTutor
+%\end{minipage}
+\begin{minipage}[t]{0.45\textwidth} %0.30
+  \flushright
+  \textbf{\miGrado}
+  \medskip
+
+  \miFacultadNoSpace
+  \medskip
+
+  \miUniversidad
+\end{minipage}
+
+\newpage
+\endinput

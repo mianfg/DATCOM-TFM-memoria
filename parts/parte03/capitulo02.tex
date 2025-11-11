@@ -1,0 +1,350 @@
+% !TeX root = ../libro.tex
+% !TeX encoding = utf8
+
+\setchapterpreamble[c][0.75\linewidth]{%
+	\sffamily
+  \emph{Si una ``religión'' se define como un sistema de ideas que contiene afirmaciones indemostrables, entonces Gödel nos enseñó que las matemáticas no sólo son una religión, sino que son la única religión que puede demostrar que lo es.}
+ \begin{flushright} — John D. Barrow, \cite{Barrow2011} \end{flushright}
+% \\[8pt]
+	\par\bigskip
+}
+%\vspace{28pt}
+
+\chapter{El Primer Teorema de Incompletitud}\label{ch:teorema-incompletitud}
+
+Los matemáticos de principios del siglo \textsc{xx}, tal y como Leibniz, Boole y Hilbert, imaginaron que sería posible determinar la veracidad de fórmulas matemáticas de forma automática. Nosotros ahora nos preguntamos lo mismo: hemos trabajado con sistemas lógicos sencillos que son decidibles, es decir, cuyas fórmulas pueden ser comprobadas verdaderas mediante programas. En el caso de sistemas lógicos de más complejidad, como la aritmética de Peano, esto no es posible. Esto se debe a que la existencia de problemas computacionales indecidibles conduce directamente a la existencia de afirmaciones matemáticas no decidibles.
+
+\section{Una primera aproximación}\label{sec:primera-aproximacion}
+
+Antes de proceder la demostración de una primera versión del Primer Teorema de Incompletitud, discutiremos de forma detallada el \cref{lst:godel-peano}. En la \cref{line:godel-peano-import1} importamos la función \texttt{es\_teorema\_peano}, cuya existencia probamos en la \cref{prop:es-teorema-peano-semidecidible}. Recuerda que, como los axiomas de \textbf{Peano} son recursivamente enumerables (es decir, \textbf{Peano} es recursivamente axiomatizable), podemos escribir el programa \texttt{es\_teorema\_peano(fórmula)} que devuelve \palabra{sí} si \texttt{fórmula} es un teorema en \textbf{Peano}, y que no para en caso contrario (ver \cref{prop:es-teorema-peano-semidecidible}).
+\vspace{8pt}
+\begin{lstlisting}[language=Python, caption=\lstinline{godel_peano.py},label={lst:godel-peano}]
+import utilidades
+
+from es_teorema_peano import es_teorema_peano # NO es un oráculo|\label{line:godel-peano-import1}|
+from parada_a_peano import parada_a_peano # NO es un oráculo|\label{line:godel-peano-import2}|
+
+def godel_peano(entrada):|\label{line:godel-peano-main}|
+    programa_godel = utilidades.leer('godel_peano.py')|\label{line:godel-peano-programa}|
+    para_en_peano = parada_a_peano(programa_godel)|\label{line:godel-peano-formula}|
+    no_para_en_peano = 'NO (' + para_en_peano + ')'|\label{line:godel-peano-formulaneg}|
+
+    if es_teorema_peano(no_para_en_peano) == 'sí':|\label{line:godel-peano-es-teorema}|
+        return 'para'|\label{line:godel-peano-para}|
+    else:
+        utilidades.ciclar()|\label{line:godel-peano-cicla}|
+\end{lstlisting}
+
+La \cref{line:godel-peano-import2} importa la función \texttt{parada\_a\_peano}, cuya existencia ya discutimos tras la \cref{prop:parada-a-peano}. Esta función traduce, dado un programa $P$, la afirmación ``$P$ para con entrada vacía'' en una fórmula de \textbf{Peano}.
+
+En la \cref{line:godel-peano-programa} guardamos el propio programa \texttt{godel\_peano.py} en la variable \texttt{programa\_godel}. En la \cref{line:godel-peano-formula} usamos la función \texttt{parada\_a\_peano} recién comentada, y en la \cref{line:godel-peano-formulaneg} negamos la fórmula \texttt{para\_en\_peano}. De este modo:
+\begin{adjustwidth}{30pt}{}
+    \texttt{no\_para\_en\_peano} significa que ``\texttt{godel\_peano.py} no para con entrada vacía'' \hfill $(\star1)$
+\end{adjustwidth}
+Ahora es cuando las cosas se ponen interesantes. Si \texttt{no\_para\_en\_peano} es un teorema, la función \texttt{es\_teorema\_peano} devolverá \palabra{sí}, y de este modo el programa verificará la condición de la \cref{line:godel-peano-es-teorema} y devolverá \palabra{para}, haciendo que el programa pare. Si \texttt{no\_para\_en\_peano} no es un teorema, se entrará en un bucle infinito (\texttt{es\_teorema\_peano} no parará, y por lo tanto tampoco \texttt{godel\_peano.py}). Es claro que la \cref{line:godel-peano-cicla} nunca se ejecutará, pero la incluimos para enfatizar este hecho.
+
+Ahora, nos preguntamos: ¿cuál es el comportamiento de \texttt{godel\_peano.py} con entrada vacía?
+
+\begin{proposicion}\label{prop:godel-peano-no-para}
+El \cref{lst:godel-peano} no para con entrada vacía.
+\end{proposicion}
+\begin{proof}
+Asumimos que \texttt{godel\_peano.py} para con entrada vacía, y entraremos en contradicción. La única forma de que pare es en la \cref{line:godel-peano-para}, algo que ocurre solamente si:
+\begin{adjustwidth}{30pt}{}
+    \texttt{es\_teorema\_peano(no\_para\_en\_peano) == \palabra{sí}} \hfill $(\star2)$
+\end{adjustwidth}
+$(\star2)$ es equivalente a decir que \texttt{no\_para\_en\_peano} es un teorema. Por la solidez de \textbf{Peano}, \texttt{no\_para\_en\_peano} es verdadero.
+
+Pero el hecho de que \texttt{no\_para\_en\_peano} sea verdadero, junto con $(\star1)$, nos dice que \linebreak\texttt{godel\_peano.py} no para con entrada vacía, encontrando la contradicción esperada.
+\end{proof}
+
+Ahora estamos en condiciones de probar el resultado principal de este trabajo.
+
+\begin{teorema}[Incompletitud de la aritmética de Peano]\label{teo:incompletitud-peano}
+\index{primer teorema de incompletitud}\index{teorema de incompletitud}La aritmética de Peano es incompleta: existen fórmulas verdaderas de {\normalfont \textbf{Peano}} que no son teoremas. Concretamente, la fórmula guardada en la variable {\normalfont \texttt{no\_para\_en\_peano}} en la \cref{line:godel-peano-formulaneg} del \cref{lst:godel} es un ejemplo de una fórmula verdadera pero no demostrable (no es un teorema) en {\normalfont \textbf{Peano}}.
+\end{teorema}
+\begin{proof}
+Debemos mostrar que \texttt{no\_para\_en\_peano} es verdadero y no es un teorema.
+
+Para probar que es verdadero, por la \cref{prop:godel-peano-no-para}, sabemos que \texttt{godel\_peano.py} no para con entrada vacía. Recordando $(\star1)$, inmediatamente obtenemos que \texttt{no\_para\_en\_peano} es verdadero.
+
+Para probar que no es un teorema, de nuevo usamos el hecho de que \texttt{godel\_peano.py} no para con entrada vacía. Esto nos indica que, en la \cref{line:godel-peano-es-teorema}, la llamada a la función
+\begin{adjustwidth}{30pt}{}
+    \texttt{es\_teorema\_peano(no\_para\_en\_peano)}
+\end{adjustwidth}
+no puede devolver \palabra{sí}. Pero esto inmediatamente implica que \texttt{no\_para\_en\_peano} no es demostrable, lo que completa la prueba.
+\end{proof}
+
+Acabamos de demostrar que \textbf{Peano} es incompleto, como ya anticipamos en la \cref{tab:sistemas-logicos}. Las consecuencias de este hecho las exploramos en detalle en la \cref{sec:consecuencias}. Sin embargo, paremos un momento a analizar qué es lo que acabamos de probar.
+
+\section{Versión semántica}\label{sec:version-semantica}
+
+Para encontrar una fórmula verdadera y no demostrable, hemos necesitado un sistema lógico que sea, en primer lugar, recursivamente axiomatizable. Si no, no hubiesemos podido crear un programa capaz de saber cuándo una fórmula del sistema es un teorema. Por otra parte, hemos asumido que el sistema es sólido, lo cual es algo esperable. Finalmente, hemos exigido que sea capaz de expresar una cierta afirmación de las máquinas de Turing (véase \cref{prop:parada-a-peano}). Para evitar repeticiones innecesarias en esta última hipótesis, llamaremos a un sistema lógico con esta propiedad ``de tipo Turing'', algo que definimos a continuación.
+
+\begin{definicion}[Sistema de tipo Turing]
+Sea $\mathcal{S}$ un sistema formal. Diremos que $\mathcal{S}$ es \emph{de tipo Turing}\footnote{Esta definición no se encuentra en la literatura: se ha creado por conveniencia.} si puede expresar afirmaciones sobre máquinas de Turing o, equivalentemente, sobre programas;\footnote{La equivalencia la probamos en el \cref{teo:equivalencia}.} en concreto, dada una máquina de Turing $M$, puede expresar que ``$M$ para con entrada vacía''; o, equivalentemente, dado un programa $P$, puede expresar que ``$P$ para con entrada vacía''.
+
+Esta definición se extiende trivialmente para el caso de sistemas lógicos.
+\end{definicion}
+
+Observemos que, sin embargo, en ningún momento hemos utilizado el sistema \textbf{Peano} en sí. Esto nos indica que podríamos realizar esta demostración con otro sistema que no sea \textbf{Peano}, siempre y cuando verifique tales condiciones. Indicamos este resultado a continuación.
+
+\begin{teorema}[Versión semántica del Primer Teorema de Incompletitud]\label{teo:incompletitud-semantica}
+Sea $\mathcal{G}$ un sistema lógico que verifique las siguientes condiciones:
+\begin{enumerate}[label=(\arabic*)]
+    \item $\mathcal{G}$ es sólido.
+    \item $\mathcal{G}$ es recursivamente axiomatizable.
+    \item $\mathcal{G}$ es de tipo Turing.
+\end{enumerate}
+Entonces, $\mathcal{G}$ es incompleto, es decir, existen fórmulas verdaderas de $\mathcal{G}$ que no son teoremas.
+\end{teorema}
+
+Para reforzar este importante resultado, incluimos un resumen del proceso que hemos seguido para \textbf{Peano}, de forma general, en la demostración de este teorema.
+
+\begin{proof}
+En el \cref{lst:godel} importamos dos funciones. Por una parte, en la \cref{line:godel-import1} importamos la función \texttt{es\_teorema\_en\_G}, que comprueba si una fórmula es un teorema en $\mathcal{G}$. Esta función parará si la fórmula es un teorema, y se ejecutará indefinidamente en caso de que no lo sea. La existencia de esta función la garantiza (2).
+
+Por otra, en la \cref{line:godel-import2} importamos la función \texttt{parada\_a\_G} que, dado un programa $P$, convierte la afirmación \emph{``$P$ para con entrada vacía''} en una fórmula de $\mathcal{G}$, algo que es posible por (3).
+
+En la línea \cref{line:godel-formulaneg} tenemos que:
+\begin{adjustwidth}{30pt}{}
+    \texttt{no\_para\_en\_G} significa que \emph{``\texttt{godel.py} no para con entrada vacía''} (en $\mathcal{G}$)  \hfill $(\star3)$
+\end{adjustwidth}
+Si \texttt{no\_para\_en\_G} es un teorema, la función \texttt{es\_teorema\_en\_G(no\_para\_en\_G)} (\cref{line:godel-es-teorema}) parará y devolverá \palabra{sí}, mientras que la misma función ciclará en caso de que no lo sea.
+
+La pregunta que debemos hacernos es: ¿qué le pasa a \texttt{godel.py} cuando \texttt{entrada} es vacía?
+
+Si asumimos que \texttt{godel.py} para con entrada vacía, la única forma de que lo haga es porque en la \cref{line:godel-es-teorema} es \texttt{es\_teorema\_en\_G(no\_para\_en\_G) == \palabra{sí}}, lo cual solo puede pasar si \texttt{no\_para\_en\_G} es un teorema. Pero, por (1), y dado que $\mathcal{G}$ es sólido, tenemos que \texttt{no\_para\_en\_G} es verdadero.
+
+Pero si \texttt{no\_para\_en\_G} es verdadero, por $(\star3)$, esto querría decir que \texttt{godel.py} no para con entrada vacía, entrando en contradicción, por lo que debe ser:
+\begin{adjustwidth}{30pt}{}
+    \texttt{godel.py} no para con entrada vacía  \hfill $(\star4)$
+\end{adjustwidth}
+Comprobamos que \texttt{no\_para\_en\_G} es verdadero pero no es un teorema. En efecto, es verdadero por $(\star4)$. Sin embargo, no es un teorema. Para ello, usamos de nuevo $(\star4)$. El hecho de que \texttt{godel.py} no pare indica que es imposible que la condición de la \cref{line:godel-es-teorema}, \linebreak\texttt{es\_teorema\_en\_G(no\_para\_en\_G) == \palabra{sí}}, se verifique -- en otras palabras, \texttt{no\_para\_en\_G} no es un teorema.
+\end{proof}
+
+\vspace{8pt}
+\begin{lstlisting}[language=Python, caption=\lstinline{godel.py},label={lst:godel}]
+import utilidades
+
+from es_teorema_G import es_teorema_G # NO es un oráculo|\label{line:godel-import1}|
+from parada_a_G import parada_a_G # NO es un oráculo|\label{line:godel-import2}|
+
+def incompleto_semantico(entrada):|\label{line:godel-main}|
+    programa = utilidades.leer('incompleto_semantico.py')|\label{line:godel-programa}|
+    para_en_G = parada_a_G(programa)|\label{line:godel-formula}|
+    no_para_en_G = 'NO (' + para_en_G + ')'|\label{line:godel-formulaneg}|
+
+    if es_teorema_G(no_para_en_G) == 'sí':|\label{line:godel-es-teorema}|
+        return 'para'|\label{line:godel-para}|
+    else:
+        utilidades.ciclar()|\label{line:godel-cicla}|
+\end{lstlisting}
+
+Nuestro resultado nos dice que, si tenemos un sistema lógico que sea recursivamente axiomatizable y de tipo Turing, no podemos esperar que pueda ser sólido y completo al mismo tiempo. Es decir, si todos los teoremas del sistema son verdaderos, siempre podremos encontrar fórmulas del sistema que sean verdaderas pero no sean teoremas.
+
+Podemos aplicar el \cref{teo:incompletitud-semantica} a otros sistemas lógicos, siempre que verifiquen las hipótesis. Uno de ellos es, por ejemplo, el sistema de axiomas de Zermelo-Fraenkl.
+
+\section{Versión sintáctica}\label{sec:version-sintactica}
+
+El resultado que acabamos de probar es semántico. Sin embargo, es posible probar otro resultado, esta vez sintáctico, y más parecido al demostrado por Gödel.
+
+Para poder probar esta variación, debemos de tener en cuenta una sutileza del problema \textsc{EsTeorema} en el caso de sistemas formales sintácticamente consistentes.
+
+\begin{proposicion}\label{prop:es-teorema-consistente-decidible}
+Sea $\mathcal{S}$ un sistema formal recursivamente axiomatizable y sintácticamente consistente. Entonces, $\textsc{EsTeorema}_\mathcal{S}$ es decidible.
+\end{proposicion}
+\begin{proof}
+Veamos que el \cref{lst:es-teorema-s} decide $\textsc{EsTeorema}_\mathcal{S}$. En efecto, vemos en primer lugar que en la \cref{line:es-teorema-s-import} importamos la función \texttt{es\_prueba\_S}, la cual es computable por ser $\mathcal{S}$ recursivamente axiomatizable.
+
+A continuación, en la \cref{line:es-teorema-s-negacion} almacenamos la negación de \texttt{formula} en \texttt{neg\_formula}. En la \cref{line:es-teorema-s-demostracion} declaramos la demostración.
+
+Por ser $\mathcal{S}$ consistente, bien \texttt{formula} bien \texttt{neg\_formula} tiene una demostración. En el bucle de la \cref{line:es-teorema-s-while}, vamos comprobando si \texttt{demostracion} es una demostración de \texttt{formula} o de \texttt{neg\_formula}. En el primer caso, devolvemos \palabra{sí}, mientras que en el segundo, devolvemos \palabra{no}. En caso de que \texttt{demostracion} no sea una demostración de ninguna de ambas fórmulas, procedemos en la \cref{line:es-teorema-s-siguiente-string} a enumerar la siguiente demostración en orden \emph{shortlex} (ver \cref{prop:es-teorema-peano-semidecidible}).
+
+Por la consistencia de $\mathcal{S}$, debe existir una demostración bien de \texttt{formula} o de \texttt{neg\_formula}, por lo que el programa debe parar al llegar a ser \texttt{demostracion} tal demostración.
+\end{proof}
+
+\vspace{8pt}
+
+\begin{lstlisting}[language=Python, caption=\lstinline{es_teorema_S.py},label={lst:es-teorema-s}]
+import utilidades
+from es_prueba_S import es_prueba_S # NO es un oráculo|\label{line:es-teorema-s-import}|
+
+def es_teorema_S(formula):|\label{line:es-teorema-s-main}|
+    negacion_formula = 'NO (' + formula + ')'|\label{line:es-teorema-s-negacion}|
+    demostracion = ''|\label{line:es-teorema-s-demostracion}|
+
+    while True:|\label{line:es-teorema-s-while}|
+        if es_prueba_S(demostracion, formula) == 'sí':|\label{line:es-teorema-s-es-prueba}|
+            return 'sí'
+        if es_prueba_S(demostracion, negacion_formula) == 'sí':
+            return 'no'
+        demostracion = utilidades.siguiente_string(demostracion)|\label{line:es-teorema-s-siguiente-string}|
+\end{lstlisting}
+
+Ahora estamos en condiciones de probar el resultado sintáctico, que dependerá de la no decidibilidad de \textsc{AdivinaConsistente} (\cref{prob:adivina-consistente}). \cite{Aaronson2017}
+
+\pagebreak
+
+\begin{teorema}[Versión sintáctica del Primer Teorema de Incompletitud]\label{teo:incompletitud-sintactica}
+Sea $\mathcal{S}$ un sistema formal que verifique las siguientes condiciones:
+\begin{enumerate}[label=(\arabic*)]
+    \item $\mathcal{S}$ es sintácticamente consistente.
+    \item $\mathcal{S}$ es recursivamente axiomatizable.
+    \item $\mathcal{S}$ es de tipo Turing.
+\end{enumerate}
+Entonces, $\mathcal{S}$ es sintácticamente incompleto, es decir, existen fórmulas $\phi$ de $\mathcal{S}$ tal que ni $\phi$ ni $\neg\phi$ son teoremas.
+\end{teorema}
+\begin{proof}
+Vamos a suponer que $\mathcal{S}$ es sintácticamente completo y veremos que, en tal caso, podríamos decidir \textsc{AdivinaConsistente} (\cref{prob:adivina-consistente}), lo cual entraría en contradicción con la \cref{prop:adivina-consistente-no-decidible}.
+
+Comencemos comentando las funciones importadas. En la \cref{line:adivina-consistente-import-1} importamos la función \texttt{parada\_en\_S}, que traduce para un programa $P$ la afirmación ``$P$ para con entrada vacía'' en una fórmula de $\mathcal{S}$, y cuya existencia garantiza la hipótesis (3). En la \cref{line:adivina-consistente-import-2} importamos la función \texttt{es\_teorema\_S}, que decide el problema $\textsc{EsTeorema}_\mathcal{S}$, y que, por las hipótesis (1) y (2), siempre para (ver \cref{prop:es-teorema-consistente-decidible}) y devuelve \palabra{sí} si la fórmula de entrada es un teorema en $\mathcal{S}$ y \palabra{no} en caso contrario.
+
+En la \cref{line:adivina-consistente-programa-para} usamos la función \texttt{parada\_a\_S} para almacenar en \texttt{programa\_para} la fórmula de $\mathcal{S}$ equivalente a ``\texttt{programa} para con entrada vacía''. En la \cref{line:adivina-consistente-es-teorema}, asignamos a la variable \texttt{es\_teorema} uno de dos valores posibles: \palabra{sí} o \palabra{no}, como ya comentamos anteriormente.
+
+Llegado a la \cref{line:adivina-consistente-si}, implementamos la siguiente lógica:
+\begin{itemize}
+    \item Si \texttt{programa} acepta con entrada vacía (para y devuelve \palabra{sí}), la condición de la \cref{line:adivina-consistente-si} se verificará, así como la de la \cref{line:adivina-consistente-si-si}, y \texttt{adivina\_consistente.py} devolverá \palabra{sí}.
+    \item Si \texttt{programa} rechaza con entrada vacía (para y devuelve \palabra{no}, la condición de la \cref{line:adivina-consistente-si} se verificará, mientras que no la de la \cref{line:adivina-consistente-si-si}, y \texttt{adivina\_consistente.py} devolverá \palabra{no}.
+    \item Si \texttt{programa} cicla con entrada vacía, la condición de la \cref{line:adivina-consistente-si} no se verificará, y \texttt{adivina\_consistente.py} devolverá \palabra{no}.
+\end{itemize}
+Dicha lógica hace evidente que el programa decide \textsc{AdivinaConsistente}.
+\end{proof}
+
+\begin{lstlisting}[language=Python, caption=\lstinline{adivina_consistente.py},label={lst:adivina-consistente}]
+import utilidades
+from parada_a_S import parada_a_S # NO es un oráculo|\label{line:adivina-consistente-import-1}|
+from es_teorema_S import es_teorema_S # NO es un oráculo|\label{line:adivina-consistente-import-2}|
+
+def adivina_consistente(programa):|\label{line:adivina-consistente-main}|
+    programa_para = parada_a_S(programa)|\label{line:adivina-consistente-programa-para}|
+
+    es_teorema = es_teorema_S(programa_para)|\label{line:adivina-consistente-es-teorema}|
+
+    if es_teorema == 'sí':|\label{line:adivina-consistente-si}|
+        salida = maquina_universal(programa, '')|\label{line:adivina-consistente-universal}|
+        if salida == 'sí':|\label{line:adivina-consistente-si-si}|
+            return 'sí'
+        else:|\label{line:adivina-consistente-si-no}|
+            return 'no'
+    else:|\label{line:adivina-consistente-no}|
+        return 'no'
+\end{lstlisting}
+
+Hemos probado dos versiones del Primer Teorema de Incompletitud. Resumimos las diferencias entre ambas a continuación.
+\vspace{8pt}
+\begin{figure}[H]
+$$
+\begin{array}{ccc}
+    {
+        \begin{matrix}
+            \text{\textbf{versión semántica}} \\
+            \text{\small{(\cref{teo:incompletitud-semantica})}}\\
+            \small{\;}
+        \end{matrix}
+    }
+    & \;\;\; &
+    {
+        \begin{matrix}
+            \text{\textbf{versión sintáctica}} \\
+            \text{\small{(\cref{teo:incompletitud-sintactica})}}\\
+            \small{\;}
+        \end{matrix}
+    }
+    \\
+    {
+        \begin{matrix}
+            \mathcal{G}\text{ sistema lógico}\\
+            \text{rec. axiom., de tipo Turing}\\
+            \text{y sólido} \\
+            \small{\phi \text{ teorema} \Rightarrow \phi\text{ verdadero}}\\
+            \tiny{\;}
+        \end{matrix}
+    }
+    &  & 
+    {
+        \begin{matrix}
+            \mathcal{S}\text{ sistema formal}\\
+            \text{rec. axiom., de tipo Turing}\\
+            \text{y sintácticamente consistente} \\
+            \small{\nexists \phi : \phi\text{ y }\neg\phi \text{ son teoremas}}\\
+            \tiny{\;}
+        \end{matrix}
+    } \\
+    \Huge{\Downarrow} & & \Huge{\Downarrow} \\
+    {
+        \begin{matrix}
+            \tiny{\;}\\
+            \mathcal{G}\text{ no (semánticamente) completo}\\
+            \small{\exists\phi:\phi\text{ es verdadero y no es teorema}}
+        \end{matrix}
+    }
+    & &
+    {
+        \begin{matrix}
+            \tiny{\;}\\
+            \mathcal{S}\text{ no sintácticamente completo}\\
+            \small{\exists\phi:\text{ni }\phi\text{ ni }\neg\phi\text{ son teoremas}}
+        \end{matrix}
+    }
+    \\
+\end{array}
+$$
+\caption{Comparativa entre las dos versiones del Primer Teorema de Incompletitud}
+\vspace{-8pt}
+\label{fig:comparativa-incompletitud}
+\end{figure}
+
+La demostración original de Gödel es puramente sintáctica, y muy parecida a la probada en el \cref{teo:incompletitud-sintactica}. La enunciamos a continuación.
+
+\begin{teorema}[Primer Teorema de Incompletitud de Gödel-Rosser]\label{teo:incompletitud-godel}
+Sea $\mathcal{S}$ un sistema formal que verifique las siguientes condiciones:
+\begin{enumerate}[label=(\arabic*)]
+    \item $\mathcal{S}$ es sintácticamente consistente.
+    \item $\mathcal{S}$ es recursivamente axiomatizable.
+    \item $\mathcal{S}$ contiene una cierta cantidad de aritmética elemental.
+\end{enumerate}
+
+Entonces, $\mathcal{S}$ es sintácticamente incompleto, es decir, hay fórmulas $\phi$ de $\mathcal{S}$ de modo que ni $\phi$ ni $\neg\phi$ son teoremas.
+\end{teorema}
+
+Tal y como en nuestra versión sintáctica, requerimos que el sistema sea sintácticamente consistente y recursivamente axiomatizable. El teorema original de Gödel exigía como hipótesis una forma más fuerte de consistencia sintáctica llamada \emph{$\omega$-consistencia}. Esta forma más general del teorema se debe al trabajo de John B. Rosser, autor del hoy conocido como \emph{truco de Rosser}.\footnote{Es por ello por lo que lo llamamos teorema de ``Gödel-Rosser'', para distinguirlo del resultado original de Gödel.} \cite{Rosser1936}
+
+La tercera hipótesis exige que el sistema sea capaz de probar ciertas afirmaciones de aritmética elemental. Esto se debe a que Gödel pretendía probar que la teoría de números no era axiomatizable (ver \cref{ch:historia}), por lo que usó en su demostración una forma de numerar los teoremas que hoy en día se conoce como \emph{numeración de Gödel}.
+
+
+\section{Consecuencias}\label{sec:consecuencias}
+
+El Primer Teorema de Incompletitud tiene profundas implicaciones matemáticas y filosóficas.
+
+\subsection{Relación con el segundo problema de Hilbert}\label{subsec:segundo-problema-hilbert}
+
+Ya introdujimos en el \cref{ch:historia} los célebres problemas de Hilbert, y en concreto, el segundo de ellos, que volveremos a referenciar a continuación:
+
+\begin{enumerate}[label=(\arabic*)]
+    \item ¿Son completas las matemáticas? Esto es, ¿puede probarse o no cada sentencia matemática?
+    \item ¿Son consistentes las matemáticas? Esto es, ¿no es posible probar simultáneamente una afirmación y su negación?
+    \item ¿Son decidibles las matemáticas? Esto es, ¿existe un método automático que pueda aplicarse a cualquier afirmación matemática, y que determine si es cierta? Este problema se conoce como \emph{Entscheidungsproblem}.\index{Entscheidungsproblem}
+\end{enumerate}
+
+Es necesario puntualizar que la formulación de Hilbert de este problema es relativa a la aritmética. Es claro que, para tal caso, el \cref{teo:incompletitud-godel} nos garantiza la existencia de fórmulas no demostrables, respondiendo negativamente a (1) \cite{Hellman1981}. Por otra parte, en la \cref{prop:es-teorema-consistente-decidible} probamos que \textbf{Peano}, un sistema de aritmética, es no decidible, probando que la respuesta a la pregunta (3) es negativa. La pregunta (2) queda fuera del objeto de este trabajo.
+
+Sin embargo, es interesante ver estas preguntas sin necesidad de limitarnos a la aritmética. Hemos introducido los sistemas lógicos justamente para poder formalizar el concepto de verdad y demostración, que son el alma de las matemáticas.
+
+Podremos encontrar respuestas análogas para sistemas formales recursivamente enumerables y de tipo Turing. En tal caso, el \cref{teo:incompletitud-sintactica} responde negativamente a la pregunta (1), mientras que una generalización de la \cref{prop:es-teorema-peano-no-decidible} (similar a la que hicimos en el \cref{teo:incompletitud-semantica} a partir del \cref{teo:incompletitud-peano}) nos permite responder negativamente a la pregunta (3).
+
+\subsection{Relación con la mente humana y con la tesis de Church-Turing}\label{subsec:mente-humana-tesis-church-turing}
+
+Algunos autores entran en conclusiones mucho más epistemológicas, y que conciernen a la mente humana. Roger Penrose y John Lucas \cite{Penrose1989, Lucas1961} argumentan que el papel de la conciencia es no algorítmico cuando formamos juicios matemáticos, pudiendo generalizarlo al papel de la conciencia humana.
+
+Para ello, los autores comentan que en cualquier sistema formal existen proposiciones indemostrables, esto es, para las que su algoritmo no puede proporcionar una respuesta. Si el funcionamiento de la mente humana fuese completamente algorítmico, entonces el algoritmo (o sistema formal) que utilice para formar sus juicios no podría tratar tal proposición. Sin embargo, la mente humana puede deducir que tal proposición es verdadera. Esta contradicción nos puede indicar que la mente humana, en cuanto al razonamiento matemático, no estaba utilizando un algoritmo en primer lugar.
+
+Douglas Hofstadter \cite{Hofstadter1999, Hofstadter2007} presenta los teoremas de Gödel como un ejemplo de ``extraño bucle'', una estructura jerárquica y autoreferencial que existe en un sistema formal. Argumenta que esta es la misma estructura que origina la conciencia, el sentido del ``yo'', en la mente humana: la autoreferencia proviene de la forma en que el cerebro abstrae y categoriza los estímulos en ``símbolos'', o grupos de neuronas, que corresponden a conceptos, en lo que es de facto un sistema formal, que eventualmente forma símbolos que corresponden a la propia entidad que realiza la percepción. 
+
+La diferencia entre las matemáticas y la conciencia reside, según Hofstdadter, en el sentido en el que se realiza el razonamiento: si es ``hacia arriba'' o ``hacia abajo''., desde los axiomas hacia las proposiciones y teoremas más complejas, o ``hacia abajo'', en el sentido contrario.
+
+Las matemáticas funcionan hacia arriba: para derivar si una fórmula es un teorema debemos partir de los axiomas e ir razonando hasta llegar a ella. La mente humana, según el físico, funciona a hacia abajo, desde un nivel más alto --de deseos, conceptos, personalidades, ideas y pensamientos-- hasta el nivel más bajo de interacciones entre neuronas e incluso partículas fundamentales. Los seres humanos estamos hechos para percibir ``cosas grandes'' en lugar de ``cosas pequeñas'', incluso a pesar de que en el dominio de lo pequeño parece residir el motor de la realidad.
+
+Ambos argumentos están íntimamente relacionados con la tesis de Church-Turing (véase la \cref{sec:church-turing}). Si la mente humana es una máquina de Turing, todos los procedimientos de nuestro cerebro no serían más que algoritmos, y mediante los teoremas de Gödel, nuestra forma de razonar sería limitada --¡existen afirmaciones que no podemos demostrar!--. Esto puede inducir en conclusiones más fantásticas, hablando algunos autores de que los teoremas de Gödel, aunque no permitan probarlo, son una fuerte evidencia de la existencia de dios.\footnote{No existe consenso respecto si esto es cierto, pero es sencillo argumentar los fallos de este razonamiento (véase \cite{StanfordGodel2022}).} \cite{StanfordGodel2022}
+
+\endinput
