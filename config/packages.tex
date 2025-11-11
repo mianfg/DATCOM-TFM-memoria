@@ -1,0 +1,121 @@
+% !TeX root = ../main.tex
+% !TeX encoding = utf8
+%
+% PACKAGE LOADING
+% This file loads all packages used in the document.
+% Organized by category for clarity.
+
+% =============================================================================
+% ENCODING AND LANGUAGE
+% =============================================================================
+\usepackage[utf8]{inputenc}
+
+% Language configuration: English and Spanish (Spanish is default)
+% Switch languages with: \selectlanguage{english} or \selectlanguage{spanish}
+\usepackage[english, spanish, es-nodecimaldot, es-noindentfirst, es-tabla]{babel}
+\selectlanguage{spanish}
+
+% Options:
+%   es-nodecimaldot: Keep decimal point (not comma) in math mode
+%   es-noindentfirst: Don't indent paragraphs after titles
+%   es-tabla: Use "Tabla" instead of "Cuadro" for table environment
+
+\unaccentedoperators % Remove accents from math operators (\lim, \max, etc.)
+
+% =============================================================================
+% MATHEMATICS
+% =============================================================================
+\usepackage{amsmath, amsthm, amssymb, etoolbox, thmtools}
+\usepackage{mathtools}
+\mathtoolsset{showonlyrefs=true}  % Only number equations that are referenced
+\usepackage[mathscr]{eucal}       % \mathscr for script fonts (keeps \mathcal)
+
+% =============================================================================
+% TYPOGRAPHY
+% =============================================================================
+\usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,factor=1100,stretch=10,shrink=10]{microtype}
+
+% Font selection (UGR style guide):
+%   Normal font:      URW Palladio
+%   Sans-serif font:  Gill Sans (Cabin)
+%   Monospace font:   Inconsolata
+\usepackage[LGR, T1]{fontenc}
+\usepackage[sc, osf]{mathpazo}
+\linespread{1.05}
+\usepackage[scaled=.95,type1]{cabin}
+% Alternative if cabin fails: \renewcommand{\sfdefault}{iwona}
+\usepackage{inconsolata}
+
+% List formatting
+\usepackage{enumitem}
+\setitemize{itemsep=4pt,topsep=4pt,parsep=4pt,partopsep=0pt}
+
+% Other typography packages
+\usepackage{setspace}
+\usepackage{changepage}   % for adjustwidth environment
+
+% =============================================================================
+% TABLES AND FIGURES
+% =============================================================================
+\usepackage{booktabs}
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\hsize=#1\hsize\RaggedRight} X}
+
+\usepackage{caption}
+\usepackage{float}
+\usepackage{rotating}
+\usepackage{stfloats,framed}
+
+% =============================================================================
+% GRAPHICS AND DIAGRAMS
+% =============================================================================
+\usepackage{xcolor, graphicx}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+\usepackage{svg}
+\usepackage{pdflscape}
+\usepackage{mathabx}
+
+% Set default image directory
+\graphicspath{{img/}}
+
+% =============================================================================
+% CODE LISTINGS
+% =============================================================================
+\usepackage{listings}
+\usepackage{lstautogobble}
+\usepackage{zi4}
+
+% =============================================================================
+% CUSTOM FLOATS
+% =============================================================================
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[listname={Índice de problemas},placement=H]{problema}
+\DeclareFloatingEnvironment[listname={Índice de tablas},placement=H]{tabla}
+
+% =============================================================================
+% UTILITIES
+% =============================================================================
+\usepackage{dirtree}
+\usepackage{xspace}  % Smart spacing for custom commands
+
+% =============================================================================
+% INDEX
+% =============================================================================
+\usepackage{makeidx}
+\makeindex
+
+% =============================================================================
+% BIBLIOGRAPHY
+% =============================================================================
+\usepackage[style=apa,backend=biber,sorting=nty,citestyle=numeric]{biblatex}
+\addbibresource{references.bib}
+
+% =============================================================================
+% HYPERREF AND CROSS-REFERENCES (Load these last!)
+% =============================================================================
+% Note: hyperref configuration is in config/hyperref.tex
+% It must be loaded after all other packages
+\usepackage{xurl}
+\usepackage[noabbrev,capitalize,nameinlink]{cleveref}
+

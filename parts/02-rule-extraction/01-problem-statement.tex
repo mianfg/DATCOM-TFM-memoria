@@ -1,0 +1,53 @@
+% !TeX root = ../../main.tex
+% !TeX encoding = utf8
+
+\chapter{Problem statement}\label{ch:problem-statement}
+
+\section{Overview}
+
+The challenge is to automatically generate monitoring rules that can detect abnormal conditions in industrial plants. These rules must be derived from heterogeneous sources including:
+
+\begin{itemize}
+    \item Sensor functional descriptions
+    \item Piping and Instrumentation Diagrams (P\&IDs)
+    \item Technical documentation and manuals
+    \item Historical maintenance records
+\end{itemize}
+
+\section{Input data}
+
+\subsection{Sensor specifications}
+
+Sensor documentation typically includes information about measurement range, accuracy, response time, and intended operating conditions.
+
+\subsection{P\&ID diagrams}
+
+P\&IDs provide visual representations of the process flow, equipment connections, and instrumentation layout. Extracting semantic information from these diagrams requires both image processing and domain knowledge.
+
+\subsection{Domain knowledge}
+
+Expert knowledge about normal operating conditions, safety constraints, and process relationships is often implicit in documentation and must be elicited.
+
+\section{Expected outputs}
+
+The system should generate rules in a format suitable for condition monitoring systems. These rules should:
+
+\begin{itemize}
+    \item Be interpretable by human operators
+    \item Capture both simple threshold violations and complex multi-sensor relationships
+    \item Include confidence scores or uncertainty estimates
+    \item Be validated against known operational scenarios
+\end{itemize}
+
+\section{Challenges}
+
+Key challenges include:
+
+\begin{itemize}
+    \item \textbf{Data heterogeneity:} Combining structured and unstructured data sources
+    \item \textbf{Domain specificity:} Different plants have unique configurations and requirements
+    \item \textbf{Validation:} Ensuring generated rules are correct and safe
+    \item \textbf{Hallucination:} Preventing LLMs from generating plausible but incorrect rules
+    \item \textbf{Explainability:} Understanding how rules were derived for operator trust
+\end{itemize}
+

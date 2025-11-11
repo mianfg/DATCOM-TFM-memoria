@@ -1,0 +1,86 @@
+% !TeX root = ../main.tex
+% !TeX encoding = utf8
+%
+% HYPERREF CONFIGURATION
+% This file must be loaded AFTER all other packages
+% Configures PDF metadata and cross-reference styling
+
+% =============================================================================
+% HYPERREF SETUP
+% =============================================================================
+\usepackage{hyperref}
+\hypersetup{%
+  % hidelinks,              % Uncomment for no colored links (print version)
+  linkbordercolor=0.8 0 0,
+  citebordercolor=0 0.8 0,
+  colorlinks = true,        % Comment out or set to false for print version
+  linkcolor = [rgb]{0.5, 0, 0},   % Internal links (red)
+  urlcolor = [rgb]{0, 0, 0.5},    % URLs (blue)
+  citecolor = [rgb]{0, 0.5, 0},   % Citations (green)
+	pdftitle={\varDocumento},%
+	pdfauthor={\textcopyright\ \miNombre, \miFacultad, \miUniversidad},%
+  pdfsubject={\varDocumento},%
+	pdfkeywords={},%
+	pdfcreator={pdfLaTeX},%
+}
+
+% Alternative hypersetup (more complete)
+\hypersetup{
+  pdfauthor={Fernández Gutiérrez, Miguel Ángel},
+  pdftitle={\varDocumento},
+  pdfsubject={\varDocumento — \miGrado — Curso \miCurso},
+  pdfkeywords={TFM, ciencia de datos},
+  pdfproducer=mianfg,
+  pdfcreator=pdflatex,
+  breaklinks=true
+}
+
+% =============================================================================
+% CLEVEREF CONFIGURATION (Spanish names)
+% =============================================================================
+\crefname{section}{sección}{secciones}
+\Crefname{section}{sec.}{secs.}
+\crefname{chapter}{capítulo}{capítulos}
+\Crefname{chapter}{cap.}{caps.}
+\crefname{part}{parte}{partes}
+\Crefname{part}{parte}{partes}
+
+\crefname{programa}{programa}{programas}
+\Crefname{programa}{Programa}{Programas}
+\crefname{problema}{problema}{problemas}
+\Crefname{problema}{Problema}{Problemas}
+\crefname{ejemplo}{ejemplo}{ejemplos}
+\Crefname{ejemplo}{Ejemplo}{Ejemplos}
+\crefname{proposicion}{proposición}{proposiciones}
+\Crefname{proposicion}{prop.}{props.}
+\crefname{lema}{lema}{lemas}
+\Crefname{lema}{Lema}{Lemas}
+\crefname{corolario}{corolario}{corolarios}
+\Crefname{corolario}{Corolario}{Corolarios}
+\crefname{teorema}{teorema}{teoremas}
+\Crefname{teorema}{Teorema}{Teoremas}
+\crefname{programa}{programa}{programas}
+\Crefname{programa}{Programa}{Programas}
+\crefname{definicion}{definición}{definiciones}
+\Crefname{definicion}{Definición}{Definiciones}
+\crefname{figure}{figura}{figuras}
+\Crefname{figure}{Figura}{Figuras}
+\crefname{tabla}{tabla}{tablas}
+\Crefname{tabla}{Tabla}{Tablas}
+\crefname{appendix}{apéndice}{apéndices}
+\Crefname{appendix}{Apéndice}{Apéndices}
+\crefname{listing}{programa}{programas}
+\Crefname{listing}{Programa}{Programas}
+\crefname{line}{línea}{líneas}
+\Crefname{line}{Línea}{Líneas}
+\crefname{page}{página}{páginas}
+\Crefname{page}{pág.}{págs.}
+\crefname{sistemalogico}{sistema lógico}{sistemas lógicos}
+\Crefname{sistemalogico}{Sistema Lógico}{Sistemas Lógicos}
+\crefname{sistemaformal}{sistema formal}{sistemas formales}
+\Crefname{sistemaformal}{Sistema Formal}{Sistemas Formales}
+
+% Conjunctions for multiple references
+\newcommand{\crefpairconjunction}{ y }
+\newcommand{\crefrangeconjunction}{ a }
+

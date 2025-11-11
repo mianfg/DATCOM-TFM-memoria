@@ -1,37 +1,11 @@
-% !TeX root = ../main.tex
+% !TeX root = ../../main.tex
 % !TeX encoding = utf8
 
-\setpartpreamble[c][0.75\linewidth]{%
-    \bigskip
-    (WIP) Introduction to the problem and state of the art
-}
-\part{Rule extraction}\label{part:rule-extraction}
+\chapter{State of the art}\label{ch:state-of-the-art}
 
-% ==========
+\section{Rule generation}
 
-\chapter{Problem statement}\label{ch:problem-statement}
-
-(WIP)
-
-% ==========
-
-\chapter{Implementation}\label{ch:implementation}
-
-(WIP: use iterative approach)
-
-\section{First approach}
-
-\section{Fine-tuning}
-
-\section{Retrieval Augmented Generation (RAG)}
-
-\section{Extract methods instead of rules}
-
-\section{Direct Preference Optimization (DPO)}
-
-\section{Improve diagram parsing}
-
-\section{Other }
+The first goal of this work is to automatically generate rules that describe plant conditions, utilizing functional descriptions of sensors, Piping and Instrumentation Diagrams (P\&IDs), and other internal documentation. This involves leveraging Large Language Models (LLMs) to interpret complex engineering information and translate it into actionable rules for condition monitoring, anomaly detection, or predictive maintenance.
 
 \subsection{Role of LLMs}
 
@@ -64,7 +38,7 @@ The ``gold standard'' for assessing LLM performance is considered to be human ev
 
 Another approach is to understand \emph{how} LLMs arrive at their decisions. Language-Based Explanations (LBEs) can leverage their natural language processing capabilities to translate their decision-making into text, making their outputs more understandable and increasing transparency \cite{brown_enhancing_2024}. Chain-of-Thought (CoT) prompting is used to encourage LLMs to ``show their work'' by generating intermediate reasoning steps, enhancing explainability and reliability \cite{wip}.
 
-Finally, confidence elicitation can be used by prompting LLMs to explicitly state their confidence level alongside their answers. Frameworks like SteerConf \cite{zhou_steerconf_2025} calibrate the model's responses by ``steering'' the model's confidence scores (e.g., to be ``very catious'' or ``confident''). This helps calibrate the reported confidence. Consistency in confidence scores across different steering levels indicates higher certainty.
+Finally, confidence elicitation can be used by prompting LLMs to explicitly state their confidence level alongside their answers. Frameworks like SteerConf \cite{zhou_steerconf_2025} calibrate the model's responses by ``steering'' the model's confidence scores (e.g., to be ``very cautious'' or ``confident''). This helps calibrate the reported confidence. Consistency in confidence scores across different steering levels indicates higher certainty.
 
 \subsection{Reinforcement Learning / Human in the Loop}
 
@@ -76,5 +50,17 @@ Other methods include Direct Preference Optimization (DPO) and In-Context Learni
 
 \section{Survival prediction}
 
+Survival analysis is a statistical method for analyzing time-to-event data, commonly used in reliability engineering and prognostics. The goal is to predict when an event (such as equipment failure) will occur based on historical data and current system conditions.
 
-\endinput
+\subsection{Traditional approaches}
+
+Classical survival analysis methods include Cox proportional hazards models, Kaplan-Meier estimators, and parametric survival models. However, these traditional approaches often struggle with high-dimensional data and complex non-linear relationships.
+
+\subsection{Deep learning for survival analysis}
+
+Recent advances in deep learning have shown promise in improving survival predictions. Deep learning models can handle high-dimensional inputs and capture complex patterns in the data \cite{wiegrebe_deep_2024}. These methods have been applied to remaining useful life (RUL) estimation in prognostics \cite{zhang_multiobjective_2017}, where the goal is to predict how much longer a system will operate before failure.
+
+\subsection{Challenges}
+
+Key challenges in survival prediction include handling censored data (where the event has not yet occurred for some observations), dealing with imbalanced datasets, and ensuring model interpretability in safety-critical applications.
+

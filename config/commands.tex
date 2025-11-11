@@ -1,0 +1,118 @@
+% !TeX root = ../main.tex
+% !TeX encoding = utf8
+%
+% CUSTOM COMMANDS AND ENVIRONMENTS
+% Define custom commands, theorem environments, and macros
+
+% =============================================================================
+% NUMBER SETS
+% =============================================================================
+\newcommand{\N}{\mathbb{N}}     % Natural numbers
+\newcommand{\R}{\mathbb{R}}     % Real numbers
+\newcommand{\Z}{\mathbb{Z}}     % Integers
+\newcommand{\Q}{\mathbb{Q}}     % Rational numbers
+\newcommand{\C}{\mathbb{C}}     % Complex numbers
+
+% =============================================================================
+% THEOREM ENVIRONMENTS
+% =============================================================================
+\newtheorem*{teorema*}{Teorema}
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{proposicion}{Proposición}[chapter]
+\newtheorem{lema}{Lema}[chapter]
+\newtheorem{corolario}{Corolario}[chapter]
+
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}[chapter]
+\newtheorem{ejemplo}{Ejemplo}[chapter]
+\newtheorem{sistemaformal}{Sistema formal}[chapter]
+\newtheorem{sistemalogico}[sistemaformal]{Sistema lógico}
+
+\theoremstyle{remark}
+\newtheorem{observacion}{Observación}[chapter]
+\newtheorem{nota}{Nota}[definicion]
+
+% =============================================================================
+% CUSTOM UTILITY COMMANDS
+% =============================================================================
+% Visible space character
+\newcommand\Vtextvisiblespace[1][.3em]{%
+\mbox{\kern.06em\vrule height.3ex}%
+\vbox{\hrule width#1}%
+\hbox{\vrule height.3ex}}
+
+% Turing machine head indicator
+\newcommand{\cabezal}[1]{\overset{\blacktriangledown}{#1}}
+
+% Format for word/string literals
+\newcommand{\palabra}[1]{\texttt{\textquotesingle{}{#1}\textquotesingle{}}}
+
+% =============================================================================
+% CUSTOM PART PREAMBLE COMMAND
+% =============================================================================
+% Simplifies part preamble creation - no more repetition!
+% Usage: \createpart[preamble text]{Part Title}{part:label}
+\newcommand{\createpart}[3][]{%
+    \ifx&#1&%
+        % No preamble provided
+        \part{#2}\label{#3}%
+    \else%
+        % Preamble provided
+        \setpartpreamble[c][0.75\linewidth]{%
+            \bigskip
+            #1%
+        }%
+        \part{#2}\label{#3}%
+    \fi%
+}
+
+% =============================================================================
+% CUSTOM PROOF ENVIRONMENT
+% =============================================================================
+\makeatletter
+\newenvironment{proofw}{\par
+\pushQED{\qed}%
+\normalfont \topsep6\p@\@plus6\p@\relax
+\trivlist
+\item[]\ignorespaces
+}{%
+\popQED\endtrivlist\@endpefalse
+}
+\makeatother
+
+% =============================================================================
+% LIST OF THEOREMS CONFIGURATION
+% =============================================================================
+\makeatletter
+\def\ll@definicion{%
+\protect\numberline{\csname the\thmt@envname\endcsname}%
+\ifx\@empty\thmt@shortoptarg
+  \thmt@thmname
+\else
+  \thmt@shortoptarg
+\fi}
+\def\l@thmt@definicion{} 
+\makeatother
+
+\makeatletter
+\def\ll@sistemaformal{%
+\protect\numberline{\csname the\thmt@envname\endcsname}%
+\ifx\@empty\thmt@shortoptarg
+  \thmt@thmname
+\else
+  \thmt@shortoptarg
+\fi}
+\def\l@thmt@sistemaformal{} 
+\makeatother
+
+\makeatletter
+\def\ll@sistemalogico{%
+\protect\numberline{\csname the\thmt@envname\endcsname}%
+\ifx\@empty\thmt@shortoptarg
+  \thmt@thmname
+\else
+  \thmt@shortoptarg
+\fi}
+\def\l@thmt@sistemalogico{} 
+\makeatother
+
