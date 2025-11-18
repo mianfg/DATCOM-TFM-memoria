@@ -38,13 +38,13 @@
 % Font selection (UGR style guide):
 %   Normal font:      URW Palladio
 %   Sans-serif font:  Gill Sans (Cabin)
-%   Monospace font:   Inconsolata
+%   Monospace font:   Inconsolata (loaded via zi4 below)
 \usepackage[LGR, T1]{fontenc}
 \usepackage[sc, osf]{mathpazo}
 \linespread{1.05}
 \usepackage[scaled=.95,type1]{cabin}
 % Alternative if cabin fails: \renewcommand{\sfdefault}{iwona}
-\usepackage{inconsolata}
+% Note: inconsolata loaded via zi4 package for code listings
 
 % List formatting
 \usepackage{enumitem}
@@ -112,10 +112,8 @@
 \addbibresource{references.bib}
 
 % =============================================================================
-% HYPERREF AND CROSS-REFERENCES (Load these last!)
+% CROSS-REFERENCE UTILITIES
 % =============================================================================
-% Note: hyperref configuration is in config/hyperref.tex
-% It must be loaded after all other packages
 \usepackage{xurl}
-\usepackage[noabbrev,capitalize,nameinlink]{cleveref}
+% Note: cleveref must be loaded AFTER hyperref (see config/hyperref.tex)
 
