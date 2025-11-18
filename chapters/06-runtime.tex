@@ -1,0 +1,101 @@
+% =============================================================================
+% CHAPTER 6: OPERATIONAL RUNTIME & DYNAMIC VERIFICATION
+% =============================================================================
+
+\chapter{Operational Runtime \& Dynamic Verification}\label{operational-runtime-dynamic-verification}
+
+\emph{Chapter 5 gave us static Python functions. Chapter 6 describes the
+``Virtual Machine'' we built to run them safely and efficiently on
+streaming data} \emph{Chapter 5: theoretical extraction, Chapter 6:
+operational utility}
+
+\section{6.1. The Execution Challenge}\label{the-execution-challenge}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The Problem:} LLMs generate ``naive'' logic (with
+  \texttt{status.get()} abstraction). In standard Pandas, this
+  recalculates the whole window every tick (\(O(N)\)) .
+\item
+  \textbf{The Constraint:} Industrial systems cannot afford \(O(N)\)
+  latency. We need \(O(1)\).
+\item
+  \textbf{Hypothesis:} By mapping the extracted
+  \texttt{status.get(time\_expr)} calls to an incremental learning
+  framework (River), we can achieve constant-time evaluation regardless
+  of window size.
+\end{itemize}
+
+\section{6.2. Architecture of the Rule
+Engine}\label{architecture-of-the-rule-engine}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Component 1: The \texttt{RuleChecker} Container:}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Explain how it compiles the text-based Python rules from Chapter 5
+    into executable functions (\texttt{\_compile\_rules}).
+  \item
+    Discuss error boundaries: If one rule crashes, the engine keeps
+    running (Fault Tolerance).
+  \end{itemize}
+\item
+  \textbf{Component 2: The \texttt{BufferedStatus} State Manager:}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Explain the \texttt{extract\_requirements\_from\_rules} Logic:
+    Pre-scanning the AST to allocate memory buffers \emph{before} the
+    stream starts.
+  \item
+    \textbf{Innovation:} Detail \texttt{\_create\_river\_stat} factory.
+    Show how we map ``natural language statistics'' to
+    \texttt{river.stats.RollingMean}, \texttt{river.stats.RollingVar},
+    etc.
+  \end{itemize}
+\end{itemize}
+
+\section{\texorpdfstring{6.3. Efficient Temporal Resolution (\(O(1)\)
+Complexity)}{6.3. Efficient Temporal Resolution (O(1) Complexity)}}\label{efficient-temporal-resolution-o1-complexity}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The \texttt{River} Integration:}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Explain the math behind Welford's Algorithm (used by River) to
+    update Variance/StdDev with just the \emph{new} point and the
+    \emph{old} point, rather than re-reading the whole list.
+  \item
+    \textbf{Code Highlight:} Reference \texttt{BufferedStatus.update()}
+    and \texttt{\_get\_interval\_stat()} methods.
+  \item
+    \textbf{Benefit:} Demonstrating that a rule checking ``Last 24
+    hours'' takes the exact same compute time as a rule checking ``Last
+    5 minutes.''
+  \end{itemize}
+\end{itemize}
+
+\section{6.4. Event Sinking and
+Explanations}\label{event-sinking-and-explanations}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Handling Triggers:} Describe the \texttt{RuleEvent} data
+  class.
+\item
+  \textbf{Metadata Preservation:} How the \texttt{rule\_description}
+  extracted by the LLM travels with the event to the operator dashboard
+  (The \texttt{\_explain\_trigger} method).
+\end{itemize}
+

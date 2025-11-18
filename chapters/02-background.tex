@@ -1,0 +1,91 @@
+% =============================================================================
+% CHAPTER 2: BACKGROUND AND STATE OF THE ART
+% =============================================================================
+
+\chapter{Background and State of the Art}\label{background-and-state-of-the-art}
+
+\section{Anomaly Detection in Industrial Processes}\label{anomaly-detection-in-industrial-processes}
+
+\begin{itemize}
+\tightlist
+\item
+  Traditional, data-driven approaches (statistical, ML-based)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Popular, but lacks interpretability and requires massive historical
+    failure data (which is rare in safe plants)
+  \end{itemize}
+\item
+  Rule extraction-based approaches (knowledge-driven) instead of
+  statistical/ML: generate explainable rules
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Role of domain knowledge
+  \end{itemize}
+\item
+  \textbf{Gap}: Automated rule extraction from documentation
+\end{itemize}
+
+\section{Knowledge Extraction (IE)}\label{knowledge-extraction-ie}
+
+\begin{itemize}
+\tightlist
+\item
+  Traditional ML-based approach for knowledge extraction: ontology
+  learning, relation extraction
+\item
+  Limitations for complex rule extraction
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Traditional NLP (spacy, regex) fails on nested logic and implicit
+    content
+  \item
+    Current IE systems extract facts (Subject-Predicate-Object), but
+    rarely extract procedures or executable logic (If-Then-Else), or too
+    strict
+  \end{itemize}
+\end{itemize}
+
+\section{LLM-based Rule Generation}\label{llm-based-rule-generation}
+
+\begin{itemize}
+\tightlist
+\item
+  Why LLMs are ideal in this use case (multiple research papers showing
+  comparison and results)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Versatile reasoning and generalization
+  \item
+    Contextual understanding
+  \item
+    Code generation
+  \item
+    Automation and control
+  \end{itemize}
+\item
+  LLM techniques normally used in this context
+\item
+  State of the art in information extraction (structured information
+  from scientific papers, industrial documents\ldots)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Code-as-Policy literature
+  \end{itemize}
+\item
+  State of the art in rule generation. Show existing approaches and its
+  limitations
+\item
+  Positioning: apply Code-as-Policy to industrial process domain
+\end{itemize}
+

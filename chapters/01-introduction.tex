@@ -1,0 +1,192 @@
+% =============================================================================
+% CHAPTER 1: INTRODUCTION
+% =============================================================================
+
+\chapter{Introduction}\label{introduction}
+
+\section{Motivation and Industrial Context}\label{motivation-and-industrial-context}
+
+\begin{itemize}
+\tightlist
+\item
+  Industrial process monitoring and anomaly detection challenges,
+  knowledge extraction challenge (from an \emph{epistemological}
+  perspective, it's not just a ``messy PDF'' problem)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Dark data: industry-oprational knowledge that exists but is
+    unqueryable and unexecutable
+  \item
+    Runtime gap: even if rules are extracted, they are often expressed
+    in natural language complexities (e.g., `rolling average') that are
+    computationally expensive to compute on historical data. A bridge is
+    needed between semantic rule definition and efficient stream
+    processing
+  \end{itemize}
+\item
+  \textbf{Case Study Introduction}: C3/C4 splitter separation at Repsol
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Process description (what can be shared publicly)
+  \item
+    Why this is a representative problem: complexity, usage
+  \item
+    The knowledge documentation challenge
+  \end{itemize}
+\item
+  The gap: No consistent automated rule extraction framework from
+  technical documents
+\end{itemize}
+
+\section{Problem Statement}\label{problem-statement}
+
+\begin{itemize}
+\tightlist
+\item
+  Knowledge accessibility: Knowledge trapped in unstructured
+  documentation (PDFs, manuals, specs)
+\item
+  Domain experts required for rule definition (expensive, not scalable)
+\item
+  Translation gap: there's no formal grammar mapping natural language
+  (ambiguous, context-heavy) to control logic (binary, precise)
+\item
+  Silent failure risk: manual rule creation is prone to human error that
+  goes undetected until a safety incident occurs. Automated extraction
+  offers \emph{systematic} verification
+\item
+  Usefulness and application of these rules (control of processes,
+  alarms, tracking of ideal behavior\ldots)
+\item
+  Need for: automated extraction, explainability, maintainability,
+  traceability
+\end{itemize}
+
+\section{Research Questions}\label{research-questions}
+
+\emph{These questions will be addressed and referenced throughout the
+whole work}
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{RQ1 (Feasibility)}: How can operational knowledge embedded in
+  unstructured industrial documentation be automatically extracted and
+  formalized into executable rules? / To what extent can Large Language
+  Models serve as \textbf{semantic compilers} for translating
+  unstructured industrial specifications into executable logic?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Opens up: is automated extraction feasible? what representations
+    work? what extraction methods? what are the challenges?
+  \item
+    Answer: proposed method (LLMs + multi-stage pipeline with retrieval
+    and grounding + Python functions)
+  \end{itemize}
+\item
+  \emph{RQ2 (Ambiguity)}: What are the fundamental challenges in
+  translating natural language process specifications into
+  machine-executable monitoring rules, and how can they be addressed? /
+  What are the key technical barriers to automating industrial rule
+  extraction, and what approaches can address them? / How can the
+  \textbf{ontological gap} between natural language descriptions and
+  precise sensor instrumentation be bridged without extensive manual
+  labeling?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Opens up: sensor ambiguity and retrieval, time expressions,
+    validation, domain knowledge gaps
+  \item
+    Answer: proposed method (sensor resolution, time parsing, grounding,
+    verification)
+  \end{itemize}
+\item
+  \emph{RQ3 (Reasoning)}: To what extent can large language models
+  reason about industrial processes? / What role can external knowledge
+  and context play in improving the accuracy and completeness of
+  LLM-based rule extraction?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Opens up: do LLMs understand industrial concepts? do they need
+    context or grounding?
+  \item
+    Answer: RAG + grounding approach proposed, interesting to talk about
+    RAG vs.~fine-tuning here and general-purpose (foundational) models
+  \end{itemize}
+\item
+  \emph{RQ4 (Explainability and trust)}: What properties must an
+  automated rule extraction system possess to be trustworthy and
+  deployable in industrial settings? / How can automatically extracted
+  rules achieve the level of trustworthiness required for industrial
+  deployment?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Opens up: explainability, traceability; as future work: HITL and
+    human validation/oversight
+  \item
+    Answer: traceability, explainability in extraction and consolidation
+  \end{itemize}
+\item
+  \emph{RQ5 (Quality)}: How can the quality and consistency of
+  automatically extracted rules be assessed and improved without
+  extensive manual review?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Opens up: quality metrics, redundancy detection, consolidation
+  \item
+    Answer: consolidation workflow
+  \end{itemize}
+\item
+  \emph{RQ6 (Complexity)}: How can the computationally expensive logic
+  inherent in natural language specifications (e.g., sliding windows,
+  statistical aggregations) be executed efficiently in real-time
+  industrial environments?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Opens up: streaming framework and rule visualization
+  \end{itemize}
+\end{itemize}
+
+TODO: To what extent can this approach generalize to real-world
+industrial use cases? (not as research question, but in conclusions)
+
+\section{Research Approach and Objectives}\label{research-approach-and-objectives}
+
+\textbf{Research approach:} - Iterative design methodology:
+\textbf{``Design Science Research'' (DSR)} - Focus on modular, swappable
+components: analyze implementation options and justify chosen one, for
+each component - Validation with real industrial documentation
+
+\textbf{Primary Objective:} Design and validate an end-to-end framework
+for automated extraction of operational monitoring rules from
+unstructured industrial documentation
+
+\textbf{Specific Objectives:} - \emph{O1}: Develop a rule extraction
+methodology that bridges the gap between natural language specifications
+and executable code - \emph{O2}: Investigate and implement mechanisms to
+overcome LLM limitations in domain-specific industrial contexts -
+\emph{O3}: Address the semantic ambiguity inherent in industrial
+documentation - \emph{O4}: Establish quality assurance mechanisms for
+automatically extracted rules - \emph{O5}: Ensure trustworthiness
+through explainability and traceability - \emph{O6}: Efficiently execute
+rules in an industrial context - \emph{O7}: Validate the approach on
+mock and on real-world industrial use cases - \emph{O8}: Design a
+scalable, production-ready system architecture - \emph{O9}: Establish
+evaluation methodology and conduct systematic assessment
+

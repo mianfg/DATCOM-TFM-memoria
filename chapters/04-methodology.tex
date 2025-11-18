@@ -1,0 +1,43 @@
+% =============================================================================
+% CHAPTER 4: METHODOLOGY AND DESIGN
+% =============================================================================
+
+\chapter{Methodology and Design}\label{methodology-and-design}
+
+\emph{Briefly state the approach when designing and implementing the
+main solution of this work. Dual engineering+research-based approach}
+
+\section{Requirements}\label{requirements}
+
+\begin{itemize}
+\tightlist
+\item
+  Functional requirements (input/output, deterministic output, rule
+  format, validation)
+\item
+  Non-functional requirements (accuracy, traceability, modularity,
+  scalability, low-latency execution)
+\item
+  Derived from Repsol use case and general industrial needs
+\end{itemize}
+
+\section{Design Principles}\label{design-principles}
+
+\emph{Show design principles followed and why they are important} -
+Modularity and composability (why important, protocol-based design) -
+Separation of concerns * \emph{LLM Role:} Translation (Text \(\to\)
+Code). * \emph{System Role:} Verification (Code \(\to\) Safety). *
+\emph{Human Role:} Approval. - Decoupling of Logic and State: extracted
+rule (Logic) must be stateless; the execution engine (State) handles the
+memory buffers - Traceability and explainability (from documents to
+rules)
+
+\section{Research Principles (this is a research problem!)}\label{research-principles-this-is-a-research-problem}
+
+\emph{We want to show that every step of the pipeline is based on a
+research approach, evaluating alternatives and checking consistency and
+results in order to find the best options for designing the system}
+
+(Ablation Study Design? Think with and without and isolate contributions
+to performance, might be hard do to this given the time)
+

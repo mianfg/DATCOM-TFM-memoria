@@ -1,0 +1,126 @@
+% =============================================================================
+% CHAPTER 7: EVALUATION AND RESULTS
+% =============================================================================
+
+\chapter{Evaluation and Results}\label{evaluation-and-results}
+
+\section{7.1. Evaluation Methodology}\label{evaluation-methodology}
+
+Since historical anomaly logs are unavailable for the Repsol case study,
+we adopt a \textbf{Component-Wise Evaluation Strategy}. We decouple the
+assessment of the \emph{Language Model's understanding} from the
+\emph{Runtime Engine's performance}.
+
+We establish a \textbf{Taxonomy of Rule Complexity} to categorize test
+cases: 1. \textbf{Type I (Explicit):} ``The maximum temperature of T-101
+is 50°C.'' (Simple extraction). 2. \textbf{Type II (Tabular):} Rules
+hidden inside specification tables. (Layout awareness). 3. \textbf{Type
+III (Temporal/Complex):} ``If pressure drops by 10\% over 5 minutes
+while flow is stable\ldots{}'' (Logic + Time parsing). 4. \textbf{Type
+IV (Implicit/Domain):} ``Ensure the reflux drum does not run dry.''
+(Requires grounding to know ``dry'' means Level \textless{} 5\%).
+
+\section{7.2. Evaluation of Rule Extraction (NLP
+Performance)}\label{evaluation-of-rule-extraction-nlp-performance}
+
+\emph{Instead of guessing if the extraction on the real document is
+correct, we ``Reverse Engineer'' a test document.}
+
+\subsection{7.2.1. Dataset Generation (The ``Twin''
+Approach)}\label{dataset-generation-the-twin-approach}
+
+We created a \textbf{Synthetic Evaluation Dataset} consisting of 50
+``Ground Truth Rules'' (\(R_{GT}\)) covering the four complexity types.
+1. \textbf{Step 1 (Define Truth):} We manually wrote 50 Python functions
+representing ideal operational logic. 2. \textbf{Step 2 (Generate
+Artifact):} We used an LLM to ``reverse'' these functions into a generic
+Industrial Technical Manual (PDF) containing natural language, tables,
+and scattered context. 3. \textbf{Step 3 (Blind Extraction):} The
+pipeline processed this synthetic PDF to generate \(R_{Pred}\)
+(Predicted Rules).
+
+\subsection{7.2.2. Semantic Similarity
+Metrics}\label{semantic-similarity-metrics}
+
+Since the extracted text won't match the Ground Truth word-for-word, we
+evaluate based on \textbf{Semantic Equivalence} (using \texttt{ast}
+comparison or embedding similarity): * \textbf{Precision:}
+\(\frac{\text{Correctly Extracted Rules}}{\text{Total Extracted Rules}}\)
+(Did we hallucinate?) * \textbf{Recall:}
+\(\frac{\text{Correctly Extracted Rules}}{\text{Total Ground Truth Rules}}\)
+(Did we miss anything?) * \textbf{Code Pass Rate:} Percentage of
+extracted rules that are syntactically valid Python.
+
+\textbf{Expected Results Table:} \textbar{} Complexity \textbar{}
+Precision \textbar{} Recall \textbar{} Challenges Identified \textbar{}
+\textbar{} --- \textbar{} --- \textbar{} --- \textbar{} --- \textbar{}
+\textbar{} Type I (Explicit) \textbar{} 1.00 \textbar{} 1.00 \textbar{}
+Solved problem. \textbar{} \textbar{} Type II (Tables) \textbar{} 0.95
+\textbar{} 0.90 \textbar{} Docling handles this well; merged cells cause
+minor issues. \textbar{} \textbar{} Type III (Temporal)\textbar{} 0.85
+\textbar{} 0.80 \textbar{} ``5 minutes ago'' vs ``last 5 minutes''
+ambiguity. \textbar{} \textbar{} Type IV (Implicit)\textbar{} 0.70
+\textbar{} 0.60 \textbar{} Requires Grounding (Search) to resolve ``run
+dry.'' \textbar{}
+
+\section{7.3. Evaluation of Sensor Resolution (Entity
+Linking)}\label{evaluation-of-sensor-resolution-entity-linking}
+
+\emph{Here, you test the mapping of ``Column Temp'' -\textgreater{}
+``TIC-101''.}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Method:} Create a ``Mock Sensor Database'' (CSV) with 100 tags
+  (some with similar names).
+\item
+  \textbf{Test:} Check if the pipeline resolves ambiguous terms
+  correctly in the Synthetic Document.
+\item
+  \textbf{Metric:} \textbf{Resolution Accuracy @ k} (Did the correct tag
+  appear in the top 1 or top 3 choices?).
+\item
+  \textbf{Result:} Show that your \textbf{Context-Aware} approach
+  (Section 5.4) outperforms standard Vector Search (RAG) by correct
+  disambiguating ``Control'' vs.~``Indicator'' tags.
+\end{itemize}
+
+\section{7.4. Evaluation of Runtime Execution (System
+Performance)}\label{evaluation-of-runtime-execution-system-performance}
+
+\emph{Since you cannot verify if real alarms are correct, you verify if
+the ENGINE is mathematically correct and fast.}
+
+\subsection{7.4.1. Correctness Verification (The ``Shadow
+Test'')}\label{correctness-verification-the-shadow-test}
+
+We prove that the \texttt{RuleChecker} (River/Streaming) produces the
+exact same math as a standard batch processor (Pandas). *
+\textbf{Setup:} Take a slice of your sensor data (e.g., 10,000 rows). *
+\textbf{Method:} 1. Run Rule X using
+\texttt{pandas.rolling(window=\textquotesingle{}1h\textquotesingle{}).mean()}.
+2. Run Rule X using \texttt{RuleChecker} (River). 3. Compare the output
+values at every timestamp. * \textbf{Result:} Mean Squared Error (MSE)
+between the two should be \(\approx 0\). This proves your \(O(1)\)
+streaming implementation is \textbf{mathematically trustworthy}.
+
+\subsection{7.4.2. Fault Injection (The ``Fire
+Drill'')}\label{fault-injection-the-fire-drill}
+
+Since the data might be ``normal'' (no alarms), we artificially inject
+faults to prove the rules \emph{would} trigger. * \textbf{Method:} 1.
+Select a rule: ``Alert if Temp \textgreater{} 100''. 2. Modify the CSV:
+At \(t=500\), manually set Temp = 105. 3. Run \texttt{RuleChecker}. *
+\textbf{Success Metric:} \textbf{Detection Rate}. Did the system log an
+event at exactly \(t=500\)? * \emph{This validates that your system
+isn't just running code, but actually catching events.}
+
+\subsection{7.4.3. Computational Performance
+(Scalability)}\label{computational-performance-scalability}
+
+\emph{Measure the efficiency of your \texttt{RuleChecker}.} *
+\textbf{Metric 1: Latency per Row.} (e.g., ``Processed 1,000 rules in
+2.5ms''). * \textbf{Metric 2: Memory Stability.} - Show that memory
+usage remains flat (constant) over 1 hour of processing, proving the
+\(O(1)\) claim vs.~Pandas which might grow with window size.
