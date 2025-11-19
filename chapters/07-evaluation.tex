@@ -4,52 +4,46 @@
 
 \chapter{Evaluation and Results}\label{evaluation-and-results}
 
-\section{7.1. Evaluation Methodology}\label{evaluation-methodology}
+\section{Evaluation Methodology}\label{evaluation-methodology}
 
 Since historical anomaly logs are unavailable for the Repsol case study,
 we adopt a \textbf{Component-Wise Evaluation Strategy}. We decouple the
 assessment of the \emph{Language Model's understanding} from the
 \emph{Runtime Engine's performance}.
 
-We establish a \textbf{Taxonomy of Rule Complexity} to categorize test
-cases: 1. \textbf{Type I (Explicit):} ``The maximum temperature of T-101
-is 50°C.'' (Simple extraction). 2. \textbf{Type II (Tabular):} Rules
-hidden inside specification tables. (Layout awareness). 3. \textbf{Type
-III (Temporal/Complex):} ``If pressure drops by 10\% over 5 minutes
-while flow is stable\ldots{}'' (Logic + Time parsing). 4. \textbf{Type
-IV (Implicit/Domain):} ``Ensure the reflux drum does not run dry.''
-(Requires grounding to know ``dry'' means Level \textless{} 5\%).
+We establish a \textbf{Taxonomy of Rule Complexity} to categorize test cases:
 
-\section{7.2. Evaluation of Rule Extraction (NLP
-Performance)}\label{evaluation-of-rule-extraction-nlp-performance}
+\begin{enumerate}
+\item \textbf{Type I (Explicit):} ``The maximum temperature of T-101 is 50°C.'' (Simple extraction).
+\item \textbf{Type II (Tabular):} Rules hidden inside specification tables. (Layout awareness).
+\item \textbf{Type III (Temporal/Complex):} ``If pressure drops by 10\% over 5 minutes while flow is stable\ldots{}'' (Logic + Time parsing).
+\item \textbf{Type IV (Implicit/Domain):} ``Ensure the reflux drum does not run dry.'' (Requires grounding to know ``dry'' means Level \textless{} 5\%).
+\end{enumerate}
+
+\section{Evaluation of Rule Extraction (NLP Performance)}\label{evaluation-of-rule-extraction-nlp-performance}
 
 \emph{Instead of guessing if the extraction on the real document is
 correct, we ``Reverse Engineer'' a test document.}
 
-\subsection{7.2.1. Dataset Generation (The ``Twin''
-Approach)}\label{dataset-generation-the-twin-approach}
+\subsection{Dataset Generation (The ``Twin'' Approach)}\label{dataset-generation-the-twin-approach}
 
-We created a \textbf{Synthetic Evaluation Dataset} consisting of 50
-``Ground Truth Rules'' (\(R_{GT}\)) covering the four complexity types.
-1. \textbf{Step 1 (Define Truth):} We manually wrote 50 Python functions
-representing ideal operational logic. 2. \textbf{Step 2 (Generate
-Artifact):} We used an LLM to ``reverse'' these functions into a generic
-Industrial Technical Manual (PDF) containing natural language, tables,
-and scattered context. 3. \textbf{Step 3 (Blind Extraction):} The
-pipeline processed this synthetic PDF to generate \(R_{Pred}\)
-(Predicted Rules).
+We created a \textbf{Synthetic Evaluation Dataset} consisting of 50 ``Ground Truth Rules'' (\(R_{GT}\)) covering the four complexity types.
 
-\subsection{7.2.2. Semantic Similarity
-Metrics}\label{semantic-similarity-metrics}
+\begin{enumerate}
+\item \textbf{Step 1 (Define Truth):} We manually wrote 50 Python functions representing ideal operational logic.
+\item \textbf{Step 2 (Generate Artifact):} We used an LLM to ``reverse'' these functions into a generic Industrial Technical Manual (PDF) containing natural language, tables, and scattered context.
+\item \textbf{Step 3 (Blind Extraction):} The pipeline processed this synthetic PDF to generate \(R_{Pred}\) (Predicted Rules).
+\end{enumerate}
 
-Since the extracted text won't match the Ground Truth word-for-word, we
-evaluate based on \textbf{Semantic Equivalence} (using \texttt{ast}
-comparison or embedding similarity): * \textbf{Precision:}
-\(\frac{\text{Correctly Extracted Rules}}{\text{Total Extracted Rules}}\)
-(Did we hallucinate?) * \textbf{Recall:}
-\(\frac{\text{Correctly Extracted Rules}}{\text{Total Ground Truth Rules}}\)
-(Did we miss anything?) * \textbf{Code Pass Rate:} Percentage of
-extracted rules that are syntactically valid Python.
+\subsection{Semantic Similarity Metrics}\label{semantic-similarity-metrics}
+
+Since the extracted text won't match the Ground Truth word-for-word, we evaluate based on \textbf{Semantic Equivalence} (using \texttt{ast} comparison or embedding similarity):
+
+\begin{itemize}
+\item \textbf{Precision:} \(\frac{\text{Correctly Extracted Rules}}{\text{Total Extracted Rules}}\) (Did we hallucinate?)
+\item \textbf{Recall:} \(\frac{\text{Correctly Extracted Rules}}{\text{Total Ground Truth Rules}}\) (Did we miss anything?)
+\item \textbf{Code Pass Rate:} Percentage of extracted rules that are syntactically valid Python.
+\end{itemize}
 
 \textbf{Expected Results Table:} \textbar{} Complexity \textbar{}
 Precision \textbar{} Recall \textbar{} Challenges Identified \textbar{}
@@ -63,8 +57,7 @@ ambiguity. \textbar{} \textbar{} Type IV (Implicit)\textbar{} 0.70
 \textbar{} 0.60 \textbar{} Requires Grounding (Search) to resolve ``run
 dry.'' \textbar{}
 
-\section{7.3. Evaluation of Sensor Resolution (Entity
-Linking)}\label{evaluation-of-sensor-resolution-entity-linking}
+\section{Evaluation of Sensor Resolution (Entity Linking)}\label{evaluation-of-sensor-resolution-entity-linking}
 
 \emph{Here, you test the mapping of ``Column Temp'' -\textgreater{}
 ``TIC-101''.}
@@ -86,41 +79,46 @@ Linking)}\label{evaluation-of-sensor-resolution-entity-linking}
   disambiguating ``Control'' vs.~``Indicator'' tags.
 \end{itemize}
 
-\section{7.4. Evaluation of Runtime Execution (System
-Performance)}\label{evaluation-of-runtime-execution-system-performance}
+\section{Evaluation of Runtime Execution (System Performance)}\label{evaluation-of-runtime-execution-system-performance}
 
 \emph{Since you cannot verify if real alarms are correct, you verify if
 the ENGINE is mathematically correct and fast.}
 
-\subsection{7.4.1. Correctness Verification (The ``Shadow
-Test'')}\label{correctness-verification-the-shadow-test}
+\subsection{Correctness Verification (The ``Shadow Test'')}\label{correctness-verification-the-shadow-test}
 
-We prove that the \texttt{RuleChecker} (River/Streaming) produces the
-exact same math as a standard batch processor (Pandas). *
-\textbf{Setup:} Take a slice of your sensor data (e.g., 10,000 rows). *
-\textbf{Method:} 1. Run Rule X using
-\texttt{pandas.rolling(window=\textquotesingle{}1h\textquotesingle{}).mean()}.
-2. Run Rule X using \texttt{RuleChecker} (River). 3. Compare the output
-values at every timestamp. * \textbf{Result:} Mean Squared Error (MSE)
-between the two should be \(\approx 0\). This proves your \(O(1)\)
-streaming implementation is \textbf{mathematically trustworthy}.
+We prove that the \texttt{RuleChecker} (River/Streaming) produces the exact same math as a standard batch processor (Pandas).
 
-\subsection{7.4.2. Fault Injection (The ``Fire
-Drill'')}\label{fault-injection-the-fire-drill}
+\begin{itemize}
+\item \textbf{Setup:} Take a slice of your sensor data (e.g., 10,000 rows).
+\item \textbf{Method:}
+\begin{enumerate}
+\item Run Rule X using \texttt{pandas.rolling(window=\textquotesingle{}1h\textquotesingle{}).mean()}.
+\item Run Rule X using \texttt{RuleChecker} (River).
+\item Compare the output values at every timestamp.
+\end{enumerate}
+\item \textbf{Result:} Mean Squared Error (MSE) between the two should be \(\approx 0\). This proves your \(O(1)\) streaming implementation is \textbf{mathematically trustworthy}.
+\end{itemize}
 
-Since the data might be ``normal'' (no alarms), we artificially inject
-faults to prove the rules \emph{would} trigger. * \textbf{Method:} 1.
-Select a rule: ``Alert if Temp \textgreater{} 100''. 2. Modify the CSV:
-At \(t=500\), manually set Temp = 105. 3. Run \texttt{RuleChecker}. *
-\textbf{Success Metric:} \textbf{Detection Rate}. Did the system log an
-event at exactly \(t=500\)? * \emph{This validates that your system
-isn't just running code, but actually catching events.}
+\subsection{Fault Injection (The ``Fire Drill'')}\label{fault-injection-the-fire-drill}
 
-\subsection{7.4.3. Computational Performance
-(Scalability)}\label{computational-performance-scalability}
+Since the data might be ``normal'' (no alarms), we artificially inject faults to prove the rules \emph{would} trigger.
 
-\emph{Measure the efficiency of your \texttt{RuleChecker}.} *
-\textbf{Metric 1: Latency per Row.} (e.g., ``Processed 1,000 rules in
-2.5ms''). * \textbf{Metric 2: Memory Stability.} - Show that memory
-usage remains flat (constant) over 1 hour of processing, proving the
-\(O(1)\) claim vs.~Pandas which might grow with window size.
+\begin{itemize}
+\item \textbf{Method:}
+\begin{enumerate}
+\item Select a rule: ``Alert if Temp \textgreater{} 100''.
+\item Modify the CSV: At \(t=500\), manually set Temp = 105.
+\item Run \texttt{RuleChecker}.
+\end{enumerate}
+\item \textbf{Success Metric:} \textbf{Detection Rate}. Did the system log an event at exactly \(t=500\)?
+\item \emph{This validates that your system isn't just running code, but actually catching events.}
+\end{itemize}
+
+\subsection{Computational Performance (Scalability)}\label{computational-performance-scalability}
+
+\emph{Measure the efficiency of your \texttt{RuleChecker}.}
+
+\begin{itemize}
+\item \textbf{Metric 1: Latency per Row.} (e.g., ``Processed 1,000 rules in 2.5ms'').
+\item \textbf{Metric 2: Memory Stability.} Show that memory usage remains flat (constant) over 1 hour of processing, proving the \(O(1)\) claim vs.~Pandas which might grow with window size.
+\end{itemize}
