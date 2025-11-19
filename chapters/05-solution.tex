@@ -4,8 +4,9 @@
 
 \chapter{Solution Design and Implementation}\label{solution-design-and-implementation}
 
-\section{5.0. Baseline: Naive Single-Document
-Extraction}\label{baseline-naive-single-document-extraction}
+\setcounter{section}{-1}
+
+\section{Baseline: Naive Single-Document Extraction}\label{baseline-naive-single-document-extraction}
 
 \textbf{Research-based Hypothesis:}
 
@@ -58,7 +59,7 @@ Extraction}\label{baseline-naive-single-document-extraction}
 \item \textbf{Xu, P., et al.~(2024).} \emph{Retrieval meets Long Context Large Language Models.} ICLR 2024. (Provides evidence that RAG-based approaches often outperform long-context approaches for retrieval tasks, supporting the move away from single-pass extraction).
 \end{itemize}
 
-\section{5.1. Structured Extraction via Naive
+\section{Structured Extraction via Naive
 Chunking}\label{structured-extraction-via-naive-chunking}
 
 \emph{Highlight the trade-off between \textbf{precision} (gained via
@@ -125,7 +126,7 @@ the perfect setup for your RAG section.}
 \item \textbf{Dagdelen, J., et al.~(2024).} \emph{Structured information extraction from scientific text with large language models.} Nature Communications, 15, 1418. doi:10.1038/s41467-024-45563-x. (Demonstrates that while LLMs excel at local extraction, they require structured workflows to handle complex, domain-specific scientific data).
 \end{itemize}
 
-\section{5.2. Contextual Augmentation via Retrieval Augmented Generation
+\section{Contextual Augmentation via Retrieval Augmented Generation
 (RAG)}\label{contextual-augmentation-via-retrieval-augmented-generation-rag}
 
 \textbf{Research-based Hypothesis:}
@@ -199,7 +200,7 @@ the perfect setup for your RAG section.}
 \item \textbf{Lewis, P., et al.~(2020).} \emph{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.} NeurIPS 2020.
 \end{itemize}
 
-\section{5.3. Extraction of Executable Logic (Python
+\section{Extraction of Executable Logic (Python
 Functions)}\label{extraction-of-executable-logic-python-functions}
 
 \textbf{Research-based Hypothesis:}
@@ -328,7 +329,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
   models have superior logical reasoning capabilities).
 \end{itemize}
 
-\section{5.4. Context-Aware Sensor Resolution (Entity
+\section{Context-Aware Sensor Resolution (Entity
 Linking)}\label{context-aware-sensor-resolution-entity-linking}
 
 \textbf{Research-based Hypothesis:}
@@ -386,7 +387,7 @@ Linking)}\label{context-aware-sensor-resolution-entity-linking}
 \item \textbf{Orr, L., et al.~(2021).} \emph{Bootleg: Chasing the Tail with Self-Supervised Named Entity Disambiguation.} VLDB. (Discusses the difficulty of disambiguating entities in specialized technical domains).
 \end{itemize}
 
-\section{5.5. Semantic Time Parsing \&
+\section{Semantic Time Parsing \&
 Normalization}\label{semantic-time-parsing-normalization}
 
 \textbf{Research-based Hypothesis:}
@@ -455,7 +456,7 @@ Normalization}\label{semantic-time-parsing-normalization}
 \item \textbf{Vlachos, A., et al.~(2018).} \emph{Guided Generation of Code with Logic Constraints.} (Supports the approach of using constraints/grammars to guide LLM output).
 \end{itemize}
 
-\section{5.6. External Knowledge Grounding \&
+\section{External Knowledge Grounding \&
 Verification}\label{external-knowledge-grounding-verification}
 
 \textbf{Research-based Hypothesis:}
@@ -624,7 +625,7 @@ returns noisy JSON. \\
   search to ground LLM generations).
 \end{itemize}
 
-\section{5.7. Multi-Level Output
+\section{Multi-Level Output
 Verification}\label{multi-level-output-verification}
 
 \textbf{Research-based Hypothesis:}
@@ -715,7 +716,7 @@ three-layer ``Quality Gate'':
 \item \textbf{Aho, A. V., et al.} \emph{Compilers: Principles, Techniques, and Tools.} (The Dragon Book---standard reference for the AST/Visitor pattern used in your implementation).
 \end{itemize}
 
-\section{5.8. Intelligent Rule Consolidation \&
+\section{Intelligent Rule Consolidation \&
 Optimization}\label{intelligent-rule-consolidation-optimization}
 
 \textbf{Research-based Hypothesis:}
@@ -936,7 +937,7 @@ compiler toolchain:
   using LLMs for code refactoring and optimization tasks).
 \end{itemize}
 
-\section{5.9. High-Throughput Architecture \& Performance
+\section{High-Throughput Architecture \& Performance
 Optimization}\label{high-throughput-architecture-performance-optimization}
 
 \textbf{Research-based Hypothesis:}
