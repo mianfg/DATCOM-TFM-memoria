@@ -7,63 +7,56 @@
 \section{5.0. Baseline: Naive Single-Document
 Extraction}\label{baseline-naive-single-document-extraction}
 
-\textbf{Research-based Hypothesis:} * Modern Large Language Models
-(LLMs) with extended context windows (e.g., 128k+ tokens) possess
-sufficient capacity to ingest complete technical documents (e.g., 50+
-page manuals) in a single pass. * Therefore, a zero-shot prompting
-strategy without external retrieval mechanisms should be capable of
-extracting and synthesizing operational monitoring rules directly from
-the raw text.
+\textbf{Research-based Hypothesis:}
 
-\textbf{Implementation Options:} * \textbf{Option A: Zero-Shot
-Full-Context Extraction.} Loading the entire document string into the
-context window and requesting extraction in a single prompt. *
-\textbf{Option B: Summarization-then-Extraction.} Asking the model to
-summarize the document first, then extract rules from the summary.
-(Discarded: Summarization loses the specific numeric thresholds required
-for industrial rules). * \textbf{Option C: Map-Reduce.} Splitting the
-document, extracting from parts, and summarizing results. (Discarded for
-this baseline: This effectively moves into ``Chunking,'' which is
-reserved for Section 5.1).
+\begin{itemize}
+\item Modern Large Language Models (LLMs) with extended context windows (e.g., 128k+ tokens) possess sufficient capacity to ingest complete technical documents (e.g., 50+ page manuals) in a single pass.
+\item Therefore, a zero-shot prompting strategy without external retrieval mechanisms should be capable of extracting and synthesizing operational monitoring rules directly from the raw text.
+\end{itemize}
 
-\textbf{Implementation:} * \textbf{Model:} State-of-the-art Foundation
-Model (e.g., GPT-4o or Claude 3.5 Sonnet) with \textgreater100k token
-context window. * \textbf{Input Data:} Raw text extracted from a PDF of
-a C3/C4 Splitter functional description. * \textbf{Prompt Strategy:}
-Zero-shot. * \emph{System Prompt:} ``You are an expert industrial
-process engineer.'' * \emph{User Prompt:} ``Read the following document
-and extract all operational monitoring rules, alarms, and interlocks.''
-* \textbf{Output Format:} Unconstrained natural language (Plain text).
+\textbf{Implementation Options:}
 
-\textbf{Results:} * \textbf{Recall Degradation (``Lost in the
-Middle''):} While the model accepted the input, it failed to extract
-rules located in the middle sections of the document, prioritizing
-information at the very beginning (Introduction) and very end
-(Appendices). * \textbf{Context Overflow:} For larger manuals
-(\textgreater100 pages), the token count exceeded the model's efficient
-processing limit, leading to truncation or refusal to process. *
-\textbf{Hallucination:} The model occasionally generated generic
-best-practice rules for distillation columns that were not present in
-the specific source text. * \textbf{Parsing Failure:} The output format
-was inconsistent (e.g., switching between bullet points, numbered lists,
-and paragraphs), rendering programmatic parsing impossible.
+\begin{itemize}
+\item \textbf{Option A: Zero-Shot Full-Context Extraction.} Loading the entire document string into the context window and requesting extraction in a single prompt.
+\item \textbf{Option B: Summarization-then-Extraction.} Asking the model to summarize the document first, then extract rules from the summary. (Discarded: Summarization loses the specific numeric thresholds required for industrial rules).
+\item \textbf{Option C: Map-Reduce.} Splitting the document, extracting from parts, and summarizing results. (Discarded for this baseline: This effectively moves into ``Chunking,'' which is reserved for Section 5.1).
+\end{itemize}
 
-\textbf{Possible Improvements:} * \textbf{Address Recall Degradation:}
-Implement a \textbf{Chunking Strategy} to break the document into
-manageable segments, ensuring the LLM focuses on specific details
-without ``attention dilution'' -\textgreater{} \emph{Section 5.1}. *
-\textbf{Address Parsing Failure:} Enforce \textbf{Structured Output
-(JSON)} using schema validation to ensure every extracted rule follows a
-strict format -\textgreater{} \emph{Section 5.1}.
+\textbf{Implementation:}
 
-\textbf{Literature:} * \textbf{Liu, N. F., et al.~(2023).} \emph{Lost in
-the Middle: How Language Models Use Long Contexts.} arXiv preprint
-arXiv:2307.03172. (Demonstrates the U-shaped performance curve where
-LLMs forget information in the middle of the context). * \textbf{Xu, P.,
-et al.~(2024).} \emph{Retrieval meets Long Context Large Language
-Models.} ICLR 2024. (Provides evidence that RAG-based approaches often
-outperform long-context approaches for retrieval tasks, supporting the
-move away from single-pass extraction).
+\begin{itemize}
+\item \textbf{Model:} State-of-the-art Foundation Model (e.g., GPT-4o or Claude 3.5 Sonnet) with \textgreater100k token context window.
+\item \textbf{Input Data:} Raw text extracted from a PDF of a C3/C4 Splitter functional description.
+\item \textbf{Prompt Strategy:} Zero-shot.
+  \begin{itemize}
+  \item \emph{System Prompt:} ``You are an expert industrial process engineer.''
+  \item \emph{User Prompt:} ``Read the following document and extract all operational monitoring rules, alarms, and interlocks.''
+  \end{itemize}
+\item \textbf{Output Format:} Unconstrained natural language (Plain text).
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{itemize}
+\item \textbf{Recall Degradation (``Lost in the Middle''):} While the model accepted the input, it failed to extract rules located in the middle sections of the document, prioritizing information at the very beginning (Introduction) and very end (Appendices).
+\item \textbf{Context Overflow:} For larger manuals (\textgreater100 pages), the token count exceeded the model's efficient processing limit, leading to truncation or refusal to process.
+\item \textbf{Hallucination:} The model occasionally generated generic best-practice rules for distillation columns that were not present in the specific source text.
+\item \textbf{Parsing Failure:} The output format was inconsistent (e.g., switching between bullet points, numbered lists, and paragraphs), rendering programmatic parsing impossible.
+\end{itemize}
+
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+\item \textbf{Address Recall Degradation:} Implement a \textbf{Chunking Strategy} to break the document into manageable segments, ensuring the LLM focuses on specific details without ``attention dilution'' -\textgreater{} \emph{Section 5.1}.
+\item \textbf{Address Parsing Failure:} Enforce \textbf{Structured Output (JSON)} using schema validation to ensure every extracted rule follows a strict format -\textgreater{} \emph{Section 5.1}.
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+\item \textbf{Liu, N. F., et al.~(2023).} \emph{Lost in the Middle: How Language Models Use Long Contexts.} arXiv preprint arXiv:2307.03172. (Demonstrates the U-shaped performance curve where LLMs forget information in the middle of the context).
+\item \textbf{Xu, P., et al.~(2024).} \emph{Retrieval meets Long Context Large Language Models.} ICLR 2024. (Provides evidence that RAG-based approaches often outperform long-context approaches for retrieval tasks, supporting the move away from single-pass extraction).
+\end{itemize}
 
 \section{5.1. Structured Extraction via Naive
 Chunking}\label{structured-extraction-via-naive-chunking}
@@ -72,157 +65,139 @@ Chunking}\label{structured-extraction-via-naive-chunking}
 chunking) and \textbf{coherence} (lost due to fragmentation), which is
 the perfect setup for your RAG section.}
 
-\textbf{Research-based Hypothesis:} * \textbf{Attention Optimization:}
-By decomposing the document into smaller segments (``chunks''), the
-LLM's attention mechanism can focus on local details without the
-degradation observed in long-context windows. * \textbf{Schema
-Constraint:} Forcing the LLM to output according to a strict schema
-(e.g., JSON) will reduce generation variability and enable programmatic
-parsing of the extracted rules.
+\textbf{Research-based Hypothesis:}
 
-\textbf{Implementation Options:} * \textbf{Option A: Fixed-Size
-Chunking.} Splitting text by token count (e.g., 1000 tokens) with a
-sliding window overlap. (Selected for this baseline). * \textbf{Option
-B: Semantic Chunking.} Splitting text based on semantic breaks
-(paragraphs, headers). (Discarded for the baseline to test raw
-throughput first). * \textbf{Option C: Regex/Template Matching.} Using
-traditional NLP patterns. (Discarded as it cannot handle the linguistic
-variance of industrial descriptions).
+\begin{itemize}
+\item \textbf{Attention Optimization:} By decomposing the document into smaller segments (``chunks''), the LLM's attention mechanism can focus on local details without the degradation observed in long-context windows.
+\item \textbf{Schema Constraint:} Forcing the LLM to output according to a strict schema (e.g., JSON) will reduce generation variability and enable programmatic parsing of the extracted rules.
+\end{itemize}
 
-\textbf{Implementation:} * \textbf{Chunking Strategy:} Recursive
-Character Text Splitter. * \emph{Chunk Size:} 2000 tokens (balanced to
-contain full paragraphs). * \emph{Overlap:} 200 tokens (to mitigate
-splitting sentences at boundaries). * \textbf{Output Schema:} A
-predefined JSON schema enforced via the LLM's function-calling or
-JSON-mode API. * \emph{Fields:} \texttt{Rule\ Name}, \texttt{Condition}
-(text), \texttt{Action} (text), \texttt{Sensor\ Tag}. *
-\textbf{Workflow:} 1. Load Document. 2. Split into \(N\) chunks. 3.
-Parallel execution of \(N\) LLM calls with the prompt: ``Extract rules
-from this specific text segment matching the JSON schema.'' 4.
-Aggregation of results into a single list.
+\textbf{Implementation Options:}
 
-\textbf{Results:} * \textbf{Improved Extraction Rate:} The system
-successfully processed the entire document without context overflow
-errors. The JSON structure made the output immediately machine-readable.
-* \textbf{Context Fragmentation (The ``Keyhole'' Problem):} The system
-failed to capture rules that spanned across chunks. For example, if
-Chunk A defined ``The limits for column T-100'' and Chunk B listed
-``High: 80°C'', the LLM processing Chunk B lacked the context to know
-``High'' referred to ``T-100''. -\textgreater{} \emph{Motivates
-Contextual RAG (Section 5.2).} * \textbf{Logic Representation Failure:}
-The JSON schema proved too rigid to capture complex industrial logic
-(e.g., ``IF A \textgreater{} 5 AND (B \textless{} 10 OR C is OPEN)'').
-Attempting to stuff this logic into a text field inside JSON
-re-introduced ambiguity. -\textgreater{} \emph{Motivates Python Code
-Generation (Section 5.5).} * \textbf{Sensor Hallucination/Ambiguity:}
-The model often extracted generic terms (e.g., ``the reflux
-temperature'') rather than the specific instrument tag (e.g.,
-\texttt{TIC-1023}), as the mapping was often defined in a different part
-of the document or an external P\&ID. -\textgreater{} \emph{Motivates
-Retrieval \& Resolution (Section 5.2/5.3).}
+\begin{itemize}
+\item \textbf{Option A: Fixed-Size Chunking.} Splitting text by token count (e.g., 1000 tokens) with a sliding window overlap. (Selected for this baseline).
+\item \textbf{Option B: Semantic Chunking.} Splitting text based on semantic breaks (paragraphs, headers). (Discarded for the baseline to test raw throughput first).
+\item \textbf{Option C: Regex/Template Matching.} Using traditional NLP patterns. (Discarded as it cannot handle the linguistic variance of industrial descriptions).
+\end{itemize}
 
-\textbf{Possible Improvements:} * \textbf{Bridge Context Gaps:}
-Implement \textbf{Retrieval Augmented Generation (RAG)} to allow the LLM
-to ``look up'' definitions or context from other parts of the document
-while processing a specific chunk -\textgreater{} \emph{Section 5.2}. *
-\textbf{Enhance Logic Expressiveness:} Transition from static JSON data
-structures to dynamic \textbf{Python Code} to represent complex boolean
-logic and thresholds -\textgreater{} \emph{Section 5.5}. *
-\textbf{Sensor Resolution:} Implement a specific retrieval step to map
-natural language sensor descriptions to their exact tags in the
-instrument database -\textgreater{} \emph{Section 5.3}.
+\textbf{Implementation:}
 
-\textbf{Literature:} * \textbf{Vijayan, R., et al.~(2024).} \emph{A
-Prompt Engineering Approach for Structured Data Extraction from
-Unstructured Text.} ACM International Conference on Proceeding Series.
-doi:10.1145/3639631.3639663. (Validates the use of schema enforcement to
-reduce hallucination in extraction tasks). * \textbf{Dagdelen, J., et
-al.~(2024).} \emph{Structured information extraction from scientific
-text with large language models.} Nature Communications, 15, 1418.
-doi:10.1038/s41467-024-45563-x. (Demonstrates that while LLMs excel at
-local extraction, they require structured workflows to handle complex,
-domain-specific scientific data).
+\begin{itemize}
+\item \textbf{Chunking Strategy:} Recursive Character Text Splitter.
+  \begin{itemize}
+  \item \emph{Chunk Size:} 2000 tokens (balanced to contain full paragraphs).
+  \item \emph{Overlap:} 200 tokens (to mitigate splitting sentences at boundaries).
+  \end{itemize}
+\item \textbf{Output Schema:} A predefined JSON schema enforced via the LLM's function-calling or JSON-mode API.
+  \begin{itemize}
+  \item \emph{Fields:} \texttt{Rule\ Name}, \texttt{Condition} (text), \texttt{Action} (text), \texttt{Sensor\ Tag}.
+  \end{itemize}
+\item \textbf{Workflow:}
+  \begin{enumerate}
+  \item Load Document.
+  \item Split into \(N\) chunks.
+  \item Parallel execution of \(N\) LLM calls with the prompt: ``Extract rules from this specific text segment matching the JSON schema.''
+  \item Aggregation of results into a single list.
+  \end{enumerate}
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{itemize}
+\item \textbf{Improved Extraction Rate:} The system successfully processed the entire document without context overflow errors. The JSON structure made the output immediately machine-readable.
+\item \textbf{Context Fragmentation (The ``Keyhole'' Problem):} The system failed to capture rules that spanned across chunks. For example, if Chunk A defined ``The limits for column T-100'' and Chunk B listed ``High: 80°C'', the LLM processing Chunk B lacked the context to know ``High'' referred to ``T-100''. -\textgreater{} \emph{Motivates Contextual RAG (Section 5.2).}
+\item \textbf{Logic Representation Failure:} The JSON schema proved too rigid to capture complex industrial logic (e.g., ``IF A \textgreater{} 5 AND (B \textless{} 10 OR C is OPEN)''). Attempting to stuff this logic into a text field inside JSON re-introduced ambiguity. -\textgreater{} \emph{Motivates Python Code Generation (Section 5.5).}
+\item \textbf{Sensor Hallucination/Ambiguity:} The model often extracted generic terms (e.g., ``the reflux temperature'') rather than the specific instrument tag (e.g., \texttt{TIC-1023}), as the mapping was often defined in a different part of the document or an external P\&ID. -\textgreater{} \emph{Motivates Retrieval \& Resolution (Section 5.2/5.3).}
+\end{itemize}
+
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+\item \textbf{Bridge Context Gaps:} Implement \textbf{Retrieval Augmented Generation (RAG)} to allow the LLM to ``look up'' definitions or context from other parts of the document while processing a specific chunk -\textgreater{} \emph{Section 5.2}.
+\item \textbf{Enhance Logic Expressiveness:} Transition from static JSON data structures to dynamic \textbf{Python Code} to represent complex boolean logic and thresholds -\textgreater{} \emph{Section 5.5}.
+\item \textbf{Sensor Resolution:} Implement a specific retrieval step to map natural language sensor descriptions to their exact tags in the instrument database -\textgreater{} \emph{Section 5.3}.
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+\item \textbf{Vijayan, R., et al.~(2024).} \emph{A Prompt Engineering Approach for Structured Data Extraction from Unstructured Text.} ACM International Conference on Proceeding Series. doi:10.1145/3639631.3639663. (Validates the use of schema enforcement to reduce hallucination in extraction tasks).
+\item \textbf{Dagdelen, J., et al.~(2024).} \emph{Structured information extraction from scientific text with large language models.} Nature Communications, 15, 1418. doi:10.1038/s41467-024-45563-x. (Demonstrates that while LLMs excel at local extraction, they require structured workflows to handle complex, domain-specific scientific data).
+\end{itemize}
 
 \section{5.2. Contextual Augmentation via Retrieval Augmented Generation
 (RAG)}\label{contextual-augmentation-via-retrieval-augmented-generation-rag}
 
-\textbf{Research-based Hypothesis:} * \textbf{Semantic Bridging:}
-Industrial specifications often decouple definitions (e.g., ``Reflux
-Loop'') from their operational parameters (e.g., ``Max Flow: 50 t/h'').
-A linear reading strategy fails to link them. Semantic search via dense
-vector embeddings can bridge this gap by retrieving relevant definitions
-based on meaning rather than keyword matching. *
-\textbf{Layout-Awareness:} Technical rules are frequently encoded in
-semi-structured formats like tables. Standard text extraction flattens
-this structure. Layout-aware parsing is required to preserve the
-``row-column'' context. * \textbf{Data Sovereignty:} For industrial
-deployment, sensitive process knowledge must be processed locally to
-avoid data leakage risks associated with public API endpoints.
+\textbf{Research-based Hypothesis:}
 
-\textbf{Implementation Options:} * \textbf{Parsing Strategy:} *
-\emph{Option A: PyPDF/LangChain Loaders.} Extracts raw text but destroys
-table structures. (Discarded: ``Jumbled'' outputs). * \emph{Option B:
-Docling (IBM).} A layout-aware parser that identifies tables, headers,
-and reading order. (Selected: Essential for technical spec sheets). *
-\textbf{Embedding Strategy:} * \emph{Option A: Cloud-based (e.g., OpenAI
-\texttt{text-embedding-3}).} High performance but requires sending data
-to external servers. (Discarded due to industrial privacy requirements).
-* \emph{Option B: Local Open-Source (e.g., \texttt{mxbai-embed-large}
-via Ollama).} Runs entirely on-premise, high ranking on MTEB (Massive
-Text Embedding Benchmark). (Selected: Balances state-of-the-art
-performance with data privacy). * \textbf{Vector Storage:} *
-\emph{Option A: In-Memory (FAISS).} Ephemeral. (Discarded: Cannot scale
-or persist). * \emph{Option B: Dedicated Vector Database (Qdrant).}
-(Selected: Chosen for HNSW indexing speed, persistence, and metadata
-filtering capabilities).
+\begin{itemize}
+\item \textbf{Semantic Bridging:} Industrial specifications often decouple definitions (e.g., ``Reflux Loop'') from their operational parameters (e.g., ``Max Flow: 50 t/h''). A linear reading strategy fails to link them. Semantic search via dense vector embeddings can bridge this gap by retrieving relevant definitions based on meaning rather than keyword matching.
+\item \textbf{Layout-Awareness:} Technical rules are frequently encoded in semi-structured formats like tables. Standard text extraction flattens this structure. Layout-aware parsing is required to preserve the ``row-column'' context.
+\item \textbf{Data Sovereignty:} For industrial deployment, sensitive process knowledge must be processed locally to avoid data leakage risks associated with public API endpoints.
+\end{itemize}
 
-\textbf{Implementation:} 1. \textbf{Ingestion Pipeline (Docling):} The
-PDF is processed with Docling, serializing the document into Markdown
-while preserving table structures and hierarchy. 2. \textbf{Embedding
-Generation (\texttt{mxbai-embed-large}):} * Text chunks are converted
-into vector representations using \texttt{mxbai-embed-large} served via
-Ollama. * \emph{Justification:} This model is specifically optimized for
-retrieval tasks (unlike generic BERT models) and supports Matryoshka
-Representation Learning, offering high-quality representations with a
-smaller memory footprint. 3. \textbf{Storage (Qdrant):} Vectors are
-stored in Qdrant collections. We utilize Qdrant's \textbf{HNSW
-(Hierarchical Navigable Small World)} index for approximate nearest
-neighbor search. 4. \textbf{Retrieval Workflow:} * The system embeds the
-query using the same local model. * Cosine similarity is calculated:
-\(S_C(u, v) = \frac{u \cdot v}{\|u\|\|v\|}\). * Top-\(k\) chunks are
-retrieved and injected into the LLM context.
+\textbf{Implementation Options:}
 
-\textbf{Results:} * \textbf{Contextual Resolution:} The system
-successfully resolved generic terms (e.g., ``the vessel'') by retrieving
-the relevant section headers. * \textbf{Privacy Compliance:} By using
-Ollama and Qdrant locally, the entire extraction pipeline operates
-air-gapped, meeting strict industrial security requirements. *
-\textbf{Table Accuracy:} Docling + Semantic Search allowed for
-successful extraction of rules from complex alarm tables (accuracy
-improved from \textless40\% to \textgreater85\%). * \textbf{Retrieval
-Noise:} Occasionally, the embeddings retrieved semantically related but
-contextually irrelevant chunks (e.g., retrieving ``Fire Safety'' rules
-for ``Fired Heater'' queries).
+\begin{itemize}
+\item \textbf{Parsing Strategy:}
+  \begin{itemize}
+  \item \emph{Option A: PyPDF/LangChain Loaders.} Extracts raw text but destroys table structures. (Discarded: ``Jumbled'' outputs).
+  \item \emph{Option B: Docling (IBM).} A layout-aware parser that identifies tables, headers, and reading order. (Selected: Essential for technical spec sheets).
+  \end{itemize}
+\item \textbf{Embedding Strategy:}
+  \begin{itemize}
+  \item \emph{Option A: Cloud-based (e.g., OpenAI \texttt{text-embedding-3}).} High performance but requires sending data to external servers. (Discarded due to industrial privacy requirements).
+  \item \emph{Option B: Local Open-Source (e.g., \texttt{mxbai-embed-large} via Ollama).} Runs entirely on-premise, high ranking on MTEB (Massive Text Embedding Benchmark). (Selected: Balances state-of-the-art performance with data privacy).
+  \end{itemize}
+\item \textbf{Vector Storage:}
+  \begin{itemize}
+  \item \emph{Option A: In-Memory (FAISS).} Ephemeral. (Discarded: Cannot scale or persist).
+  \item \emph{Option B: Dedicated Vector Database (Qdrant).} (Selected: Chosen for HNSW indexing speed, persistence, and metadata filtering capabilities).
+  \end{itemize}
+\end{itemize}
 
-\textbf{Possible Improvements:} * \textbf{Refine Retrieval Precision:}
-The ``Retrieval Noise'' suggests we need a mechanism to specifically
-resolve \textbf{instrument tags} (e.g., \texttt{TIC-101}) differently
-from general text -\textgreater{} \emph{Section 5.3 (Sensor
-Resolution).} * \textbf{External Validation:} The system retrieves
-internal document data but lacks external validation (physics,
-regulations) -\textgreater{} \emph{Section 5.4 (Grounding).} *
-\textbf{Logic Formatting:} Output is still static JSON; need executable
-logic -\textgreater{} \emph{Section 5.5.}
+\textbf{Implementation:}
 
-\textbf{Literature:} * \textbf{Muennighoff, N., et al.~(2023).}
-\emph{MTEB: Massive Text Embedding Benchmark.} EACL 2023. (Establishes
-the standard for evaluating embedding models; validates the choice of
-high-performing open models like mxbai). * \textbf{Malkov, Y. A., \&
-Yashunin, D. A. (2018).} \emph{Efficient and robust approximate nearest
-neighbor search using Hierarchical Navigable Small World graphs.} IEEE
-TPAMI. (The algorithmic basis for Qdrant). * \textbf{Lewis, P., et
-al.~(2020).} \emph{Retrieval-Augmented Generation for
-Knowledge-Intensive NLP Tasks.} NeurIPS 2020.
+\begin{enumerate}
+\item \textbf{Ingestion Pipeline (Docling):} The PDF is processed with Docling, serializing the document into Markdown while preserving table structures and hierarchy.
+\item \textbf{Embedding Generation (\texttt{mxbai-embed-large}):}
+  \begin{itemize}
+  \item Text chunks are converted into vector representations using \texttt{mxbai-embed-large} served via Ollama.
+  \item \emph{Justification:} This model is specifically optimized for retrieval tasks (unlike generic BERT models) and supports Matryoshka Representation Learning, offering high-quality representations with a smaller memory footprint.
+  \end{itemize}
+\item \textbf{Storage (Qdrant):} Vectors are stored in Qdrant collections. We utilize Qdrant's \textbf{HNSW (Hierarchical Navigable Small World)} index for approximate nearest neighbor search.
+\item \textbf{Retrieval Workflow:}
+  \begin{itemize}
+  \item The system embeds the query using the same local model.
+  \item Cosine similarity is calculated: \(S_C(u, v) = \frac{u \cdot v}{\|u\|\|v\|}\).
+  \item Top-\(k\) chunks are retrieved and injected into the LLM context.
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Results:}
+
+\begin{itemize}
+\item \textbf{Contextual Resolution:} The system successfully resolved generic terms (e.g., ``the vessel'') by retrieving the relevant section headers.
+\item \textbf{Privacy Compliance:} By using Ollama and Qdrant locally, the entire extraction pipeline operates air-gapped, meeting strict industrial security requirements.
+\item \textbf{Table Accuracy:} Docling + Semantic Search allowed for successful extraction of rules from complex alarm tables (accuracy improved from \textless40\% to \textgreater85\%).
+\item \textbf{Retrieval Noise:} Occasionally, the embeddings retrieved semantically related but contextually irrelevant chunks (e.g., retrieving ``Fire Safety'' rules for ``Fired Heater'' queries).
+\end{itemize}
+
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+\item \textbf{Refine Retrieval Precision:} The ``Retrieval Noise'' suggests we need a mechanism to specifically resolve \textbf{instrument tags} (e.g., \texttt{TIC-101}) differently from general text -\textgreater{} \emph{Section 5.3 (Sensor Resolution).}
+\item \textbf{External Validation:} The system retrieves internal document data but lacks external validation (physics, regulations) -\textgreater{} \emph{Section 5.4 (Grounding).}
+\item \textbf{Logic Formatting:} Output is still static JSON; need executable logic -\textgreater{} \emph{Section 5.5.}
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+\item \textbf{Muennighoff, N., et al.~(2023).} \emph{MTEB: Massive Text Embedding Benchmark.} EACL 2023. (Establishes the standard for evaluating embedding models; validates the choice of high-performing open models like mxbai).
+\item \textbf{Malkov, Y. A., \& Yashunin, D. A. (2018).} \emph{Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs.} IEEE TPAMI. (The algorithmic basis for Qdrant).
+\item \textbf{Lewis, P., et al.~(2020).} \emph{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.} NeurIPS 2020.
+\end{itemize}
 
 \section{5.3. Extraction of Executable Logic (Python
 Functions)}\label{extraction-of-executable-logic-python-functions}
@@ -356,151 +331,129 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \section{5.4. Context-Aware Sensor Resolution (Entity
 Linking)}\label{context-aware-sensor-resolution-entity-linking}
 
-\textbf{Research-based Hypothesis:} * \textbf{Decoupling Logic from
-Entities:} Attempting to extract complex logic \emph{and} map specific
-database IDs in a single step overloads the LLM's reasoning
-capabilities, leading to hallucinations. Decoupling these
-tasks---extracting logic first (Section 5.3), then resolving
-entities---improves accuracy. * \textbf{Contextual Disambiguation:}
-Standard semantic similarity (Vector RAG) is insufficient for sensor
-mapping. For example, ``Tower Temperature'' is semantically similar to
-both ``Top Temperature'' and ``Bottom Temperature.'' Correct resolution
-requires the \textbf{logical context} of the rule (e.g., ``if pressure
-rises, check \emph{temperature}'') to infer the correct sensor.
+\textbf{Research-based Hypothesis:}
 
-\textbf{Implementation Options:} * \textbf{Option A: Fuzzy String
-Matching.} Using Levenshtein distance to match terms. (Discarded: Fails
-on synonyms like ``Reflux'' vs.~``Overhead Return''). * \textbf{Option
-B: Zero-Shot Vector Retrieval.} Embedding the natural language term and
-finding the closest sensor embedding. (Discarded: Lacks the logical
-reasoning to distinguish between redundant sensors or physically close
-but operationally distinct tags). * \textbf{Option C: LLM-Based
-Contextual Resolution.} Passing the natural language term \emph{along
-with the surrounding code logic} to an LLM to select the correct ID from
-a candidate list. (Selected: Allows the model to reason about units,
-location, and physics).
+\begin{itemize}
+\item \textbf{Decoupling Logic from Entities:} Attempting to extract complex logic \emph{and} map specific database IDs in a single step overloads the LLM's reasoning capabilities, leading to hallucinations. Decoupling these tasks---extracting logic first (Section 5.3), then resolving entities---improves accuracy.
+\item \textbf{Contextual Disambiguation:} Standard semantic similarity (Vector RAG) is insufficient for sensor mapping. For example, ``Tower Temperature'' is semantically similar to both ``Top Temperature'' and ``Bottom Temperature.'' Correct resolution requires the \textbf{logical context} of the rule (e.g., ``if pressure rises, check \emph{temperature}'') to infer the correct sensor.
+\end{itemize}
 
-\textbf{Implementation:} * \textbf{AST/Regex Extraction:} The system
-scans the Python code generated in Section 5.3 for
-\texttt{status.get("natural\_name",\ ...)} calls using regular
-expressions (or AST traversal). * \textbf{Candidate Injection:} * For
-the C3/C4 Splitter pilot, the entire sensor list (ID, Name, Description,
-Unit) is injected into the prompt context. * \emph{Note:} This approach
-prioritizes precision over scalability for the pilot phase. *
-\textbf{Resolution Prompting:} A specialized LLM call acts as a ``Sensor
-Mapping Expert.'' * \emph{Input:} The generated Python function (for
-context) and the list of target sensor references. * \emph{Logic:} The
-LLM analyzes the rule logic (e.g., ``rule checks for high pressure'')
-and matches it to the sensor list (e.g., finding \texttt{PIC-101} which
-measures Pressure). * \textbf{Code Rewriting:} The system performs a
-deterministic string replacement in the Python code, transforming
-\texttt{status.get("column\ pressure")} into
-\texttt{status.get("PIC-101")}. * \textbf{Validation State:} Rules are
-tagged with a \texttt{SensorParsingStatus}. If a sensor cannot be
-resolved with high confidence (returning \texttt{null}), the rule is
-marked \texttt{SENSORS\_NOT\_FOUND} and excluded from deployment.
+\textbf{Implementation Options:}
 
-\textbf{Results:} * \textbf{Contextual Success:} The system successfully
-resolved ambiguous terms that baffled vector search. For example, in a
-rule about ``reflux drum level,'' the LLM correctly identified
-\texttt{LIC-204} (Level Indicator Control) rather than \texttt{LI-205}
-(a local glass gauge) because the rule implied \emph{control} logic. *
-\textbf{Unit Consistency:} The LLM correctly used unit mismatches to
-filter candidates (e.g., rejecting a Flow sensor \texttt{t/h} when the
-rule logic required a Pressure \texttt{bar}). * \textbf{Code Integrity:}
-By performing resolution \emph{after} logic extraction, the logical
-structure of the Python code remained intact even when sensor names
-changed.
+\begin{itemize}
+\item \textbf{Option A: Fuzzy String Matching.} Using Levenshtein distance to match terms. (Discarded: Fails on synonyms like ``Reflux'' vs.~``Overhead Return'').
+\item \textbf{Option B: Zero-Shot Vector Retrieval.} Embedding the natural language term and finding the closest sensor embedding. (Discarded: Lacks the logical reasoning to distinguish between redundant sensors or physically close but operationally distinct tags).
+\item \textbf{Option C: LLM-Based Contextual Resolution.} Passing the natural language term \emph{along with the surrounding code logic} to an LLM to select the correct ID from a candidate list. (Selected: Allows the model to reason about units, location, and physics).
+\end{itemize}
 
-\textbf{Possible Improvements:} * \textbf{Scalability (RAG
-Pre-filtering):} In a full-scale refinery (50,000+ sensors), injecting
-the full list is impossible. Future work involves a \textbf{Hybrid
-Approach}: use Vector Search to retrieve the top-50 most relevant
-sensors, then use the LLM to pick the exact match from that subset. *
-\textbf{Multi-Tag Resolution:} Handling cases where ``Temperature''
-refers to an \emph{average} of three redundant sensors
-(\texttt{TI-101A/B/C}). The current system maps to a single ID.
+\textbf{Implementation:}
 
-\textbf{Literature:} * \textbf{Wu, L., et al.~(2023).} \emph{Zero-Shot
-Entity Linking with Dense Retrieval and Large Language Models.} arXiv
-preprint. (Validates the methodology of using LLMs to link text mentions
-to knowledge base entities). * \textbf{Orr, L., et al.~(2021).}
-\emph{Bootleg: Chasing the Tail with Self-Supervised Named Entity
-Disambiguation.} VLDB. (Discusses the difficulty of disambiguating
-entities in specialized technical domains).
+\begin{itemize}
+\item \textbf{AST/Regex Extraction:} The system scans the Python code generated in Section 5.3 for \texttt{status.get("natural\_name",\ ...)} calls using regular expressions (or AST traversal).
+\item \textbf{Candidate Injection:}
+  \begin{itemize}
+  \item For the C3/C4 Splitter pilot, the entire sensor list (ID, Name, Description, Unit) is injected into the prompt context.
+  \item \emph{Note:} This approach prioritizes precision over scalability for the pilot phase.
+  \end{itemize}
+\item \textbf{Resolution Prompting:} A specialized LLM call acts as a ``Sensor Mapping Expert.''
+  \begin{itemize}
+  \item \emph{Input:} The generated Python function (for context) and the list of target sensor references.
+  \item \emph{Logic:} The LLM analyzes the rule logic (e.g., ``rule checks for high pressure'') and matches it to the sensor list (e.g., finding \texttt{PIC-101} which measures Pressure).
+  \end{itemize}
+\item \textbf{Code Rewriting:} The system performs a deterministic string replacement in the Python code, transforming \texttt{status.get("column\ pressure")} into \texttt{status.get("PIC-101")}.
+\item \textbf{Validation State:} Rules are tagged with a \texttt{SensorParsingStatus}. If a sensor cannot be resolved with high confidence (returning \texttt{null}), the rule is marked \texttt{SENSORS\_NOT\_FOUND} and excluded from deployment.
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{itemize}
+\item \textbf{Contextual Success:} The system successfully resolved ambiguous terms that baffled vector search. For example, in a rule about ``reflux drum level,'' the LLM correctly identified \texttt{LIC-204} (Level Indicator Control) rather than \texttt{LI-205} (a local glass gauge) because the rule implied \emph{control} logic.
+\item \textbf{Unit Consistency:} The LLM correctly used unit mismatches to filter candidates (e.g., rejecting a Flow sensor \texttt{t/h} when the rule logic required a Pressure \texttt{bar}).
+\item \textbf{Code Integrity:} By performing resolution \emph{after} logic extraction, the logical structure of the Python code remained intact even when sensor names changed.
+\end{itemize}
+
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+\item \textbf{Scalability (RAG Pre-filtering):} In a full-scale refinery (50,000+ sensors), injecting the full list is impossible. Future work involves a \textbf{Hybrid Approach}: use Vector Search to retrieve the top-50 most relevant sensors, then use the LLM to pick the exact match from that subset.
+\item \textbf{Multi-Tag Resolution:} Handling cases where ``Temperature'' refers to an \emph{average} of three redundant sensors (\texttt{TI-101A/B/C}). The current system maps to a single ID.
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+\item \textbf{Wu, L., et al.~(2023).} \emph{Zero-Shot Entity Linking with Dense Retrieval and Large Language Models.} arXiv preprint. (Validates the methodology of using LLMs to link text mentions to knowledge base entities).
+\item \textbf{Orr, L., et al.~(2021).} \emph{Bootleg: Chasing the Tail with Self-Supervised Named Entity Disambiguation.} VLDB. (Discusses the difficulty of disambiguating entities in specialized technical domains).
+\end{itemize}
 
 \section{5.5. Semantic Time Parsing \&
 Normalization}\label{semantic-time-parsing-normalization}
 
-\textbf{Research-based Hypothesis:} * \textbf{Temporal Ambiguity in
-Specs:} Industrial documents describe time in unstructured natural
-language (e.g., ``average over the last 10 minutes,'' ``current value,''
-``trend from an hour ago''). These cannot be executed by a machine which
-requires precise lookback windows. * \textbf{The Interval vs.~Point
-Distinction:} A critical operational distinction exists between a
-\textbf{Point Query} (fetching a single value at \(t\)) and an
-\textbf{Interval Query} (fetching a range \([t_{start}, t_{end}]\) for
-aggregation). Natural language blurs this line; a formal grammar is
-required to enforce it. * \textbf{Grammar-Constrained Parsing:} LLMs
-struggle with strict string formatting (e.g., regex compliance) in
-zero-shot settings. A dedicated normalization step that maps natural
-language to a strict, verifiable time grammar reduces runtime errors.
+\textbf{Research-based Hypothesis:}
 
-\textbf{Implementation Options:} * \textbf{Option A: Python
-\texttt{dateutil} / \texttt{datetime}.} Standard libraries. (Discarded:
-They handle \emph{absolute} datetimes, but rules function on
-\emph{relative} time deltas like ``last 10 mins''). * \textbf{Option B:
-\texttt{pandas} Offset Aliases.} (Discarded: Too complex and
-dataframe-centric for simple rule definitions). * \textbf{Option C:
-Custom \texttt{TimeDelta} Grammar.} A bespoke, succinct string format
-(e.g., \texttt{10m:}, \texttt{5m:2m}) backed by a rigorous parser.
-(Selected: Provides a direct mapping to the historian's query language).
+\begin{itemize}
+\item \textbf{Temporal Ambiguity in Specs:} Industrial documents describe time in unstructured natural language (e.g., ``average over the last 10 minutes,'' ``current value,'' ``trend from an hour ago''). These cannot be executed by a machine which requires precise lookback windows.
+\item \textbf{The Interval vs.~Point Distinction:} A critical operational distinction exists between a \textbf{Point Query} (fetching a single value at \(t\)) and an \textbf{Interval Query} (fetching a range \([t_{start}, t_{end}]\) for aggregation). Natural language blurs this line; a formal grammar is required to enforce it.
+\item \textbf{Grammar-Constrained Parsing:} LLMs struggle with strict string formatting (e.g., regex compliance) in zero-shot settings. A dedicated normalization step that maps natural language to a strict, verifiable time grammar reduces runtime errors.
+\end{itemize}
 
-\textbf{Implementation:} * \textbf{Formal Time Grammar:} We defined a
-strict schema for relative time: * \textbf{Time Point:} A single offset
-from \emph{now} (e.g., \texttt{0} = current, \texttt{5m} = 5 mins ago).
-* \textbf{Time Interval:} A range defined by start/end offsets (e.g.,
-\texttt{10m:} = from 10m ago to now; \texttt{2h:1h} = from 2h ago to 1h
-ago). * \textbf{Statistic Requirement:} Intervals \emph{must} be
-accompanied by a statistical function (mean, max, std); Points
-\emph{must not}. * \textbf{Two-Step Extraction:} 1.
-\textbf{Identification:} The system identifies
-\texttt{status.get(sensor,\ "natural\_expr")} calls in the Python code
-from Section 5.3. 2. \textbf{Normalization:} A dedicated LLM call
-translates the natural expression into a JSON object
-\texttt{\{"time":\ "str",\ "statistic":\ "enum"\}}. * \textbf{Validation
-Logic:} * The \texttt{TimeDeltaInterval} class parses the string. * If
-it is an \textbf{Interval} (\texttt{:} exists), the system asserts a
-statistic is present. * If it is a \textbf{Point}, the system asserts
-the statistic is \texttt{None}. * \textbf{Code Rewriting:} The natural
-language argument is replaced with the strict format:
-\texttt{status.get("TIC-101",\ "10m:",\ "mean")}.
+\textbf{Implementation Options:}
 
-\textbf{Results:} * \textbf{Standardization:} The system successfully
-normalized diverse expressions: * ``average over the last 10 minutes''
-\(\to\) \texttt{"10m:",\ "mean"} * ``current temperature'' \(\to\)
-\texttt{"0",\ None} * ``standard deviation over the last hour'' \(\to\)
-\texttt{"1h:",\ "std"} * \textbf{Validation Trap:} The schema
-successfully caught logical errors, such as ``average temperature at 5
-minutes ago'' (requesting an average at a single point), flagging them
-for review. * \textbf{Historian Compatibility:} The resulting format
-\texttt{10m:} maps directly to time-series database queries (e.g.,
-\texttt{SELECT\ AVG(val)\ FROM\ tag\ WHERE\ time\ \textgreater{}\ now()\ -\ 10m}),
-streamlining the execution engine.
+\begin{itemize}
+\item \textbf{Option A: Python \texttt{dateutil} / \texttt{datetime}.} Standard libraries. (Discarded: They handle \emph{absolute} datetimes, but rules function on \emph{relative} time deltas like ``last 10 mins'').
+\item \textbf{Option B: \texttt{pandas} Offset Aliases.} (Discarded: Too complex and dataframe-centric for simple rule definitions).
+\item \textbf{Option C: Custom \texttt{TimeDelta} Grammar.} A bespoke, succinct string format (e.g., \texttt{10m:}, \texttt{5m:2m}) backed by a rigorous parser. (Selected: Provides a direct mapping to the historian's query language).
+\end{itemize}
 
-\textbf{Possible Improvements:} * \textbf{Complex Windows:} The current
-grammar handles fixed sliding windows. It does not support event-based
-windows (e.g., ``since the last startup'' or ``while pump A was
-running''). * \textbf{Frequency Inference:} The system assumes a default
-sampling rate. Explicitly handling ``resample every 1m'' within the rule
-definition would add precision.
+\textbf{Implementation:}
 
-\textbf{Literature:} * \textbf{Zhang, Y., et al.~(2015).} \emph{Temporal
-Tagging on Clinical Narratives with Neural Networks.} (Discusses the
-challenge of normalizing relative time expressions in technical
-domains). * \textbf{Vlachos, A., et al.~(2018).} \emph{Guided Generation
-of Code with Logic Constraints.} (Supports the approach of using
-constraints/grammars to guide LLM output).
+\begin{itemize}
+\item \textbf{Formal Time Grammar:} We defined a strict schema for relative time:
+  \begin{itemize}
+  \item \textbf{Time Point:} A single offset from \emph{now} (e.g., \texttt{0} = current, \texttt{5m} = 5 mins ago).
+  \item \textbf{Time Interval:} A range defined by start/end offsets (e.g., \texttt{10m:} = from 10m ago to now; \texttt{2h:1h} = from 2h ago to 1h ago).
+  \item \textbf{Statistic Requirement:} Intervals \emph{must} be accompanied by a statistical function (mean, max, std); Points \emph{must not}.
+  \end{itemize}
+\item \textbf{Two-Step Extraction:}
+  \begin{enumerate}
+  \item \textbf{Identification:} The system identifies \texttt{status.get(sensor,\ "natural\_expr")} calls in the Python code from Section 5.3.
+  \item \textbf{Normalization:} A dedicated LLM call translates the natural expression into a JSON object \texttt{\{"time":\ "str",\ "statistic":\ "enum"\}}.
+  \end{enumerate}
+\item \textbf{Validation Logic:}
+  \begin{itemize}
+  \item The \texttt{TimeDeltaInterval} class parses the string.
+  \item If it is an \textbf{Interval} (\texttt{:} exists), the system asserts a statistic is present.
+  \item If it is a \textbf{Point}, the system asserts the statistic is \texttt{None}.
+  \end{itemize}
+\item \textbf{Code Rewriting:} The natural language argument is replaced with the strict format: \texttt{status.get("TIC-101",\ "10m:",\ "mean")}.
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{itemize}
+\item \textbf{Standardization:} The system successfully normalized diverse expressions:
+  \begin{itemize}
+  \item ``average over the last 10 minutes'' \(\to\) \texttt{"10m:",\ "mean"}
+  \item ``current temperature'' \(\to\) \texttt{"0",\ None}
+  \item ``standard deviation over the last hour'' \(\to\) \texttt{"1h:",\ "std"}
+  \end{itemize}
+\item \textbf{Validation Trap:} The schema successfully caught logical errors, such as ``average temperature at 5 minutes ago'' (requesting an average at a single point), flagging them for review.
+\item \textbf{Historian Compatibility:} The resulting format \texttt{10m:} maps directly to time-series database queries (e.g., \texttt{SELECT\ AVG(val)\ FROM\ tag\ WHERE\ time\ \textgreater{}\ now()\ -\ 10m}), streamlining the execution engine.
+\end{itemize}
+
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+\item \textbf{Complex Windows:} The current grammar handles fixed sliding windows. It does not support event-based windows (e.g., ``since the last startup'' or ``while pump A was running'').
+\item \textbf{Frequency Inference:} The system assumes a default sampling rate. Explicitly handling ``resample every 1m'' within the rule definition would add precision.
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+\item \textbf{Zhang, Y., et al.~(2015).} \emph{Temporal Tagging on Clinical Narratives with Neural Networks.} (Discusses the challenge of normalizing relative time expressions in technical domains).
+\item \textbf{Vlachos, A., et al.~(2018).} \emph{Guided Generation of Code with Logic Constraints.} (Supports the approach of using constraints/grammars to guide LLM output).
+\end{itemize}
 
 \section{5.6. External Knowledge Grounding \&
 Verification}\label{external-knowledge-grounding-verification}
@@ -674,31 +627,21 @@ returns noisy JSON. \\
 \section{5.7. Multi-Level Output
 Verification}\label{multi-level-output-verification}
 
-\textbf{Research-based Hypothesis:} * \textbf{The
-``Hallucination-Syntax'' Gap:} While LLMs can generate Python-like text,
-they do not guarantee syntactic correctness or runtime safety. A
-generated rule might look correct but contain subtle syntax errors
-(e.g., indentation issues) that cause runtime crashes. *
-\textbf{Semantic Integrity:} A rule can be syntactically valid (it runs)
-but semantically invalid within the domain context (e.g., calculating
-the ``mean'' of a single time point, or querying a non-existent sensor).
-* \textbf{Compiler-Based Verification:} Treating the extracted rules as
-``source code'' and the verification pipeline as a ``compiler'' (Lexical
-\(\to\) Syntactic \(\to\) Semantic Analysis) ensures that only
-executable, logical, and safe rules are promoted to the consolidation
-stage.
+\textbf{Research-based Hypothesis:}
 
-\textbf{Implementation Options:} * \textbf{Option A: Execution/Unit
-Testing.} Running every rule in a sandboxed environment with mock data.
-(Discarded: High computational overhead; difficult to generate realistic
-mock data for complex multi-sensor correlations). * \textbf{Option B:
-LLM Self-Correction.} Asking the LLM to ``check its own work.''
-(Discarded: Research shows LLMs struggle to correct their own logic
-errors without external feedback signals). * \textbf{Option C: Static
-Analysis via AST (Abstract Syntax Tree).} Parsing the code structure to
-validate syntax and extracting function calls to validate arguments
-against constraints. (Selected: Fast, deterministic, and 100\% accurate
-for structure checking).
+\begin{itemize}
+\item \textbf{The ``Hallucination-Syntax'' Gap:} While LLMs can generate Python-like text, they do not guarantee syntactic correctness or runtime safety. A generated rule might look correct but contain subtle syntax errors (e.g., indentation issues) that cause runtime crashes.
+\item \textbf{Semantic Integrity:} A rule can be syntactically valid (it runs) but semantically invalid within the domain context (e.g., calculating the ``mean'' of a single time point, or querying a non-existent sensor).
+\item \textbf{Compiler-Based Verification:} Treating the extracted rules as ``source code'' and the verification pipeline as a ``compiler'' (Lexical \(\to\) Syntactic \(\to\) Semantic Analysis) ensures that only executable, logical, and safe rules are promoted to the consolidation stage.
+\end{itemize}
+
+\textbf{Implementation Options:}
+
+\begin{itemize}
+\item \textbf{Option A: Execution/Unit Testing.} Running every rule in a sandboxed environment with mock data. (Discarded: High computational overhead; difficult to generate realistic mock data for complex multi-sensor correlations).
+\item \textbf{Option B: LLM Self-Correction.} Asking the LLM to ``check its own work.'' (Discarded: Research shows LLMs struggle to correct their own logic errors without external feedback signals).
+\item \textbf{Option C: Static Analysis via AST (Abstract Syntax Tree).} Parsing the code structure to validate syntax and extracting function calls to validate arguments against constraints. (Selected: Fast, deterministic, and 100\% accurate for structure checking).
+\end{itemize}
 
 \textbf{Implementation:} The verification pipeline implements a
 three-layer ``Quality Gate'':
@@ -749,33 +692,28 @@ three-layer ``Quality Gate'':
   \end{itemize}
 \end{enumerate}
 
-\textbf{Results:} * \textbf{Runtime Safety:} The pipeline achieved a
-100\% ``Compilation Success Rate'' for verified rules---no rule marked
-\texttt{VERIFIED} caused a runtime crash during execution. *
-\textbf{Logic Catching:} The temporal-statistical check successfully
-caught subtle LLM errors, such as requesting the ``standard deviation of
-the current value'' (mathematically impossible), which a simple syntax
-check would have missed. * \textbf{Feedback Loop:} Rules failing
-verification are not just discarded; their error flags
-(\texttt{INVALID\_SENSOR}) provide specific metadata that can be used
-for re-prompting or human review.
+\textbf{Results:}
 
-\textbf{Possible Improvements:} * \textbf{Type Checking:} Integrate
-\texttt{mypy} or similar static type checkers to ensure return types are
-consistently strings or \texttt{None}. * \textbf{Physical Sanity Check:}
-Implement a ``Physics Engine'' check to validate threshold values (e.g.,
-ensuring a temperature threshold of 5000°C is flagged as impossible for
-a steel vessel).
+\begin{itemize}
+\item \textbf{Runtime Safety:} The pipeline achieved a 100\% ``Compilation Success Rate'' for verified rules---no rule marked \texttt{VERIFIED} caused a runtime crash during execution.
+\item \textbf{Logic Catching:} The temporal-statistical check successfully caught subtle LLM errors, such as requesting the ``standard deviation of the current value'' (mathematically impossible), which a simple syntax check would have missed.
+\item \textbf{Feedback Loop:} Rules failing verification are not just discarded; their error flags (\texttt{INVALID\_SENSOR}) provide specific metadata that can be used for re-prompting or human review.
+\end{itemize}
 
-\textbf{Literature:} * \textbf{Austin, J., et al.~(2021).} \emph{Program
-Synthesis with Large Language Models.} (Discusses the importance of
-execution-based or static evaluation for code generation). *
-\textbf{Chen, M., et al.~(2021).} \emph{Codex: Evaluating Large Language
-Models Trained on Code.} (Highlights that pass@k rates improve
-significantly when output is filtered by a syntax checker). *
-\textbf{Aho, A. V., et al.} \emph{Compilers: Principles, Techniques, and
-Tools.} (The Dragon Book---standard reference for the AST/Visitor
-pattern used in your implementation).
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+\item \textbf{Type Checking:} Integrate \texttt{mypy} or similar static type checkers to ensure return types are consistently strings or \texttt{None}.
+\item \textbf{Physical Sanity Check:} Implement a ``Physics Engine'' check to validate threshold values (e.g., ensuring a temperature threshold of 5000°C is flagged as impossible for a steel vessel).
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+\item \textbf{Austin, J., et al.~(2021).} \emph{Program Synthesis with Large Language Models.} (Discusses the importance of execution-based or static evaluation for code generation).
+\item \textbf{Chen, M., et al.~(2021).} \emph{Codex: Evaluating Large Language Models Trained on Code.} (Highlights that pass@k rates improve significantly when output is filtered by a syntax checker).
+\item \textbf{Aho, A. V., et al.} \emph{Compilers: Principles, Techniques, and Tools.} (The Dragon Book---standard reference for the AST/Visitor pattern used in your implementation).
+\end{itemize}
 
 \section{5.8. Intelligent Rule Consolidation \&
 Optimization}\label{intelligent-rule-consolidation-optimization}
