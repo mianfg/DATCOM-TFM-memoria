@@ -23,14 +23,23 @@ main solution of this work. Dual engineering+research-based approach}
 
 \section{Design Principles}\label{design-principles}
 
-\emph{Show design principles followed and why they are important} -
-Modularity and composability (why important, protocol-based design) -
-Separation of concerns * \emph{LLM Role:} Translation (Text \(\to\)
-Code). * \emph{System Role:} Verification (Code \(\to\) Safety). *
-\emph{Human Role:} Approval. - Decoupling of Logic and State: extracted
+\emph{Show design principles followed and why they are important}
+
+\begin{itemize}
+    \item Modularity and composability (why important, protocol-based design)
+    \item Separation of concerns
+    \begin{enumerate}
+        \item \emph{LLM Role:} Translation (Text \(\to\)
+Code).
+        \item \emph{System Role:} Verification (Code \(\to\) Safety).
+        \item \emph{Human Role:} Approval.
+    \end{enumerate}
+    \item Decoupling of Logic and State: extracted
 rule (Logic) must be stateless; the execution engine (State) handles the
-memory buffers - Traceability and explainability (from documents to
+memory buffers
+    \item Traceability and explainability (from documents to
 rules)
+\end{itemize}
 
 \section{Research Principles (this is a research problem!)}\label{research-principles-this-is-a-research-problem}
 
