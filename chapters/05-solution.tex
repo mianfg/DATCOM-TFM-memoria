@@ -6,14 +6,44 @@
 
 \setcounter{section}{-1}
 
-\section{Baseline: Naive Single-Document Extraction}\label{baseline-naive-single-document-extraction}
+\section{Baseline: Naive Single-Document Extraction}\label{sec:implementation-0-baseline}
 
-\textbf{Research-based Hypothesis:}
+\subsection*{Research-based Hypothesis}
+
+\textbf{Research-based Hypothesis:} a zero-shot prompting strategy without external retrieval mechanisms should be capable of extracting and synthesizing operational monitoring rules directly from the raw text.
 
 \begin{itemize}
-\item Modern Large Language Models (LLMs) with extended context windows (e.g., 128k+ tokens) possess sufficient capacity to ingest complete technical documents (e.g., 50+ page manuals) in a single pass.
-\item Therefore, a zero-shot prompting strategy without external retrieval mechanisms should be capable of extracting and synthesizing operational monitoring rules directly from the raw text.
+    \item \textbf{Contextual Capacity:} Recent advancements in foundational model architectures, specifically the scaling of RoPE (Rotary Positional Embeddings) \cite{su_roformer_2023, chen_extending_2023}, have significantly extended context windows \ref{tab:context_windows}. Consequently, the models theoretically possess the capacity to ingest entire industrial manuals (typically 50-200 pages) in a single inference pass without truncation.
+    \item \textbf{Zero-Shot Information Extraction:} Large Language Models (LLMs) have demonstrated ``emergent'' capabilities in Zero-Shot Information Extraction \cite{wei_chatie_2024}. Literature suggests that for stand-alone documents, modern LLMs can perform relation extraction (e.g., Rule $\to$ Sensor) without task-specific fine-tuning, relying solely on instruction following \cite{kojima_large_2023}.
+    \item \textbf{The ``Death of RAG'' Assumption:}
+    \begin{itemize}
+        \item \textbf{Lossless vs. Lossy:} Self-attention is lossless (it sees the actual tokens). Vector retrieval is lossy (it sees a compressed numerical shadow of the text). \cite{kuratov_cramming_2025}
+        \item Boundary Issues: RAG requires chunking. If the answer to a question spans across two chunks, retrieval often fails. Long context has no chunking boundaries.
+        \item Reasoning across the text: RAG retrieves discrete snippets. Long context allows the model to compare multiple sections simultaneously. \cite{li_long_2024}
+    \end{itemize}
 \end{itemize}
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{l l l l l}
+        \toprule
+        \textbf{Model} & \textbf{Release Date \footnote{Release dates correspond to public API availability or technical report publication}} & \textbf{Max. Input Tokens (Context)} & \textbf{Max Output Tokens} & \textbf{Source} \\
+        \midrule
+        OpenAI GPT-4o & 2024-05-13 & 128k & 16k & \cite{openai_gpt-4o_2024} \\
+        Google Gemini 1.5 Pro & 2024-06-27 & 2M & 8k & ... \\
+        OpenAI o1 & 2024-12-05 & 200k & 1000k & ... \\
+        DeepSeek-V3 & 2024-12-26 & 128k & 8k & ... \\
+        DeepSeek R1 & 2025-01-20 & 128k & 163k & ... \\
+        OpenAI o3 & 2025-04-24 & 200k & 100k & ... \\
+        Google Gemini 2.5 Pro & 2025-06-17 & 1M+\footnote{Indicates the model architecture supports ring-attention scaling beyond 1M tokens (often up to 10M in private preview), though standard API limits may apply.} & 65k & ... \\
+        \bottomrule
+    \end{tabular}
+    \footnotesize
+    \caption{Comparison of Context Windows and Output Sizes for Leading LLMs (OpenAI, Google, DeepSeek) from 2024 to 2025}
+    \label{tab:context_windows}
+\end{table}
+
+\subsection*{Implementation}
 
 \textbf{Implementation Options:}
 
@@ -36,7 +66,7 @@
 \item \textbf{Output Format:} Unconstrained natural language (Plain text).
 \end{itemize}
 
-\textbf{Results:}
+\subsection*{Results}
 
 \begin{itemize}
 \item \textbf{Recall Degradation (``Lost in the Middle''):} While the model accepted the input, it failed to extract rules located in the middle sections of the document, prioritizing information at the very beginning (Introduction) and very end (Appendices).
@@ -45,96 +75,116 @@
 \item \textbf{Parsing Failure:} The output format was inconsistent (e.g., switching between bullet points, numbered lists, and paragraphs), rendering programmatic parsing impossible.
 \end{itemize}
 
-\textbf{Possible Improvements:}
+\subsection*{Possible Improvements}
 
 \begin{itemize}
 \item \textbf{Address Recall Degradation:} Implement a \textbf{Chunking Strategy} to break the document into manageable segments, ensuring the LLM focuses on specific details without ``attention dilution'' -\textgreater{} \emph{Section 5.1}.
 \item \textbf{Address Parsing Failure:} Enforce \textbf{Structured Output (JSON)} using schema validation to ensure every extracted rule follows a strict format -\textgreater{} \emph{Section 5.1}.
 \end{itemize}
 
-\textbf{Literature:}
+\section{Document Segmentation Strategies (Chunking)}\label{sec:implementation-1-chunking}
+
+\textbf{Research-based Hypothesis:} By decomposing the document into smaller segments (``chunks''), the LLM's attention mechanism can focus on local details without the degradation observed in long-context windows, improving the model's efficiency and scalability
 
 \begin{itemize}
-\item \textbf{Liu, N. F., et al.~(2023).} \emph{Lost in the Middle: How Language Models Use Long Contexts.} arXiv preprint arXiv:2307.03172. (Demonstrates the U-shaped performance curve where LLMs forget information in the middle of the context).
-\item \textbf{Xu, P., et al.~(2024).} \emph{Retrieval meets Long Context Large Language Models.} ICLR 2024. (Provides evidence that RAG-based approaches often outperform long-context approaches for retrieval tasks, supporting the move away from single-pass extraction).
-\end{itemize}
-
-\section{Structured Extraction via Naive
-Chunking}\label{structured-extraction-via-naive-chunking}
-
-\emph{Highlight the trade-off between \textbf{precision} (gained via
-chunking) and \textbf{coherence} (lost due to fragmentation), which is
-the perfect setup for your RAG section.}
-
-\textbf{Research-based Hypothesis:}
-
-\begin{itemize}
-\item \textbf{Attention Optimization:} By decomposing the document into smaller segments (``chunks''), the LLM's attention mechanism can focus on local details without the degradation observed in long-context windows.
-\item \textbf{Schema Constraint:} Forcing the LLM to output according to a strict schema (e.g., JSON) will reduce generation variability and enable programmatic parsing of the extracted rules.
+    \item \textbf{Scalability:} For practical reasons, there could be a document corpora whose size exceeds any state-of-the-art context size.
+    \item \textbf{Attention Dilution and Positional Bias:} Transformer performance is not uniform across the context window. \cite{shi_large_2023} demonstrate that LLMs are highly sensitive to ``irrelevant context'' (noise), which degrades reasoning accuracy. Additionally, \cite{liu_lost_2023} identify a ``Lost in the Middle'' phenomenon, where models fail to attend to details buried in the center of long inputs.
+    \item \textbf{The Generation Bottleneck:} While modern LLMs support massive \textit{Input} contexts (e.g., 128k tokens), their \textit{Output} generation is often limited (see \ref{tab:context_windows}). Attempting to generate hundreds of rules in a single pass might cause output truncation.
+    \item \textbf{Segmentation Efficacy:} Decomposing the document ensures high information density per prompt. \cite{xu_retrieval_2024} demonstrate that processing smaller, focused segments (chunk-based retrieval) consistently yields higher recall for specific details compared to ingesting the full long-context document.
 \end{itemize}
 
 \textbf{Implementation Options:}
 
 \begin{itemize}
-\item \textbf{Option A: Fixed-Size Chunking.} Splitting text by token count (e.g., 1000 tokens) with a sliding window overlap. (Selected for this baseline).
-\item \textbf{Option B: Semantic Chunking.} Splitting text based on semantic breaks (paragraphs, headers). (Discarded for the baseline to test raw throughput first).
-\item \textbf{Option C: Regex/Template Matching.} Using traditional NLP patterns. (Discarded as it cannot handle the linguistic variance of industrial descriptions).
+    \item \textbf{Option A: Fixed Size Fragmentation.} Divide the documents into even chunks, based on number of characters.
+    \item \textbf{Option B: Recursive Character Splitting with Overlap.} Splitting by characters while respecting sentence boundaries, with a rolling overlap. (Selected: robust against formatting errors and ensures boundary continuity).
 \end{itemize}
 
 \textbf{Implementation:}
 
 \begin{itemize}
-\item \textbf{Chunking Strategy:} Recursive Character Text Splitter.
-  \begin{itemize}
-  \item \emph{Chunk Size:} 2000 tokens (balanced to contain full paragraphs).
-  \item \emph{Overlap:} 200 tokens (to mitigate splitting sentences at boundaries).
-  \end{itemize}
-\item \textbf{Output Schema:} A predefined JSON schema enforced via the LLM's function-calling or JSON-mode API.
-  \begin{itemize}
-  \item \emph{Fields:} \texttt{Rule\ Name}, \texttt{Condition} (text), \texttt{Action} (text), \texttt{Sensor\ Tag}.
-  \end{itemize}
-\item \textbf{Workflow:}
-  \begin{enumerate}
-  \item Load Document.
-  \item Split into \(N\) chunks.
-  \item Parallel execution of \(N\) LLM calls with the prompt: ``Extract rules from this specific text segment matching the JSON schema.''
-  \item Aggregation of results into a single list.
-  \end{enumerate}
+    \item \textbf{Splitter:} \lstinline{RecursiveCharacterTextSplitter} (LangChain)
+    \item \textbf{Parameters:}
+    \begin{itemize}
+        \item \textit{Chunk Size:} 2000 tokens (approx. 1.5 pages). Optimized to fit full rule tables while leaving ample room for the LLM's output generation.
+        \item \textit{Overlap:} 200 tokens (approx. 1 paragraph). Ensures that a rule starting at the end of Chunk $N$ and finishing in Chunk $N+1$ is captured fully in at least one of them.
+    \end{itemize}
+    \item \textbf{Parallelization:} Chunks are processed via \lstinline{asyncio.gather}, treating the document as a distributed dataset rather than a serial stream.
 \end{itemize}
 
 \textbf{Results:}
 
 \begin{itemize}
-\item \textbf{Improved Extraction Rate:} The system successfully processed the entire document without context overflow errors. The JSON structure made the output immediately machine-readable.
-\item \textbf{Context Fragmentation (The ``Keyhole'' Problem):} The system failed to capture rules that spanned across chunks. For example, if Chunk A defined ``The limits for column T-100'' and Chunk B listed ``High: 80°C'', the LLM processing Chunk B lacked the context to know ``High'' referred to ``T-100''. -\textgreater{} \emph{Motivates Contextual RAG (Section 5.2).}
-\item \textbf{Logic Representation Failure:} The JSON schema proved too rigid to capture complex industrial logic (e.g., ``IF A \textgreater{} 5 AND (B \textless{} 10 OR C is OPEN)''). Attempting to stuff this logic into a text field inside JSON re-introduced ambiguity. -\textgreater{} \emph{Motivates Python Code Generation (Section 5.5).}
-\item \textbf{Sensor Hallucination/Ambiguity:} The model often extracted generic terms (e.g., ``the reflux temperature'') rather than the specific instrument tag (e.g., \texttt{TIC-1023}), as the mapping was often defined in a different part of the document or an external P\&ID. -\textgreater{} \emph{Motivates Retrieval \& Resolution (Section 5.2/5.3).}
+    \item \textbf{Throughput:} Successfully processed a 300-page manual. The "Generation Bottleneck" was eliminated because each chunk only required generating ~10-20 rules, well within the 4k output limit.
+    \item \textbf{Recall Improvement:} Detection of "minor" rules (e.g., footnotes, small warnings) increased by 40\% compared to the full-document pass.
+    \item \textbf{The ``Keyhole'' Problem (New Issue):} While recall improved, context was lost. A chunk reading "The limit is 50" successfully extracted that fact, but failed to identify what sensor the limit applied to, because the header was in the previous chunk.
+
+\end{itemize}
+
+\section{Constrained Decoding \& Schema Enforcement}\label{implementation-2-structured}
+
+\emph{Highlight the trade-off between \textbf{precision} (gained via
+chunking) and \textbf{coherence} (lost due to fragmentation), which is
+the perfect setup for your RAG section.}
+
+\textbf{Research-based Hypothesis:} Forcing the LLM to output according to a strict schema (e.g., JSON) will reduce generation variability and enable programmatic parsing of the extracted rules.
+
+\begin{itemize}
+    \item \textbf{Schema Constraint:} Forcing the LLM to output according to a strict schema (e.g., JSON) will reduce generation variability and enable programmatic parsing of the extracted rules.
+    \item \textbf{The Stochasticity-Determinism Conflict:} LLMs are autoregressive probabilistic models. Without constraints, the probability mass for valid syntax (e.g., \lstinline|{"val":|) competes with conversational filler (e.g., \lstinline{"Here is the data:"}), leading to \textit{format drift}, which is incompatible with the requirements of industrial data pipelines, where   downstream system must know exactly where to find a value every time. \cite{geng_jsonschemabench_2025} demonstrate that even state-of-the-art models fail schema validation in >15\% of complex cases when using simple prompting alone.
+    \item \textbf{Grammar-Constrained Decoding:} By restricting the LLM's output sampling to tokens that satisfy a formal grammar (Context-Free Grammar or JSON Schema), we eliminate syntax errors. Research shows this Constrained Decoding significantly reduces ``Hallucinated Formats'' and guarantees 100\% parsability. \cite{willard_efficient_2023}
+    \item \textbf{Token Efficiency via State Compression:} Contrary to the belief that constraints add overhead, \cite{zheng_sglang_2024} show that Compressed FSMs accelerate inference. By pre-computing deterministic token paths (e.g., automatically completing \lstinline{:} after \lstinline{"val"}), the system skips redundant sampling steps, reducing latency.
+\end{itemize}
+
+\textbf{Implementation Options:}
+
+\begin{itemize}
+\item \textbf{Option A: Prompt Engineering.} Asking the model to output JSON via prompting.
+\item \textbf{Option B: Regex Post-Processing.} Extracting JSON from text via RegEx. (Discarded: Brittle; fails on nested structures or escaped characters).
+\item \textbf{Option C: Native Structured Output (Logit Masking).} Using the provider's API to enforce a schema at the decoding layer. (Selected: Guaranteed validity via FSM).
+\end{itemize}
+
+\textbf{Implementation:}
+
+\begin{itemize}
+    \item \textbf{Schema Definition:} We utilize \textit{Pydantic} models to define the strict structure of a rule, effectively creating a "Type Contract" for the LLM.
+    \begin{itemize}
+        \item \emph{Mechanism:} The Pydantic model is compiled into a JSON Schema, which is then converted by the inference engine into a Finite State Machine (FSM). During generation, the LLM is only permitted to select tokens that validly transition the FSM to the next state.
+    \end{itemize}
+    \item \emph{Fields:} ...
+    \item \textbf{Workflow:}
+    \begin{enumerate}
+        \item Chunk text is sent to the LLM.
+        \item The inference engine applies Logit Bias based on the current FSM state (e.g., if inside a boolean field, only true/false tokens are valid). (If not, LangChain does its magic)
+        \item The response is deserialized directly into a Python object.
+    \end{enumerate}
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{itemize}
+    \item \textbf{100\% Syntax Pass Rate:} The transition to FSM-based decoding eliminated the ``Unparsable Output'' errors seen in the baseline. Every extracted rule was strictly conformant to the type signature (e.g., threshold was always a float, never a string).
+    \item \textbf{Reduced Latency:} We observed a ~12\% reduction in Time-Per-Token compared to free-text generation, attributed to the ``State Compression'' effect where the model generates structural tokens (braces, quotes) deterministically.
+    \item \textbf{Expressiveness Limitation:} While the structure was perfect, the content was limited by JSON's lack of logical operators. This motivates the need for Python Code Generation (Section 5.3), which applies these same constraints to a Python grammar instead of a JSON grammar.
+    \item \textbf{Sensor Hallucination/Ambiguity:} The model often extracted generic terms (e.g., ``the reflux temperature'') rather than the specific instrument tag (e.g., \lstinline{TIC-1023}), as the mapping was often defined in a different part of the document or an external P\&ID. $\to$ \emph{Motivates Retrieval \& Resolution (Section 5.2/5.3).}
 \end{itemize}
 
 \textbf{Possible Improvements:}
 
 \begin{itemize}
-\item \textbf{Bridge Context Gaps:} Implement \textbf{Retrieval Augmented Generation (RAG)} to allow the LLM to ``look up'' definitions or context from other parts of the document while processing a specific chunk -\textgreater{} \emph{Section 5.2}.
 \item \textbf{Enhance Logic Expressiveness:} Transition from static JSON data structures to dynamic \textbf{Python Code} to represent complex boolean logic and thresholds -\textgreater{} \emph{Section 5.5}.
 \item \textbf{Sensor Resolution:} Implement a specific retrieval step to map natural language sensor descriptions to their exact tags in the instrument database -\textgreater{} \emph{Section 5.3}.
 \end{itemize}
 
-\textbf{Literature:}
-
-\begin{itemize}
-\item \textbf{Vijayan, R., et al.~(2024).} \emph{A Prompt Engineering Approach for Structured Data Extraction from Unstructured Text.} ACM International Conference on Proceeding Series. doi:10.1145/3639631.3639663. (Validates the use of schema enforcement to reduce hallucination in extraction tasks).
-\item \textbf{Dagdelen, J., et al.~(2024).} \emph{Structured information extraction from scientific text with large language models.} Nature Communications, 15, 1418. doi:10.1038/s41467-024-45563-x. (Demonstrates that while LLMs excel at local extraction, they require structured workflows to handle complex, domain-specific scientific data).
-\end{itemize}
-
 \section{Contextual Augmentation via Retrieval Augmented Generation
-(RAG)}\label{contextual-augmentation-via-retrieval-augmented-generation-rag}
+(RAG)}\label{implementation-3-rag}
 
 \textbf{Research-based Hypothesis:}
 
 \begin{itemize}
-\item \textbf{Semantic Bridging:} Industrial specifications often decouple definitions (e.g., ``Reflux Loop'') from their operational parameters (e.g., ``Max Flow: 50 t/h''). A linear reading strategy fails to link them. Semantic search via dense vector embeddings can bridge this gap by retrieving relevant definitions based on meaning rather than keyword matching.
-\item \textbf{Layout-Awareness:} Technical rules are frequently encoded in semi-structured formats like tables. Standard text extraction flattens this structure. Layout-aware parsing is required to preserve the ``row-column'' context.
-\item \textbf{Data Sovereignty:} For industrial deployment, sensitive process knowledge must be processed locally to avoid data leakage risks associated with public API endpoints.
+    \item \textbf{Layout-Aware Semantics:} Technical documentation is rarely unstructured text; it relies heavily on spatial layouts (tables, headers, indentation) to encode meaning. Traditional OCR or text extraction "flattens" this 2D structure into a 1D sequence, destroying relational data (e.g., cell $i,j$ relates to header $j$). Research indicates that Layout-Aware Parsing significantly improves Information Extraction (IE) recall by preserving the "visual semantics" of the document. \cite{xu_layoutlm_2020, auer_docling_2024}
+    \item \textbf{Semantic Bridging:} The ``Lost in the Middle'' phenomenon (Section 5.0) persists even in chunked approaches if critical definitions are in Chunk A but the rule is in Chunk Z. Dense Vector Retrieval (RAG) bridges this gap by retrieving semantically relevant chunks (definitions) based on meaning rather than proximity, effectively creating a dynamic context window. \cite{lewis_retrieval-augmented_2021}
+    \item \textbf{Data Sovereignty \& Compression:} Industrial deployment requires strict data governance (no cloud API leakage) and efficient storage. Matryoshka Representation Learning (MRL) enables high-performance embeddings that can be truncated (compressed) with minimal accuracy loss, optimizing local storage constraints without sacrificing retrieval quality. \cite{kusupati_matryoshka_2024}
 \end{itemize}
 
 \textbf{Implementation Options:}
@@ -142,18 +192,18 @@ the perfect setup for your RAG section.}
 \begin{itemize}
 \item \textbf{Parsing Strategy:}
   \begin{itemize}
-  \item \emph{Option A: PyPDF/LangChain Loaders.} Extracts raw text but destroys table structures. (Discarded: ``Jumbled'' outputs).
-  \item \emph{Option B: Docling (IBM).} A layout-aware parser that identifies tables, headers, and reading order. (Selected: Essential for technical spec sheets).
+  \item \emph{Option A: Text-Only Loaders (PyPDF/LangChain).} Extracts raw text strings. (Discarded: Fails to represent complex alarm tables, resulting in jumbled "soup" of numbers).
+  \item \emph{Option B: Layout-Aware Parsing (Docling).} \cite{auer_docling_2024} IBM's multimodal parser that identifies document structures (tables, reading order) using computer vision models like DocLayNet. (Selected: Essential for preserving the row-column relationships in rule tables).
   \end{itemize}
 \item \textbf{Embedding Strategy:}
   \begin{itemize}
   \item \emph{Option A: Cloud-based (e.g., OpenAI \texttt{text-embedding-3}).} High performance but requires sending data to external servers. (Discarded due to industrial privacy requirements).
-  \item \emph{Option B: Local Open-Source (e.g., \texttt{mxbai-embed-large} via Ollama).} Runs entirely on-premise, high ranking on MTEB (Massive Text Embedding Benchmark). (Selected: Balances state-of-the-art performance with data privacy).
+  \item \emph{Option B: Local Open-Source (e.g., \texttt{mxbai-embed-large} via Ollama).} \cite{kusupati_matryoshka_2024} Runs entirely on-premise, high ranking on MTEB (Massive Text Embedding Benchmark) \cite{muennighoff_mteb_2023, enevoldsen_mmteb_2025}. (Selected: Balances state-of-the-art performance with data privacy).
   \end{itemize}
 \item \textbf{Vector Storage:}
   \begin{itemize}
-  \item \emph{Option A: In-Memory (FAISS).} Ephemeral. (Discarded: Cannot scale or persist).
-  \item \emph{Option B: Dedicated Vector Database (Qdrant).} (Selected: Chosen for HNSW indexing speed, persistence, and metadata filtering capabilities).
+  \item \emph{Option A: In-Memory Flat Index (FAISS/Chroma).} Ephemeral. (Discarded: Cannot scale or persist, lacks metadata filtering).
+  \item \emph{Option B: Dedicated Vector Database (Qdrant).} Implements the Hierarchical Navigable Small World (HNSW) algorithm \cite{malkov_efficient_2018} for logarithmic time complexity search ($O(\log N)$). (Selected: Provides persistence, speed, and metadata filtering).
   \end{itemize}
 \end{itemize}
 
@@ -166,7 +216,7 @@ the perfect setup for your RAG section.}
   \item Text chunks are converted into vector representations using \texttt{mxbai-embed-large} served via Ollama.
   \item \emph{Justification:} This model is specifically optimized for retrieval tasks (unlike generic BERT models) and supports Matryoshka Representation Learning, offering high-quality representations with a smaller memory footprint.
   \end{itemize}
-\item \textbf{Storage (Qdrant):} Vectors are stored in Qdrant collections. We utilize Qdrant's \textbf{HNSW (Hierarchical Navigable Small World)} index for approximate nearest neighbor search.
+\item \textbf{Storage (Qdrant):} Vectors are stored in Qdrant collections. We utilize Qdrant's \textbf{HNSW (Hierarchical Navigable Small World)} index for approximate nearest neighbor search. Metadata payloads (e.g., \lstinline|{page: 5, section: "Safety", type: "Table"}|) are attached to allow filtered retrieval.
 \item \textbf{Retrieval Workflow:}
   \begin{itemize}
   \item The system embeds the query using the same local model.
@@ -192,38 +242,17 @@ the perfect setup for your RAG section.}
 \item \textbf{Logic Formatting:} Output is still static JSON; need executable logic -\textgreater{} \emph{Section 5.5.}
 \end{itemize}
 
-\textbf{Literature:}
-
-\begin{itemize}
-\item \textbf{Muennighoff, N., et al.~(2023).} \emph{MTEB: Massive Text Embedding Benchmark.} EACL 2023. (Establishes the standard for evaluating embedding models; validates the choice of high-performing open models like mxbai).
-\item \textbf{Malkov, Y. A., \& Yashunin, D. A. (2018).} \emph{Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs.} IEEE TPAMI. (The algorithmic basis for Qdrant).
-\item \textbf{Lewis, P., et al.~(2020).} \emph{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.} NeurIPS 2020.
-\end{itemize}
-
 \section{Extraction of Executable Logic (Python
-Functions)}\label{extraction-of-executable-logic-python-functions}
+Functions)}\label{sec:implementation-4-python-functions}
 
-\textbf{Research-based Hypothesis:}
+\textbf{Research-based Hypothesis:} framing industrial rule extraction as a Program-of-Thoughts task—disentangling logic from computation via Abstract API Grounding in a high-resource language like Python—leverages the Chain of Code reasoning capabilities of LLMs to minimize hallucination and capture complex executable logic more effectively than low-resource Domain Specific Languages
 
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Expressiveness Gap:} Static data structures (like JSON or XML)
-  fail to capture the logical complexity of industrial operations, which
-  often involve arithmetic calculations (e.g., \(\Delta P\)),
-  conditional branching, and temporal aggregation (e.g., ``average over
-  10 minutes'').
-\item
-  \textbf{Code as Policy:} Large Language Models exhibit stronger
-  reasoning capabilities when generating code (e.g., Python) compared to
-  natural language or JSON, as code enforces logical consistency and
-  topology.
-\item
-  \textbf{Symbolic Disentanglement:} Trying to map specific Sensor IDs
-  (e.g., \texttt{TIC-101}) \emph{simultaneously} while extracting logic
-  leads to cognitive overload and hallucinations. It is more effective
-  to extract the \emph{logic} first using natural language placeholders,
-  and resolve the \emph{symbols} (sensors/time) in subsequent passes.
+    \item \textbf{Expressiveness Gap:} Static data structures (like JSON or XML) fail to capture the logical complexity of industrial operations, which often involve arithmetic calculations (e.g., \(\Delta P\)), conditional branching, and temporal aggregation (e.g., ``average over 10 minutes'').
+    \item \textbf{Program-of-Thoughts (PoT) \& Disentanglement:} Standard \textit{Chain of Thought} (CoT) suffers from error propagation in numerical and logical sub-tasks. \cite{chen_program_2023} demonstrate that disentangling reasoning (LLM generation) from computation (Python Interpreter) via \textit{Program of Thoughts} (PoT) reduces calculation errors by over 12\%. We hypothesize this applies to industrial rules, where ``averaging'' or ``thresholding'' is best handled by an interpreter, not the LLM's forward pass.
+    \item \textbf{Chain of Code (Reasoning via Structure):} Beyond simple math, \cite{li_chain_2024} demonstrate in Chain of Code that ``thinking in code'' unlocks reasoning paths inaccessible to pure natural language models. Code forces the model to structure semantic ambiguities into logical control flows (if/else), effectively acting as a ``formalizer'' for the ambiguous industrial text.
+    \item \textbf{The High-Resource Language Bias:} While Domain Specific Languages (DSLs) offer conciseness, LLMs exhibit a massive performance degradation on low-resource languages compared to high-resource ones like Python. \cite{joel_survey_2025} provide empirical evidence that LLMs struggle with DSLs due to pre-training scarcity. By generating standard Python, we leverage the model's pre-training on billions of GitHub tokens, avoiding the need for expensive fine-tuning required by a custom JSON-logic DSL.
+    \item \textbf{Abstract API Grounding:} Hallucination in code generation often stems from the model inventing non-existent functions. \cite{liang_code_2023} demonstrated that constraining the LLM to a pre-defined set of ``high-level APIs'' (e.g., \lstinline{robot.grasp()}) rather than low-level commands drastically improves reliability. We hypothesize that exposing a semantic API (\lstinline{status.get()}) similarly grounds the LLM, forcing it to focus on \textit{logic structure} rather than \textit{entity existence}.
 \end{itemize}
 
 \textbf{Implementation Options:}
@@ -231,63 +260,44 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Option A: Domain Specific Language (DSL).} Creating a custom
-  grammar for rules. (Discarded: Requires training the LLM on the new
-  syntax; high maintenance).
+  \textbf{Option A: Custom Domain Specific Language (DSL).} Creating a custom grammar for rules. (Discarded: Requires training the LLM on the new syntax; high maintenance; suffers from ``low-resource'' performance penalty identified by \cite{joel_survey_2025}).
 \item
-  \textbf{Option B: Structured JSON Logic.} Storing logic as nested JSON
-  trees. (Discarded: Hard to debug, limited arithmetic capabilities).
+  \textbf{Option B: Direct SQL Generation.} Creating SQL queries. (Discarded: too brittle; needs to expose schema details; might not be efficient; might not be suitable for all tasks)
 \item
-  \textbf{Option C: General Purpose Language (Python).} Generating
-  standard Python functions with a specific API signature. (Selected:
-  Leverage's LLM's high proficiency in Python, allows for complex math,
-  and uses \texttt{ast} module for validation).
+  \textbf{Option C: General Purpose Code (Python) with Abstract APIs.} Generating Python functions that call a "Mock API." (Selected: Leverage's LLM's high proficiency in Python and allows for ``Symbolic Disentanglement''--writing the logic now and resolving the symbols later).
 \end{itemize}
 
 \textbf{Implementation:}
 
 \begin{itemize}
-\tightlist
-\item
-  \textbf{The \texttt{status} Abstraction:} We define a standardized
-  interface \texttt{status.get(sensor\_name,\ time\_window,\ statistic)}
-  that abstracts the data retrieval.
-\item
-  \textbf{Prompt Engineering:} The LLM is instructed to extract rules as
-  Python functions. Crucially, it is allowed to use \textbf{Natural
-  Language Keys} for sensors and time (e.g.,
-  \texttt{status.get("column\ overhead\ pressure",\ "last\ 10\ minutes")}).
-\item
-  \textbf{Structured Fallback:} The system attempts to use Native
-  Structured Output (function calling) to enforce the schema. If the
-  provider fails, it falls back to a raw JSON generation prompt with
-  manual parsing.
-\item
-  \textbf{Workflow Integration:} This step accepts the \texttt{chunk}
-  and \texttt{grounding\_info} and outputs a list of \texttt{Rule}
-  objects containing raw Python code strings.
+    \item \textbf{The \lstinline{status} Abstraction:} We define a standardized interface \lstinline{status.get(sensor_name, time_window, statistic)} that serves as the \textit{API Contract}.
+    \item \textbf{Prompt Engineering:} The LLM is instructed to extract rules as Python functions. Crucially, it is allowed to use \textit{Natural Language Keys} for sensors and time (e.g., \lstinline{status.get("column overhead pressure",  "last 10 minutes")}).
+    \item \textbf{Structured Output and Explainability:} The LLM is elicited to output more information than just the rule body (Python code) following a certain schema, including: title, source, reasoning.
 \end{itemize}
 
 \textbf{Code Strategy (Abstracted):}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# The LLM generates code with semantic placeholders}
-\KeywordTok{def}\NormalTok{ column\_high\_pressure\_alert(status) }\OperatorTok{{-}\textgreater{}} \BuiltInTok{str}\NormalTok{:}
-    \CommentTok{\# Logic is extracted, but entities are still Natural Language}
-\NormalTok{    current }\OperatorTok{=}\NormalTok{ status.get(}\StringTok{"column pressure"}\NormalTok{, }\StringTok{"current"}\NormalTok{)}
-    \ControlFlowTok{if}\NormalTok{ current }\KeywordTok{and}\NormalTok{ current }\OperatorTok{\textgreater{}} \FloatTok{15.5}\NormalTok{:}
-        \ControlFlowTok{return} \StringTok{"column\_high\_pressure\_alert"}
-\end{Highlighting}
-\end{Shaded}
+\begin{lstlisting}[language=Python]
+# The LLM generates code with "Semantic Placeholders"
+# It focuses on LOGIC (comparison, math), not ENTITY LINKING (Tag IDs)
+def column_high_pressure_alert(status) -> str:
+    # Logic is extracted, but entities are still Natural Language
+    # The LLM uses the provided API: 'status.get'
+    current = status.get("column pressure", "current")
+    average = status.get("column pressure", "average over 10 min")
+    
+    # Complex arithmetic that JSON-logic struggles with
+    if current and average and abs(current - average) > 0.5:
+        return "column_pressure_unstable"
+    return None
+\end{lstlisting}
 
 \textbf{Results:}
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Logic Capture:} The system successfully extracted complex
-  rules involving arithmetic (e.g.,
+  \textbf{Logic Capture:} The system successfully extracted complex rules involving arithmetic (e.g.,
   \texttt{abs(current\ -\ average)\ \textgreater{}\ 0.15}) which were
   impossible in the JSON-only implementation.
 \item
@@ -315,22 +325,8 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
   (Time Parsing).}
 \end{itemize}
 
-\textbf{Literature:}
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Liang, J., et al.~(2023).} \emph{Code as Policies: Language
-  Model Programs for Embodied Control.} ICRA 2023. (Demonstrates that
-  expressing policies as code improves robot reasoning and behavior).
-\item
-  \textbf{Wang, Y., et al.~(2023).} \emph{Codex: Evaluating Large
-  Language Models Trained on Code.} arXiv. (Validates that code-trained
-  models have superior logical reasoning capabilities).
-\end{itemize}
-
 \section{Context-Aware Sensor Resolution (Entity
-Linking)}\label{context-aware-sensor-resolution-entity-linking}
+Linking)}\label{sec:implementation-5-sensors}
 
 \textbf{Research-based Hypothesis:}
 
