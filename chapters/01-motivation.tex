@@ -1,0 +1,65 @@
+% =============================================================================
+% CHAPTER 1: MOTIVATION
+% =============================================================================
+
+\chapter{Motivation and Problem Statement}\label{ch:motivation}
+
+\section{Industrial Motivation}\label{sec:motivation-industrial}
+
+\begin{itemize}
+    \item \textbf{Goal:} process industries (oil \& gas, chemical, etc.) prioritize process safety management above all else.
+    \item \textbf{The Conflict (Detection vs. Definition):}
+    \begin{itemize}
+        \item Industry has invested heavily in \textit{anomaly detection} algorithms (looking for deviations).
+        \item However, detection requires a \textit{reference state}.
+        \item \textbf{Data-Driven Paradox:} We cannot train a model to detect failure if the failure has never happened in the first place. Safe plans suffer from ``zero-shot'' reality where failure data is scarce, or non-existent.
+        \item \textbf{Necessity of Definition:} Therefore, reliability must start with \textit{anomaly definition} (rule generation) based on physics and engineering constraints, not just statistic outlier detection. This way we improve explainability and traceability, as well as the maintenance process.
+    \end{itemize}
+    \item \textbf{The Current Workflow (Expert Bottleneck):} currently, defining this rules is a manual process that require high-level domain experts to (1) read documentation, (2) recall external knowledge, (3) manually translate this into control logic. Experts are scarce, expensive and their time is limited. Relying on them for manual rule generation is inefficient (even prone to errors) and unscalable. This creates a backlog where many potential safety rules are never implemented simply because no one has the time to do them, or because they might miss things.
+    \item \textbf{The Hidden Knowledge Opportunity:} the rules already exist or can be inferred from operating manuals, P\&IDs and process descriptions, but this is \textit{dark data}: unstructured data that control systems cannot read. If we can unlock this hidden knowledge, we remove the bottleneck. We move from ``creating'' rules to ``extracting'' them.
+\end{itemize}
+
+\section{Problem Statement}
+
+While the operational knowledge required to define process anomalies exists -- embedded in unstructured industrial documentation and established engineering principles -- it remains inaccessible.
+
+Currently, there is no automated framework capable of extracting this ``hidden knowledge'' and formalizing it into executable monitoring rules. This forces the industry to rely on a manual, expert-dependent workflow that is:
+
+\begin{itemize}
+    \item Unscalable: Unable to process the thousands of pages of existing technical specifications.
+    \item Incomplete: Leaving vast amounts of operational constraints trapped in static documents rather than actively monitoring the process.
+    \item Static: Failing to integrate external real-world knowledge (physics, regulations) into the anomaly definition process.
+\end{itemize}
+
+The core problem is the lack of a semantic bridge to convert unstructured ``hidden'' knowledge into structured, executable anomaly definitions without continuous expert intervention.
+
+\section{Research Questions}
+
+\begin{enumerate}[label={(}RQ\arabic*{)},wide = 0pt,widest={100}, leftmargin =*]
+    \item \textbf{Extraction:} how can the operational knowledge ``hidden'' in unstructured data be automatically identified and formalized into executable logic?
+    \item \textbf{Ambiguity:} how can we resolve the gap between generic natural language descriptions found in the documents and specific plant sensors found in the system?
+    \item \textbf{Reasoning:} To what extent can we leverage external ``world knowledge'' (physics, regulations, etc.) to validate or enhance the rules extracted from this unstructured data?
+    \item \textbf{Explainability and Trust:} since we are removing the human from the \textit{generation} loop, what mechanisms can ensure the automatically extracted rules are trustworthy and can be easily assessed?
+    \item \textbf{Quality:} how can we assess and improve the quality of these extracted rules? (TODO)
+    \item \textbf{Complexity:} how can the computationally expensive logic inherent to these generated rules (e.g., sliding windows, statistical aggregations) be executed efficiently in real-time industrial environments?
+\end{enumerate}
+
+
+\section{Objectives}\label{research-approach-and-objectives}
+
+\textbf{Primary Objective:} propose and validate a methodological framework for unlocking ``hidden'' operational knowledge, capable of automatically transforming unstructured industrial specifications into executable anomaly definitions (rules) with a level of reliability and efficiency suitable for safety-critical environments
+
+\textbf{Specific Objectives:}
+
+\begin{enumerate}[label={(}O\arabic*{)},wide = 0pt,widest={100}, leftmargin =*]
+    \item \textbf{Formalization:} Define a strategy to translate the ambiguity of operational constraints defined in unstructured data into precise, deterministic logic structures.
+    \item \textbf{Ontological Bridging:} Investigate methods to resolve the semantic gap between generic equipment descriptions found in documentation (e.g., ``reflux pump'') and the specific, coded instrumentation tags used in control systems (e.g., \texttt{P-101A}).
+    \item \textbf{External Grounding:} Investigate the integration of external world knowledge (such as physics principles and regulatory standards) into the extraction pipeline to augment rules and validate the physical plausibility and regulatory compliance of the generated rules (i.e., TODO not exactly precisely this)
+    \item \textbf{Verification:} Ensure the trustworthiness of the automated system through explainability and traceability, establishing a clear lineage between the generated code and the source documentation to allow for systematic assessment and auditing.
+    \item \textbf{Quality Assurance \& Consolidation:} Define a set of metrics to assess rule quality and implement an optimization mechanism (consolidation) to improve the output by merging redundant or fragmented logic into concise, high-value rules. (TODO)
+    \item \textbf{Operational Efficiency:} Design a stream processing architecture capable of handling the computationally expensive logic inherent to natural language rules in real-time, industrial edge environments.
+\end{enumerate}
+
+\section{Operational Use Case}
+
+Introduce here Repsol C3/C4 splitter as experimental ground used to validate RQs and Os.

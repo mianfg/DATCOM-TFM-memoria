@@ -3,7 +3,7 @@
 \emph{Brief summary of problem, approach, contributions, and results}
 
 \begin{itemize}
-\tightlist
+
 \item
   Ensure the abstract follows a strict ``narrative arc'': Context (1
   sentence) \(\to\) Gap (1 sentence) \(\to\) Hypothesis/Method (2
@@ -28,14 +28,14 @@
 Context}\label{motivation-and-industrial-context}
 
 \begin{itemize}
-\tightlist
+
 \item
   Industrial process monitoring and anomaly detection challenges,
   knowledge extraction challenge (from an \emph{epistemological}
   perspective, it's not just a ``messy PDF'' problem)
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Dark data: industry-oprational knowledge that exists but is
     unqueryable and unexecutable
@@ -50,7 +50,7 @@ Context}\label{motivation-and-industrial-context}
   \textbf{Case Study Introduction}: C3/C4 splitter separation at Repsol
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Process description (what can be shared publicly)
   \item
@@ -66,7 +66,7 @@ Context}\label{motivation-and-industrial-context}
 \section{1.2. Problem Statement}\label{problem-statement}
 
 \begin{itemize}
-\tightlist
+
 \item
   Knowledge accessibility: Knowledge trapped in unstructured
   documentation (PDFs, manuals, specs)
@@ -93,7 +93,7 @@ Context}\label{motivation-and-industrial-context}
 whole work}
 
 \begin{itemize}
-\tightlist
+
 \item
   \emph{RQ1 (Feasibility)}: How can operational knowledge embedded in
   unstructured industrial documentation be automatically extracted and
@@ -102,7 +102,7 @@ whole work}
   unstructured industrial specifications into executable logic?
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Opens up: is automated extraction feasible? what representations
     work? what extraction methods? what are the challenges?
@@ -121,7 +121,7 @@ whole work}
   labeling?
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Opens up: sensor ambiguity and retrieval, time expressions,
     validation, domain knowledge gaps
@@ -136,7 +136,7 @@ whole work}
   LLM-based rule extraction?
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Opens up: do LLMs understand industrial concepts? do they need
     context or grounding?
@@ -152,7 +152,7 @@ whole work}
   deployment?
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Opens up: explainability, traceability; as future work: HITL and
     human validation/oversight
@@ -165,7 +165,7 @@ whole work}
   extensive manual review?
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Opens up: quality metrics, redundancy detection, consolidation
   \item
@@ -178,7 +178,7 @@ whole work}
   industrial environments?
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Opens up: streaming framework and rule visualization
   \end{itemize}
@@ -219,12 +219,12 @@ Art}\label{background-and-state-of-the-art}
 Processes}\label{anomaly-detection-in-industrial-processes}
 
 \begin{itemize}
-\tightlist
+
 \item
   Traditional, data-driven approaches (statistical, ML-based)
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Popular, but lacks interpretability and requires massive historical
     failure data (which is rare in safe plants)
@@ -234,7 +234,7 @@ Processes}\label{anomaly-detection-in-industrial-processes}
   statistical/ML: generate explainable rules
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Role of domain knowledge
   \end{itemize}
@@ -245,7 +245,7 @@ Processes}\label{anomaly-detection-in-industrial-processes}
 \section{2.2. Knowledge Extraction (IE)}\label{knowledge-extraction-ie}
 
 \begin{itemize}
-\tightlist
+
 \item
   Traditional ML-based approach for knowledge extraction: ontology
   learning, relation extraction
@@ -253,7 +253,7 @@ Processes}\label{anomaly-detection-in-industrial-processes}
   Limitations for complex rule extraction
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Traditional NLP (spacy, regex) fails on nested logic and implicit
     content
@@ -268,13 +268,13 @@ Processes}\label{anomaly-detection-in-industrial-processes}
 Generation}\label{llm-based-rule-generation}
 
 \begin{itemize}
-\tightlist
+
 \item
   Why LLMs are ideal in this use case (multiple research papers showing
   comparison and results)
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Versatile reasoning and generalization
   \item
@@ -291,7 +291,7 @@ Generation}\label{llm-based-rule-generation}
   from scientific papers, industrial documents\ldots)
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Code-as-Policy literature
   \end{itemize}
@@ -310,7 +310,7 @@ yet}
 \section{3.1. Large Language Models}\label{large-language-models}
 
 \begin{itemize}
-\tightlist
+
 \item
   Architecture overview (transformers, attention). Foundational models
 \item
@@ -329,7 +329,7 @@ yet}
 (RAG)}\label{retrieval-augmented-generation-rag}
 
 \begin{itemize}
-\tightlist
+
 \item
   The RAG paradigm: retrieval + generation
 \item
@@ -348,7 +348,7 @@ yet}
 Integration}\label{grounding-and-external-knowledge-integration}
 
 \begin{itemize}
-\tightlist
+
 \item
   Concept of grounding in LLMs
 \item
@@ -363,7 +363,7 @@ Integration}\label{grounding-and-external-knowledge-integration}
 Workflows}\label{llm-orchestration-and-workflows}
 
 \begin{itemize}
-\tightlist
+
 \item
   Beyond single LLM calls: multi-step reasoning
 \item
@@ -378,7 +378,7 @@ Workflows}\label{llm-orchestration-and-workflows}
 Systems}\label{traceability-and-explainability-in-ai-systems}
 
 \begin{itemize}
-\tightlist
+
 \item
   Observability and OpenTelemetry
 \item
@@ -391,7 +391,7 @@ Systems}\label{traceability-and-explainability-in-ai-systems}
 Processing}\label{online-machine-learning-stream-processing}
 
 \begin{itemize}
-\tightlist
+
 \item
   Batch vs.~Stream processing
 \item
@@ -410,7 +410,7 @@ main solution of this work. Dual engineering+research-based approach}
 \section{4.1. Requirements}\label{requirements}
 
 \begin{itemize}
-\tightlist
+
 \item
   Functional requirements (input/output, deterministic output, rule
   format, validation)
@@ -671,7 +671,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \textbf{Research-based Hypothesis:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Expressiveness Gap:} Static data structures (like JSON or XML)
   fail to capture the logical complexity of industrial operations, which
@@ -694,7 +694,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \textbf{Implementation Options:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Option A: Domain Specific Language (DSL).} Creating a custom
   grammar for rules. (Discarded: Requires training the LLM on the new
@@ -712,7 +712,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \textbf{Implementation:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{The \texttt{status} Abstraction:} We define a standardized
   interface \texttt{status.get(sensor\_name,\ time\_window,\ statistic)}
@@ -749,7 +749,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \textbf{Results:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Logic Capture:} The system successfully extracted complex
   rules involving arithmetic (e.g.,
@@ -769,7 +769,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \textbf{Possible Improvements:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Executable Gaps:} The generated code is syntactically correct
   but not yet executable because ``column pressure'' is not a valid
@@ -783,7 +783,7 @@ Functions)}\label{extraction-of-executable-logic-python-functions}
 \textbf{Literature:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Liang, J., et al.~(2023).} \emph{Code as Policies: Language
   Model Programs for Embodied Control.} ICRA 2023. (Demonstrates that
@@ -949,7 +949,7 @@ Verification}\label{external-knowledge-grounding-verification}
 \textbf{Research-based Hypothesis:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Knowledge Cutoff:} LLMs trained on static datasets lack
   real-time knowledge of volatile industrial regulations (e.g., EPA
@@ -1015,13 +1015,13 @@ returns noisy JSON. \\
 \textbf{Implementation:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{The Grounding Loop:}
 
   \begin{enumerate}
   \def\labelenumi{\arabic{enumi}.}
-  \tightlist
+  
   \item
     \textbf{Query Synthesis:} The LLM analyzes the extracted rule (e.g.,
     ``Vent gas must be \textless{} 50 ppm'') and generates a
@@ -1037,7 +1037,7 @@ returns noisy JSON. \\
     rule against the external evidence.
 
     \begin{itemize}
-    \tightlist
+    
     \item
       \emph{Match:} Rule marked \texttt{VERIFIED\_EXTERNAL}.
     \item
@@ -1069,7 +1069,7 @@ returns noisy JSON. \\
 \textbf{Results:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Fact Validation:} The system successfully flagged an obsolete
   internal rule regarding ``Freon'' refrigerants by retrieving modern
@@ -1087,7 +1087,7 @@ returns noisy JSON. \\
 \textbf{Possible Improvements:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Hybrid Grounding:} Use \textbf{Serper} for finding
   \emph{documents} (PDFs of regulations) and \textbf{Tavily} for
@@ -1101,7 +1101,7 @@ returns noisy JSON. \\
 \textbf{Literature:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Khattab, O., et al.~(2022).} \emph{Demonstrate-Search-Predict:
   Composing retrieval and language models for knowledge-intensive NLP.}
@@ -1146,12 +1146,12 @@ three-layer ``Quality Gate'':
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\tightlist
+
 \item
   \textbf{Layer 1: Syntactic Verification (\texttt{ast.parse})}:
 
   \begin{itemize}
-  \tightlist
+  
   \item
     The raw Python string is parsed into an Abstract Syntax Tree.
   \item
@@ -1162,7 +1162,7 @@ three-layer ``Quality Gate'':
   \textbf{Layer 2: Domain Entity Verification (Sensor Auditing)}:
 
   \begin{itemize}
-  \tightlist
+  
   \item
     A custom \texttt{StatusCallExtractor} (inheriting from
     \texttt{ast.NodeVisitor}) traverses the tree to find all
@@ -1176,7 +1176,7 @@ three-layer ``Quality Gate'':
   \textbf{Layer 3: Temporal-Statistical Logic Check}:
 
   \begin{itemize}
-  \tightlist
+  
   \item
     The system validates the logical consistency of time parameters
     (derived in Section 5.5).
@@ -1224,7 +1224,7 @@ Optimization}\label{intelligent-rule-consolidation-optimization}
 \textbf{Research-based Hypothesis:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{The ``Fragmentation'' Problem:} Extracting rules from chunks
   (Section 5.1) inevitably produces \textbf{redundancy} (multiple chunks
@@ -1249,12 +1249,12 @@ Optimization}\label{intelligent-rule-consolidation-optimization}
 \textbf{Implementation Options:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Option A: Syntactic Code Clone Detection (Traditional).}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Method:} Using Abstract Syntax Tree (AST) fingerprinting or
     token-based similarity (e.g., Jaccard Index, SourcererCC) to find
@@ -1272,7 +1272,7 @@ Optimization}\label{intelligent-rule-consolidation-optimization}
   \textbf{Option B: Symbolic Logic Solvers (SMT/Z3).}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Method:} Converting Python rules into First-Order Logic
     formulas and using an SMT solver (like Z3) to mathematically prove
@@ -1290,7 +1290,7 @@ Optimization}\label{intelligent-rule-consolidation-optimization}
   \textbf{Option C: Vector-Based Semantic Clustering.}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Method:} Embedding rule bodies using CodeBERT and clustering
     centroids.
@@ -1305,7 +1305,7 @@ Optimization}\label{intelligent-rule-consolidation-optimization}
   \textbf{Option D: LLM-Based Dependency Batching.}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Method:} Grouping rules by Sensor ID topology and using an LLM
     as a ``Semantic Compiler'' to refactor code.
@@ -1321,12 +1321,12 @@ compiler toolchain:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\tightlist
+
 \item
   \textbf{Dependency Analysis (\texttt{\_analyze\_rules}):}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     The system scans the extracted Python code (from Section 5.3) to
     build a dependency map:
@@ -1340,12 +1340,12 @@ compiler toolchain:
   \textbf{Semantic Optimization (\texttt{\_consolidate\_with\_llm}):}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     The LLM acts as an optimizer with three specific operators:
 
     \begin{itemize}
-    \tightlist
+    
     \item
       \textbf{REMOVE:} For exact semantic duplicates (e.g., chunk
       overlap).
@@ -1363,7 +1363,7 @@ compiler toolchain:
   \textbf{Safety Verification (\texttt{\_verify\_consolidated}):}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     The \emph{newly generated} consolidated code must pass the same
     rigorous AST verification (Section 5.7) as the original rules. This
@@ -1392,7 +1392,7 @@ compiler toolchain:
 \textbf{Results:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Reduction Ratio:} The system achieved a consolidation ratio of
   \textasciitilde3:1 (processing 150 raw extracted fragments resulted in
@@ -1412,7 +1412,7 @@ compiler toolchain:
 \textbf{Possible Improvements:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Cross-Batch Dependencies:} The current system groups by
   \emph{exact} sensor sets. It might miss a merge opportunity between
@@ -1428,7 +1428,7 @@ compiler toolchain:
 \textbf{Literature:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Zhang, T., et al.~(2023).} \emph{DS-1000: A Natural and Robust
   Benchmark for Data Science Code Generation.} (Discusses the difficulty
@@ -1445,7 +1445,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
 \textbf{Research-based Hypothesis:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{I/O Bound Latency:} The extraction pipeline is dominated by
   \textbf{Network I/O} (waiting for LLM token generation, Vector DB
@@ -1468,13 +1468,13 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
 \textbf{Implementation Options:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Option A: Synchronous Sequential Processing.} Processing chunk
   \(n\) only after chunk \(n-1\) finishes.
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Verdict:} \textbf{Discarded.} Processing a 50-page manual took
     \textgreater45 minutes. Unacceptable for interactive use.
@@ -1484,7 +1484,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
   \texttt{ThreadPoolExecutor}.
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Verdict:} \textbf{Discarded.} Python's Global Interpreter Lock
     (GIL) limits threading efficiency, and Multiprocessing introduces
@@ -1495,7 +1495,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
   \texttt{async/await} patterns to suspend execution during I/O waits.
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Verdict:} \textbf{Selected.} Matches perfectly with
     LangChain/LangGraph's async capabilities. Allows processing
@@ -1512,7 +1512,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
   \textbf{The Map Step (Extraction):}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     The document is split into \(N\) chunks.
   \item
@@ -1532,7 +1532,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
   \textbf{The Reduce Step (Consolidation):}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Once all extraction tasks complete, results are aggregated.
   \item
@@ -1572,12 +1572,12 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
 \textbf{Results:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Latency Reduction:}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     \emph{Sequential:} \textasciitilde45 minutes for 50 pages (approx.
     54s per page).
@@ -1601,7 +1601,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
 \textbf{Possible Improvements:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Streaming:} The current system waits for \emph{all} chunks to
   finish before consolidation. A \textbf{Streaming Architecture} could
@@ -1616,7 +1616,7 @@ Optimization}\label{high-throughput-architecture-performance-optimization}
 \textbf{Literature:}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Dean, J., \& Ghemawat, S. (2008).} \emph{MapReduce: Simplified
   Data Processing on Large Clusters.} (The foundational pattern for this
@@ -1638,7 +1638,7 @@ operational utility}
 \section{6.1. The Execution Challenge}\label{the-execution-challenge}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{The Problem:} LLMs generate ``naive'' logic (with
   \texttt{status.get()} abstraction). In standard Pandas, this
@@ -1657,12 +1657,12 @@ operational utility}
 Engine}\label{architecture-of-the-rule-engine}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Component 1: The \texttt{RuleChecker} Container:}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Explain how it compiles the text-based Python rules from Chapter 5
     into executable functions (\texttt{\_compile\_rules}).
@@ -1674,7 +1674,7 @@ Engine}\label{architecture-of-the-rule-engine}
   \textbf{Component 2: The \texttt{BufferedStatus} State Manager:}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Explain the \texttt{extract\_requirements\_from\_rules} Logic:
     Pre-scanning the AST to allocate memory buffers \emph{before} the
@@ -1691,12 +1691,12 @@ Engine}\label{architecture-of-the-rule-engine}
 Complexity)}{6.3. Efficient Temporal Resolution (O(1) Complexity)}}\label{efficient-temporal-resolution-o1-complexity}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{The \texttt{River} Integration:}
 
   \begin{itemize}
-  \tightlist
+  
   \item
     Explain the math behind Welford's Algorithm (used by River) to
     update Variance/StdDev with just the \emph{new} point and the
@@ -1715,7 +1715,7 @@ Complexity)}{6.3. Efficient Temporal Resolution (O(1) Complexity)}}\label{effici
 Explanations}\label{event-sinking-and-explanations}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Handling Triggers:} Describe the \texttt{RuleEvent} data
   class.
@@ -1810,7 +1810,7 @@ Linking)}\label{evaluation-of-sensor-resolution-entity-linking}
 ``TIC-101''.}
 
 \begin{itemize}
-\tightlist
+
 \item
   \textbf{Method:} Create a ``Mock Sensor Database'' (CSV) with 100 tags
   (some with similar names).

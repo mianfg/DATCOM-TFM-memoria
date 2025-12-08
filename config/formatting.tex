@@ -49,7 +49,7 @@
         {ď}{{\v{d}}}1 {ť}{{\v{t}}}1 {ň}{{\v{n}}}1 {ů}{{\r{u}}}1
         {Á}{{\'A}}1 {Í}{{\'I}}1 {É}{{\'E}}1 {Ý}{{\'Y}}1 {Ú}{{\'U}}1 {Ó}{{\'O}}1
         {Ě}{{\v{E}}}1 {Š}{{\v{S}}}1 {Č}{{\v{C}}}1 {Ř}{{\v{R}}}1 {Ž}{{\v{Z}}}1
-        {Ď}{{\v{D}}}1 {Ť}{{\v{T}}}1 {Ň}{{\v{N}}}1 {Ů}{{\r{U}}}1
+        {Ď}{{\v{D}}}1 {Ť}{{\v{T}}}1 {Ň}{{\v{N}}}1 {Ů}{{\r{U}}}1 {º}{{\textdegree}}1
 }
 
 % Color scheme for code
@@ -59,35 +59,58 @@
 \definecolor{graynumbers}{rgb}{0.5, 0.5, 0.5}
 
 % General listing style
-\lstset{
+%\lstset{
+%    autogobble,
+%    columns=fullflexible,
+%    showspaces=false,
+%    showtabs=false,
+%    breaklines=true,
+%    showstringspaces=false,
+%    breakatwhitespace=true,
+%    escapeinside={(*@}{@*)},
+%    commentstyle=\color{greencomments},
+%    keywordstyle=\color{bluekeywords},
+%    stringstyle=\color{redstrings},
+%    %numberstyle=\color{graynumbers},
+%    basicstyle=\ttfamily\normalsize,
+%    frame=tlbr,
+%    framesep=30pt,
+%    %xleftmargin=30pt,
+%    tabsize=4,
+%    captionpos=b,
+    %numbers=left,
+    %numberstyle=\footnotesize\color{graynumbers},
+    %numbersep=10pt,
+%    escapechar=|,
+%    numberblanklines=false,
+%    columns=flexible,
+%}
+
+\lstset{ 
     autogobble,
     columns=fullflexible,
-    showspaces=false,
-    showtabs=false,
-    breaklines=true,
-    showstringspaces=false,
-    breakatwhitespace=true,
-    escapeinside={(*@}{@*)},
     commentstyle=\color{greencomments},
     keywordstyle=\color{bluekeywords},
     stringstyle=\color{redstrings},
-    numberstyle=\color{graynumbers},
-    basicstyle=\ttfamily\footnotesize,
-    frame=l,
-    framesep=30pt,
-    xleftmargin=30pt,
-    tabsize=4,
-    captionpos=b,
-    numbers=left,
-    numberstyle=\footnotesize\color{graynumbers},
-    numbersep=10pt,
-    escapechar=|,
-    numberblanklines=false,
-    columns=flexible
+    frame=none,%single,            % puts a box around the listing
+    framesep=0pt,%15pt,
+    basicstyle=\ttfamily\normalsize,
+    linewidth=\textwidth,    % make it span the text width
+    xleftmargin=0pt,         % no extra left margin
+    xrightmargin=0pt,        % no extra right margin
+    escapeinside={(*@}{@*)}, % for LaTeX commands inside listing
+    breaklines=true,          % allow long lines to wrap
+    showstringspaces=false
 }
 
+\definecolor{greencomments}{RGB}{0,128,0}
+\definecolor{bluekeywords}{RGB}{0,0,255}
+\definecolor{redstrings}{RGB}{200,0,0}
+\definecolor{promptbg}{RGB}{245,245,245} % light gray background for prompts
+\definecolor{codebg}{RGB}{240,248,255}   % light blue background for code
+
 % Rename listings
-\renewcommand{\lstlistingname}{Programa}
+\renewcommand{\lstlistingname}{Program}
 \renewcommand{\lstlistlistingname}{List of \lstlistingname s}
 
 % =============================================================================

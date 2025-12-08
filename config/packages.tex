@@ -12,15 +12,15 @@
 
 % Language configuration: English and Spanish (Spanish is default)
 % Switch languages with: \selectlanguage{english} or \selectlanguage{spanish}
-\usepackage[english, spanish, es-nodecimaldot, es-noindentfirst, es-tabla]{babel}
-\selectlanguage{english}
+\usepackage[english]{babel}
+\usepackage{csquotes}
 
 % Options:
 %   es-nodecimaldot: Keep decimal point (not comma) in math mode
 %   es-noindentfirst: Don't indent paragraphs after titles
 %   es-tabla: Use "Tabla" instead of "Cuadro" for table environment
 
-\unaccentedoperators % Remove accents from math operators (\lim, \max, etc.)
+% Remove accents from math operators (\lim, \max, etc.)
 
 % =============================================================================
 % MATHEMATICS
@@ -69,7 +69,8 @@
 % =============================================================================
 % GRAPHICS AND DIAGRAMS
 % =============================================================================
-\usepackage{xcolor, graphicx}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{tikz-cd}
 \usepackage{svg}
@@ -92,12 +93,164 @@
 \usepackage{newfloat}
 \DeclareFloatingEnvironment[listname={Índice de problemas},placement=H]{problema}
 \DeclareFloatingEnvironment[listname={Índice de tablas},placement=H]{tabla}
+\DeclareFloatingEnvironment[listname={Index of prompts},placement=H]{prompt}
+\DeclareFloatingEnvironment[listname={Index of threads},placement=H]{thread}
+\DeclareFloatingEnvironment[listname={Index of programs},placement=H]{program}
+\DeclareFloatingEnvironment[listname={Index of rules},name=Rule,placement=H]{generatedrule}
+
+\DeclareCaptionFormat{cont}{#1 (cont.)#2#3\par}
 
 % =============================================================================
 % UTILITIES
 % =============================================================================
 \usepackage{dirtree}
 \usepackage{xspace}  % Smart spacing for custom commands
+
+\usepackage[most]{tcolorbox}
+
+% ============================================
+% LLM INTERACTION STYLE SETUP
+% ============================================
+
+\usepackage[most]{tcolorbox}
+\usepackage{fontawesome5}
+
+% -------- Global LLM box style ---------
+\tcbset{
+  llmstyle/.style={
+    enhanced,
+    boxrule=0pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt,
+    sharp corners,
+    borderline west={3pt}{0pt}{#1!80},
+    colback=#1!5,
+    colframe=#1!60,
+    fonttitle=\bfseries,
+    before skip=10pt,
+    after skip=10pt,
+  }
+}
+
+% -------- Reusable Commands ---------
+
+\newcommand{\systemmsg}[1]{%
+  \begin{tcolorbox}[llmstyle=gray,title=\faCog\ System Message]
+  #1
+  \end{tcolorbox}
+}
+
+\newcommand{\usermsg}[1]{%
+  \begin{tcolorbox}[llmstyle=blue,title=\faUser\ User Message]
+  #1
+  \end{tcolorbox}
+}
+
+\newtcolorbox{UserMessage}[1][]{%
+  enhanced,
+  colback=blue!5,
+  colframe=blue!60,
+  borderline west={3pt}{0pt}{blue!80},
+  fonttitle=\bfseries,
+  title=\faUser\ User Message,
+  #1
+}
+
+\newcommand{\toolcall}[1]{%
+  \begin{tcolorbox}[llmstyle=orange,title=\faTools\ Tool Call]
+  \texttt{#1}
+  \end{tcolorbox}
+}
+
+\newcommand{\toolresponse}[1]{%
+  \begin{tcolorbox}[llmstyle=yellow,title=\faRobot\ Tool Response]
+  \texttt{#1}
+  \end{tcolorbox}
+}
+
+\newcommand{\assistantmsg}[1]{%
+  \begin{tcolorbox}[llmstyle=green,title=\faCommentDots\ AI Message]
+  #1
+  \end{tcolorbox}
+}
+
+\newtcolorbox{AssistantMessage}[1][]{%
+  enhanced,
+  colback=green!5,
+  colframe=green!60,
+  borderline west={3pt}{0pt}{green!80},
+  fonttitle=\bfseries,
+  title=\faCommentDots\ AI Message,
+  #1
+}
+
+
+
+\newtcolorbox{RuleMessage}[1][]{%
+  enhanced,
+  colback=orange!5,
+  colframe=orange!60,
+  borderline west={3pt}{0pt}{orange!80},
+  fonttitle=\bfseries,
+  title=\faCog\ Rule,
+  #1
+}
+
+
+
+
+
+% --- simple badge (always same color)
+\newcommand{\rulebadge}[1]{%
+  \tcbox[
+    on line,
+    colback=black!10,
+    colframe=black!40,
+    arc=3pt,
+    boxrule=0.6pt,
+    left=6pt,right=6pt,top=2pt,bottom=2pt,
+    fontupper=\sffamily\bfseries\footnotesize
+  ]{\textsf{#1}}%
+}
+
+% --- Python code style
+\lstdefinestyle{RulePythonStyle}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=none,
+    autogobble=true,
+    columns=fullflexible
+}
+
+% --- Visual rule card
+% Usage: \begin{rulecard}{rule_name}{rule_type} ... \end{rulecard}
+\newtcolorbox{rulecard}[2][]{%
+  enhanced,
+  before skip=12pt, after skip=12pt,
+  colback=white,
+  colframe=black!8,
+  boxrule=0.8pt,
+  arc=4mm,
+  drop shadow=black!30!white,
+  width=\linewidth,
+  leftrule=0pt, rightrule=0pt, toprule=0pt, bottomrule=0pt,
+  boxsep=6pt,
+  fonttitle=\sffamily\Large\bfseries,
+  title={\faCodeBranch\quad \texttt{#1}},        % rule name (monospaced)
+  after title={\hfill \rulebadge{#2}},           % right-aligned badge
+  colbacktitle=black!5,
+  coltitle=black,
+  attach boxed title to top left={yshift=-3mm,xshift=3mm},
+  boxed title style={boxrule=0pt,arc=3mm,boxsep=2pt},
+  #1
+}
+
+
+
+
 
 % =============================================================================
 % INDEX
@@ -108,7 +261,7 @@
 % =============================================================================
 % BIBLIOGRAPHY
 % =============================================================================
-\usepackage[backend=biber,style=apa,maxbibnames=9,maxcitenames=2,citestyle=alphabetic]{biblatex}
+\usepackage[backend=biber,style=apa,maxbibnames=9,maxcitenames=2,citestyle=numeric]{biblatex}
 \addbibresource{references.bib}
 
 % =============================================================================

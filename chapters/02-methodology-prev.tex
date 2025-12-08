@@ -1,0 +1,97 @@
+
+\section{Methodological Framework: Design Science Research (DSR)}
+
+This thesis adopts the \textbf{Design Science Research (DSR)} methodology \cite{hevner_design_2004}, a research paradigm suited for engineering contexts where the objective is to create a novel artifact to address a specific domain problem.
+
+The research is structured around the three core DSR cycles:
+\begin{enumerate}
+    \item \textbf{Relevance Cycle:} Defining the research requirements based on the specific constraints of the industrial environment (e.g., safety, determinism, lack of data).
+    \item \textbf{Design Cycle:} An iterative process of building, evaluating, and refining the artifact.
+    \item \textbf{Rigor Cycle:} Grounding the design decisions in the state of the art to ensure the solution advances the knowledge base.
+\end{enumerate}
+
+
+
+
+\section{Requirements}\label{requirements}
+
+\begin{itemize}
+
+\item
+  Functional requirements (input/output, deterministic output, rule
+  format, validation)
+\item
+  Non-functional requirements (accuracy, traceability, modularity,
+  scalability, low-latency execution)
+\item
+  Derived from Repsol use case and general industrial needs
+\end{itemize}
+
+\section{Architecture Principles}\label{design-principles}
+
+\emph{Show design principles followed and why they are important}
+
+\begin{itemize}
+    \item Modularity and composability (why important, protocol-based design)
+    \item Separation of concerns
+    \begin{enumerate}
+        \item \emph{LLM Role:} Translation (Text \(\to\)
+Code).
+        \item \emph{System Role:} Verification (Code \(\to\) Safety).
+        \item \emph{Human Role:} Approval.
+    \end{enumerate}
+    \item Decoupling of Logic and State: extracted
+rule (Logic) must be stateless; the execution engine (State) handles the
+memory buffers
+    \item Traceability and explainability (from documents to
+rules)
+\end{itemize}
+
+\section{Research Principles (this is a research problem!)}\label{research-principles-this-is-a-research-problem}
+
+\emph{We want to show that every step of the pipeline is based on a
+research approach, evaluating alternatives and checking consistency and
+results in order to find the best options for designing the system}
+
+(Ablation Study Design? Think with and without and isolate contributions
+to performance, might be hard do to this given the time)
+
+% =============================================================================
+% CHAPTER 2: METHODOLOGY AND DESIGN
+% =============================================================================
+
+\chapter{Methodology}\label{methodology-and-design}
+
+\emph{Briefly state the approach when designing and implementing the
+main solution of this work. Dual engineering+research-based approach}
+
+\section{Phase 1: Problem Identification \& State of the Art Analysis}
+
+\begin{itemize}
+    \item \textbf{Pre-Implementation Analysis:} Before writing any code, the current landscape was analyzed.
+    \item \textbf{The Decision for LLMs:} Explain that based on the literature review, Large Language Models were selected as the core technology because previous methods (Regex, ML, Standard NLP) failed at logical reasoning. This was a research-backed decision, not an assumption.
+    \item \textbf{Gap Identification:} This phase concluded that while LLMs are promising, they lack the specific architecture needed for safety-critical industry and to satisfy objectives.
+\end{itemize}
+
+\section{Phase 2: Iterative Design of Rule Extraction Framework}
+
+Instead of grouping things into arbitrary ``cyycles,'' we describe the ``micro-cycle'' applied to every single component of the system.
+
+The following iterative loop was applied:
+
+\begin{enumerate}
+    \item \textbf{Hypothesis/Problem Formulation:} Identify the specific barrier (e.g., ``The model hallucinates sensor tags'').
+    \item \textbf{Ablation Study of Options:} Review literature and implementation possibilities (e.g., Option A: Vector Search vs. Option B: Generative Linking).
+    \item \textbf{Implementation \& Justification:} Select the best option for our problem, based on theoretical and practical reasons, and with our objectives in mind.
+    \item \textbf{Evaluation \& Possible Improvements:} Test the component, observe the results (e.g., ``It works for text but fails for tables''), and define the next problem.
+\end{enumerate}
+
+\section{Phase 3: Implementation of Evaluation Framework}
+
+
+
+You are completely correct. I am crossing the line between *Methodology* (the approach) and *Implementation* (the solution). The Methodology chapter should define the **rules of the game**, not the final score.
+
+It should describe **how you make decisions**, not **what decisions you made**.
+
+Here is the revised **Chapter 3**, rewritten to be abstract and procedural. It defines the *strategies* you will use to solve the problems identified in Chapter 2, without revealing the specific libraries or algorithms (River, O(1), Twin Document) you ended up building.

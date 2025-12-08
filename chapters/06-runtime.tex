@@ -2,100 +2,279 @@
 % CHAPTER 6: OPERATIONAL RUNTIME & DYNAMIC VERIFICATION
 % =============================================================================
 
-\chapter{Operational Runtime \& Dynamic Verification}\label{operational-runtime-dynamic-verification}
+\chapter{Operational Runtime \& Dynamic Verification}\label{ch:6-operational-runtime-dynamic-verification}
 
-\emph{Chapter 5 gave us static Python functions. Chapter 6 describes the
-``Virtual Machine'' we built to run them safely and efficiently on
-streaming data} \emph{Chapter 5: theoretical extraction, Chapter 6:
-operational utility}
+While the previous chapter focused on the extraction of static Python functions from natural-language rules, the present chapter examines the mechanisms that allow those functions to operate reliably over live industrial data streams. In other words, if \cref{ch:5-solution-design-and-implementation} described how rules are constructed, this chapter explains how they are executed under the constraints of real-time monitoring, limited computational budgets, and strict safety requirements. The central argument is that LLM-generated logic can only become operationally useful once it is grounded in an execution environment that guarantees deterministic behaviour and constant-time performance. To achieve this, we develop a runtime architecture that behaves analogously to a small virtual machine, capable of analysing rule functions, allocating the necessary state, and applying each rule to streaming sensor values with the efficiency and robustness required in industrial contexts.
 
-\section{6.1. The Execution Challenge}\label{the-execution-challenge}
+\section{The Execution Challenge}\label{sec:the-execution-challenge}
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{The Problem:} LLMs generate ``naive'' logic (with
-  \texttt{status.get()} abstraction). In standard Pandas, this
-  recalculates the whole window every tick (\(O(N)\)) .
-\item
-  \textbf{The Constraint:} Industrial systems cannot afford \(O(N)\)
-  latency. We need \(O(1)\).
-\item
-  \textbf{Hypothesis:} By mapping the extracted
-  \texttt{status.get(time\_expr)} calls to an incremental learning
-  framework (River), we can achieve constant-time evaluation regardless
-  of window size.
-\end{itemize}
+Although rules are expressed in a clean functional style, the apparent simplicity conceals significant computational cost. A rule such as
 
-\section{6.2. Architecture of the Rule
-Engine}\label{architecture-of-the-rule-engine}
+\hspace{1cm}\lstinline{x = status.get("14TI0041", "24h", "mean")}
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Component 1: The \texttt{RuleChecker} Container:}
+appears harmless, but implementing it literally with Pandas dataframe slices results in an $O(N)$ operation for every evaluation. Since industrial systems compute dozens of such rules at every timestamp, this approach is infeasible.
 
-  \begin{itemize}
-  \tightlist
-  \item
-    Explain how it compiles the text-based Python rules from Chapter 5
-    into executable functions (\texttt{\_compile\_rules}).
-  \item
-    Discuss error boundaries: If one rule crashes, the engine keeps
-    running (Fault Tolerance).
-  \end{itemize}
-\item
-  \textbf{Component 2: The \texttt{BufferedStatus} State Manager:}
+Sliding-window computations over raw dataframes depend on the length of the interval. A 24-hour rolling mean is 288 times more expensive than a 5-minute one at a 5-minute sampling frequency. In streaming pipelines, this difference is catastrophic.
 
-  \begin{itemize}
-  \tightlist
-  \item
-    Explain the \texttt{extract\_requirements\_from\_rules} Logic:
-    Pre-scanning the AST to allocate memory buffers \emph{before} the
-    stream starts.
-  \item
-    \textbf{Innovation:} Detail \texttt{\_create\_river\_stat} factory.
-    Show how we map ``natural language statistics'' to
-    \texttt{river.stats.RollingMean}, \texttt{river.stats.RollingVar},
-    etc.
-  \end{itemize}
-\end{itemize}
+Monitoring systems must guarantee bounded latency across every time step. The evaluation cost must depend only on the number of rules and sensors, never on the time spans referenced inside the rules.
 
-\section{\texorpdfstring{6.3. Efficient Temporal Resolution (\(O(1)\)
-Complexity)}{6.3. Efficient Temporal Resolution (O(1) Complexity)}}\label{efficient-temporal-resolution-o1-complexity}
+We therefore require an execution engine in which temporal operations execute in $O(1)$ time, regardless of the size of the time window. This constraint motivates the architecture presented next.
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{The \texttt{River} Integration:}
+\section{Architecture of the Rule Engine}\label{architecture-of-the-rule-engine}
 
-  \begin{itemize}
-  \tightlist
-  \item
-    Explain the math behind Welford's Algorithm (used by River) to
-    update Variance/StdDev with just the \emph{new} point and the
-    \emph{old} point, rather than re-reading the whole list.
-  \item
-    \textbf{Code Highlight:} Reference \texttt{BufferedStatus.update()}
-    and \texttt{\_get\_interval\_stat()} methods.
-  \item
-    \textbf{Benefit:} Demonstrating that a rule checking ``Last 24
-    hours'' takes the exact same compute time as a rule checking ``Last
-    5 minutes.''
-  \end{itemize}
-\end{itemize}
+The runtime is composed of two tightly coupled components. Together, they implement the logic extraction, pre-allocation of memory, and execution semantics that allow natural-language rules to behave as first-class executable programs.
 
-\section{6.4. Event Sinking and
-Explanations}\label{event-sinking-and-explanations}
+\subsection{\texttt{RuleChecker}: Orchestration and Fault Isolation}
+
+The \texttt{RuleChecker} is responsible for ingesting the rule definitions produced in \cref{ch:5-solution-design-and-implementation} and turning them into executable functions. During initialization, it compiles each rule body using \texttt{exec} and wraps the resulting callable in a \texttt{RuleMetadata} object. Importantly, compilation errors do not destabilize the system: if a rule cannot be compiled, it is marked as invalid without affecting others.
+
+At runtime, \texttt{RuleChecker} acts as a controlled execution layer. For every incoming timestamp, it iterates over all compiled rules, evaluates them against the current sensor state, and captures any exceptions. This mechanism creates a strict isolation boundary—one malfunctioning rule cannot halt the monitoring system. Whenever a rule returns a non-null value, a \texttt{RuleEvent} object is recorded, enriched with explanations suitable for operators and audit processes. An example of how rules are initialized and executed is shown in \cref{program:rulechecker-usage}.
+
+
+\begin{program}[hbtp]
+\begin{lstlisting}[language=Python]
+from src.streaming import RuleChecker, CheckerConfig, InMemoryEventSink
+
+# NOTE: sensor_data is a synthetically generated DataFrame for testing
+
+# Configuration
+config = CheckerConfig(
+    granularity="1min",  # Data has 1-minute resolution
+    skip_on_missing_data=True,
+    enable_caching=True,
+)
+
+# Create checker
+checker = RuleChecker(
+    rules=rules,
+    config=config,
+    event_sink=InMemoryEventSink(),
+)
+
+# Process events (from DataFrame, but can be used with streaming data)
+events_df = checker.check_dataframe(sensor_data, verbose=False)
+\end{lstlisting}
+\caption{Initialization and usage of \texttt{RuleChecker}}\label{program:rulechecker-usage}
+\end{program}
+
+
+\subsection{\texttt{BufferedStatus}: Incremental Temporal State}
+
+If \texttt{RuleChecker} is the CPU of the system, \texttt{BufferedStatus} is its memory model. It exposes the abstract API \lstinline{status.get(sensor_id, time_expr, statistic)} used consistently across all generated rules. Internally, however, it implements this API using efficient streaming data structures.
+
+Prior to any streaming execution, the system performs an AST traversal over all rule bodies to identify every invocation of \texttt{status.get}. From these occurrences it derives a set of \emph{requirements}: which sensors are needed, which temporal windows must be maintained, and which statistics must be computed.
+
+The process is as follows:
+
+\begin{enumerate}
+\item \textbf{Static requirement extraction.} Prior to any streaming execution, the system performs an AST traversal over all rule bodies to identify every invocation of \texttt{status.get}, as illustrated in the synthetic rules in \cref{generatedrule:synthetic-simple,generatedrule:synthetic-complex}. From these occurrences it derives a set of \emph{requirements}: which sensors are needed, which temporal windows must be maintained, and which statistics must be computed.
+\item \textbf{Memory allocation and River integration.} For each requirement, \texttt{BufferedStatus} allocates an incremental statistic from the River library, such as \texttt{Rolling(Mean())}, \newline \texttt{Rolling(Var())}, or a rolling quantile estimator. These objects maintain constant-time updates using compact window buffers.
+\item \textbf{Semantic mapping of statistics.} Statistics used in rules are translated into specific River objects. In this way, the high-level semantics expressed in natural language become executable, mathematically grounded operations.
+\end{enumerate}
+
+Once initialized, \texttt{BufferedStatus} consumes each row of sensor data, updates the relevant River objects, and exposes the current aggregated values to any rule that requests them. All temporal statistics can therefore be retrieved in constant time, and the cost of evaluation is independent of the length of the requested time interval. A graphical depiction of the streaming sensor values and their corresponding triggers for simple rules is presented in \cref{figure:synthetic-streams,figure:triggers-simple}, and for complex rules in \cref{figure:triggers-complex}.
+
+\vspace{2em}
+
+\label{efficient-temporal-resolution-o1-complexity}
+
+The key to practical deployment is the transition from dataframe-based windowing to incremental statistics. In the naive approach, computing a rolling variance requires iterating over thousands of historical values; with River’s incremental implementation, both mean and variance can be updated by adjusting a small in-memory state when inserting the new point and removing the old one. This way we obtain multiple benefits:
 
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Handling Triggers:} Describe the \texttt{RuleEvent} data
-  class.
-\item
-  \textbf{Metadata Preservation:} How the \texttt{rule\_description}
-  extracted by the LLM travels with the event to the operator dashboard
-  (The \texttt{\_explain\_trigger} method).
+\item \textbf{Incremental updates.} All rolling statistics rely on fixed-size buffers and update functions that follow Welford-style algorithms. The memory footprint is minimal, and updates incur constant cost.
+\item \textbf{Stable performance.} A rule referencing “5 minutes” or “24 hours” has exactly the same computational footprint. The runtime guarantees predictable behaviour even under heavy loads.
+\item \textbf{Query-time efficiency.} Retrieving any statistic—mean, variance, max, quantile—requires no recomputation. Values are pre-computed incrementally and available immediately to the rule logic.
 \end{itemize}
 
+Thus, \cref{ch:5-solution-design-and-implementation}’s static rule functions become fully operational: they are executed continuously without violating real-time constraints.
+
+\section{Event Generation and Explainability}\label{event-sinking-and-explanations}
+
+Whenever a rule concludes that a condition has been met, the system emits a structured \texttt{RuleEvent}. These events serve as both the output of the agent and the audit trail required in industrial environments.
+
+Each event captures the timestamp, the rule name, the computed result, and the relevant sensor values at the time of triggering. Events can be streamed into dashboards, alerting systems, or compliance logs without additional post-processing.
+
+It is also relevant to clarify that, although the rule logic is written in Python, the engine produces textual explanations that describe, in simple operational language, why the rule triggered. This forms the transparency layer required for safe deployment. Examples of simple rule definitions are shown in \cref{generatedrule:synthetic-simple}, while more complex, multi-sensor conditions appear in \cref{generatedrule:synthetic-complex}.
+
+
+
+\begin{generatedrule}[hbtp]
+\begin{minipage}{\textwidth}
+\begin{RuleMessage}
+\subsection*{\texttt{high\_temp\_alert}}
+
+\textsf{Description:} Alert when temperature exceeds 90ºC\\
+
+\begin{lstlisting}[language=Python]
+def high_temp_alert(status) -> str:
+    temp = status.get("sensor_temp", "0")
+    if temp and temp > 90:
+        return "high_temperature_alert"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{sustained\_high\_pressure}}
+
+\textsf{Description:} Alert when average pressure over 5 minutes exceeds 14 kg/$\text{cm}^2$\\
+
+\begin{lstlisting}[language=Python]
+def sustained_high_pressure(status) -> str:
+    avg_pressure = status.get("sensor_pressure", "5m:", "mean")
+    if avg_pressure and avg_pressure > 14.0:
+        return "sustained_high_pressure_alert"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{pressure\_spike}}
+
+\textsf{Description:} Alert when max pressure in last 10 minutes exceeds 15  kg/$\text{cm}^2$\\
+
+\begin{lstlisting}[language=Python]
+def pressure_spike(status) -> str:
+    max_pressure = status.get("sensor_pressure", "10m:", "max")
+    if max_pressure and max_pressure > 15.0:
+        return "pressure_spike_detected"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+\end{minipage}
+\caption{Synthetic simple rules}
+\label{generatedrule:synthetic-simple}
+\end{generatedrule}
+
+
+
+\begin{figure}[htbp]
+\includegraphics[width=\textwidth]{img/stream1.png}
+\caption{Synthetic streams (pressure and temperature) for simple rules}\label{figure:synthetic-streams}
+\end{figure}
+
+\begin{figure}[htbp]
+\includegraphics[width=\textwidth]{img/stream3.png}
+\caption{Rule triggers for each of the simple rules}\label{figure:triggers-simple}
+\end{figure}
+
+
+\begin{generatedrule}[hbtp]
+\begin{minipage}{\textwidth}
+\begin{RuleMessage}
+\subsection*{\texttt{critical\_temp\_pressure\_combo}}
+
+\textsf{Description:} Critical alert: High temperature AND high pressure simultaneously\\
+
+\begin{lstlisting}[language=Python]
+def critical_temp_pressure_combo(status) -> str:
+    temp = status.get("sensor_temp", "0")
+    pressure = status.get("sensor_pressure", "0")
+    
+    if temp and pressure and temp > 85 and pressure > 14.5:
+        return "critical_temp_pressure_combo_alert"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{sustained\_multi\_sensor\_stress}}
+
+\textsf{Description:} High avg temp AND high avg pressure over 5 minutes\\
+
+\begin{lstlisting}[language=Python]
+def sustained_multi_sensor_stress(status) -> str:
+    avg_temp = status.get("sensor_temp", "5m:", "mean")
+    avg_pressure = status.get("sensor_pressure", "5m:", "mean")
+    
+    if avg_temp and avg_pressure and avg_temp > 80 and avg_pressure > 13.5:
+        return "sustained_multi_sensor_stress_alert"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{temp\_pressure\_flow\_anomaly}}
+
+\textsf{Description:} High temp with high pressure but low flow rate\\
+
+\begin{lstlisting}[language=Python]
+def temp_pressure_flow_anomaly(status) -> str:
+    temp = status.get("sensor_temp", "0")
+    pressure = status.get("sensor_pressure", "0")
+    flow = status.get("sensor_flow", "0")
+    
+    if temp and pressure and flow:
+        if temp > 85 and pressure > 14 and flow < 30:
+            return "temp_pressure_flow_anomaly_detected"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+\end{minipage}
+\caption{Synthetic complex rules}
+\label{generatedrule:synthetic-complex}
+\end{generatedrule}
+
+
+
+\begin{generatedrule}[hbtp]
+\ContinuedFloat
+\captionsetup{list=off,format=cont}
+\begin{minipage}{\textwidth}
+\begin{RuleMessage}
+\subsection*{\texttt{single\_high\_temp}}
+
+\textsf{Description:} Temperature exceeds 90°C\\
+
+\begin{lstlisting}[language=Python]
+def single_high_temp(status) -> str:
+    temp = status.get("sensor_temp", "0")
+    if temp and temp > 90:
+        return "high_temperature_alert"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{pressure\_variance\_check}}
+
+\textsf{Description:} High pressure variance indicates instability\\
+
+\begin{lstlisting}[language=Python]
+def pressure_variance_check(status) -> str:
+    variance = status.get("sensor_pressure", "10m:", "variance")
+    if variance and variance > 2.0:
+        return "pressure_instability_alert"
+    return None
+\end{lstlisting}
+\end{RuleMessage}
+\end{minipage}
+\caption{Synthetic complex rules}
+\end{generatedrule}
+
+
+\begin{figure}[htbp]
+\includegraphics[width=\textwidth]{img/stream4.png}
+
+\vspace*{2em}
+
+\includegraphics[width=\textwidth]{img/stream5.png}
+
+\caption{Rule triggers for each of the complex rules}\label{figure:triggers-complex}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\ContinuedFloat
+\captionsetup{list=off,format=cont}
+\includegraphics[width=\textwidth]{img/stream6.png}
+
+\vspace*{2em}
+
+\includegraphics[width=\textwidth]{img/stream7.png}
+
+\vspace*{2em}
+
+\includegraphics[width=\textwidth]{img/stream8.png}
+\caption{Rule triggers for each of the complex rules}
+\end{figure}

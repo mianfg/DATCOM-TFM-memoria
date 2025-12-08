@@ -1,0 +1,52 @@
+% =============================================================================
+% CHAPTER 2: METHODOLOGY
+% =============================================================================
+
+\chapter{Methodology}\label{methodology}
+
+
+
+\section{Phase 1: Analytical Foundation \& Capability Assessment}
+
+\emph{This phase establishes the theoretical boundaries of the work before any engineering begins.}
+
+\begin{itemize}
+    \item \textbf{State of the Art Analysis:} We conduct a systematic review of existing literature to determine why current non-generative approaches (e.g., traditional Information Extraction, Ontology Learning) fail to capture the logical complexity of industrial rules.
+    \item \textbf{Technological Suitability Analysis:} We assess the theoretical capabilities of Large Language Models (LLMs) against the identified research gaps, specifically evaluating their potential as reasoning engines versus their limitations in factual accuracy (hallucination).
+    \item \textbf{Requirement Definition:} Deriving the functional and non-functional requirements (traceability, determinism, latency) that the artifact must satisfy to be viable in a real-world setting.
+\end{itemize}
+
+\section{Phase 2: Iterative Design Strategy}
+
+\emph{The core development follows a hypothesis-driven iterative strategy. For each component of the pipeline, we apply a specific "Micro-Cycle" of research.}
+
+Instead of a linear development path, the methodology for constructing the artifact consists of:
+\begin{enumerate}
+    \item \textbf{Problem Decomposition:} Breaking down the "Semantic Bridge" problem into isolated sub-problems (e.g., extraction, resolution, verification).
+    \item \textbf{Comparative Ablation:} For each sub-problem, we define multiple potential implementation strategies based on the literature.
+    \item \textbf{Selection Criteria:} Choosing the optimal strategy based on specific industrial constraints (e.g., prioritizing safety over speed, or privacy over performance).
+    \item \textbf{Incremental Refinement:} Improving the component based on the failure modes observed during preliminary testing.
+\end{enumerate}
+
+\section{Phase 3: Operational \& Runtime Design Strategy}
+
+\emph{This phase defines the approach for ensuring the extracted knowledge is practically usable, moving from static definition to dynamic execution.}
+
+\begin{itemize}
+    \item \textbf{Streaming Architecture Approach:} We adopt a methodology that prioritizes \textbf{computational efficiency} and \textbf{temporal consistency}. The design strategy focuses on translating static logic into a format compatible with online learning or stream processing paradigms, aiming to decouple computational cost from the complexity of the temporal window.
+    \item \textbf{Fault-Tolerance Strategy:} Given the stochastic nature of the extraction source (LLMs), the execution environment is designed with a "Defense in Depth" approach, establishing isolation layers to ensure that individual rule failures cannot compromise the integrity of the overall monitoring system.
+\end{itemize}
+
+\section{Phase 4: Evaluation Methodology}
+
+\emph{To address the challenge of validating a system in a "Cold Start" environment (no valid tagged data), we define a multi-faceted evaluation strategy.}
+
+\begin{itemize}
+    \item \textbf{Synthetic Ground Truth Strategy:} To overcome the lack of labeled industrial data, we define a \textbf{Reverse Engineering} approach. This involves generating controlled, synthetic test artifacts where the "correct answer" is mathematically known a priori, enabling precise quantification of extraction performance.
+    \item \textbf{Component-Wise Assessment:} The artifact is evaluated via a stratified approach:
+    \begin{itemize}
+        \item \textbf{Semantic Validity:} Assessing the fidelity of the extracted logic against the source intent.
+        \item \textbf{Ontological Accuracy:} Measuring the ability to correctly link vague natural language terms to specific system entities.
+        \item \textbf{Operational Integrity:} Validating the mathematical correctness of the runtime engine against established baselines to ensure trust.
+    \end{itemize}
+\end{itemize}
