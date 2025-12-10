@@ -4,96 +4,142 @@
 
 \chapter{Technical Foundations}\label{technical-foundations}
 
-\emph{Explain the building blocks without committing to how we use them
-yet}
+This chapter establishes the theoretical and technical groundwork required to understand the proposed solution. It moves from the fundamental building blocks of modern Natural Language Processing---Large Language Models---to the architectural patterns that enable their integration into reliable industrial systems, such as Retrieval Augmented Generation (RAG) and Agentic Workflows. Finally, it covers the principles of Online Machine Learning required for real-time rule execution.
 
-\section{Large Language Models}\label{large-language-models}
+\section{Large Language Models (LLMs)}\label{large-language-models}
+
+\textbf{\textit{Large Language Models} (LLMs)} represent a paradigm shift in Artificial Intelligence, moving from task-specific models to general-purpose systems capable of understanding and generating human-like text.
+
+The core architecture behind modern LLMs is the \textbf{\textit{transformer}} \cite{vaswani_attention_2017}. Unlike previous \textit{Recurrent Neural Networks} (RNNs) that processed data sequentially, transformers utilize the \textbf{\textit{self-attention mechanism}} to weigh the significance of different words in a sequence simultaneously, regardless of their distance. This allows for massive parallelization during training and the capture of long-range dependencies.
+
+\[
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\]
+
+Where $Q$ (query), $K$ (key), and $V$ (value) are vector representations of the input. Most modern foundational models (e.g., GPT-5, Llama 3) utilize a \textbf{\textit{decoder}-only} architecture, optimized for autoregressive text generation (predicting the next token based on previous ones).
+
+LLMs have demonstrated high success at a wide variety of capabilities, including:
 
 \begin{itemize}
-
-\item
-  Architecture overview (transformers, attention). Foundational models
-\item
-  Capabilities: text understanding, reasoning (Chain-of-Thought,
-  Program-of-Thought), code generation
-\item
-  Limitations: hallucination, context windows (lost in the middle paper,
-  recall), domain knowledge gaps
-\item
-  Prompt engineering fundamentals
-\item
-  Structured outputs
+    \item \textbf{In-Context Learning (\textit{Few-Shot}):} LLMs can learn to perform new tasks simply by being provided with examples in the prompt, without updating their model weights (gradient updates) \cite{brown_language_2020}.
+    \item \textbf{Reasoning (\textit{Chain-of-Thought}):} prompting LLMs to ``think step by step'' significantly improves performance on complex logical and arithmetic tasks \cite{wei_chain--thought_2022}. This capability is critical for extracting logic from industrial rules.
+    \item \textbf{Code Generation:} LLMs trained on massive repositories of code (e.g., GitHub) exhibit strong capabilities in translating natural language requirements into executable code (Python, SQL), acting as semantic compilers \cite{chen_evaluating_2021}.
 \end{itemize}
+
+Despite their capabilities, LLMs face inherent limitations that must be addressed in an industrial context:
+
+\begin{itemize}
+    \item \textbf{Hallucination:} The tendency to generate plausible-sounding but factually incorrect information. In industrial safety, this is a critical risk.
+    \item \textbf{Context Window Limits:} While context windows have grown (e.g., 128k $-$ 1M tokens), performance degrades when relevant information is buried in the middle of a long context (\textit{``Lost in the Middle'' phenomenon}) \cite{liu_lost_2024}.
+    \item \textbf{Knowledge Cutoff:} LLMs are frozen in time after training and lack access to real-time data or private industrial documentation.
+\end{itemize}
+
+For integration into software pipelines, LLMs must output structured data (JSON) rather than free text. Techniques like \textbf{constrained decoding} \cite{willard_efficient_2023} enforce the model's output to strictly follow a formal grammar (e.g., JSON Schema) by masking invalid tokens during the generation process, guaranteeing syntactical correctness.
 
 \section{Retrieval Augmented Generation (RAG)}\label{retrieval-augmented-generation-rag}
 
-\begin{itemize}
+\textit{\textbf{Retrieval Augmented Generation}} (RAG) is a technique to ground LLM generation in external, private knowledge \cite{lewis_retrieval-augmented_2020}. Instead of relying solely on parametric memory (weights), the system retrieves relevant documents from an external index and injects them into the prompt context.
+\[
+P(y|x) \approx P(y|x, \text{Retrieve}(x))
+\]
 
-\item
-  The RAG paradigm: retrieval + generation
-\item
-  Why RAG? Overcoming context limitations and knowledge gaps
-\item
-  RAG vs.~fine-tuning
-\item
-  Vector embeddings and semantic search
-\item
-  Retrieval strategies: dense, sparse, hybrid
-\item
-  Limitations and challenges
+This approach addresses the ``knowledge cutoff'' and reduces hallucinations by providing source evidence.
+
+RAG relies on \textbf{dense vector embeddings} to represent text meaning. Models like \textit{Sentence-BERT} \cite{reimers_sentence-bert_2019} map sentences to a high-dimensional vector space where semantic similarity corresponds to geometric proximity (cosine similarity).
+
+Recent advancements like \textbf{\textit{Matryoshka Representation Learning}} \cite{kusupati_matryoshka_2022} allow for flexible embedding sizes, enabling efficient storage and retrieval without significant loss in accuracy.
+
+In order to perform RAG, there are several strategies that can be used:
+
+\begin{itemize}
+    \item \textbf{Dense Retrieval:} Uses vector similarity. Good for semantic matching but can miss exact keyword matches (e.g., specific tag IDs like \texttt{TIC-101}).
+    \item \textbf{Sparse Retrieval (BM25):} Traditional keyword-based search.
+    \item \textbf{Hybrid Search:} Combines dense and sparse scores (often using \textit{Reciprocal Rank Fusion}) to leverage the best of both worlds.
+    \item \textbf{Indexing:} Algorithms like \textbf{HNSW (\textit{Hierarchical Navigable Small Worlds})} \cite{malkov_efficient_2020} enable approximate nearest neighbor search with logarithmic complexity $O(\log N)$, essential for scaling to millions of document chunks.
 \end{itemize}
 
 \section{Grounding and External Knowledge Integration}\label{grounding-and-external-knowledge-integration}
 
-\begin{itemize}
+\textit{\textbf{Grounding}} refers to the process of linking model generations to verifiable sources. In our context, this means verifying extracted rules against:
 
-\item
-  Concept of grounding in LLMs
-\item
-  Web search as knowledge source
-\item
-  When and why grounding helps
-\item
-  Trade-offs: latency, cost, accuracy
-\end{itemize}
+\begin{enumerate}
+    \item \textbf{Internal Grounding:} The source PDF document (via RAG).
+    \item \textbf{External Grounding:} Public regulations, physics, and standards (via Web Search).
+\end{enumerate}
+
+Integrating \textbf{web search} (e.g., via tools like \textit{WebGPT} \cite{nakano_webgpt_2022}) allows the system to validate rules against up-to-date external standards (e.g., EPA regulations). Modern search APIs for agents (like \textit{Tavily}) return parsed content rather than just links, optimizing token usage.
 
 \section{LLM Orchestration and Workflows}\label{llm-orchestration-and-workflows}
 
-\begin{itemize}
+Complex tasks require multi-step reasoning. The \textbf{\textit{ReAct} (Reasoning + Acting)} framework \cite{yao_react_2023} enables LLMs to generate reasoning traces and execute actions (tools) in an interleaved manner.
 
-\item
-  Beyond single LLM calls: multi-step reasoning
-\item
-  State machines and workflow frameworks
-\item
-  LangChain and LangGraph concepts
-\item
-  Checkpointing and resumability
+While autonomous agents can be unpredictable, industrial processes require deterministic workflows. Frameworks like \textbf{\textit{LangGraph}} model LLM applications as \textbf{state machines} (graphs), where nodes represent actions (LLM calls, tools) and edges represent conditional transitions. This allows for:
+
+\begin{itemize}
+    \item \textbf{Cyclic workflows:} loops for self-correction (e.g., ``if syntax error, retry'').
+    \item \textbf{Persistence:} checkpointing state to resume workflows after human approval.
+    \item \textbf{Control:} enforcing strict paths for safety-critical operations.
+    \item \textbf{Observability:} logging all LLM calls and the entire workflow allows us to see what the agent did at every step.
 \end{itemize}
 
-\section{Traceability and Explainability in AI Systems}\label{traceability-and-explainability-in-ai-systems}
+\section{Traceability and Explainability}\label{traceability-and-explainability}
 
+For AI to be trusted in industry, it must be observable.
 \begin{itemize}
-
-\item
-  Observability and OpenTelemetry
-\item
-  Provenance tracking
-\item
-  Human-in-the-loop considerations
+    \item \textbf{Observability:} Using standards like \textbf{OpenTelemetry} to trace the execution path of an LLM chain (prompt inputs, retrieved chunks, generated outputs, latency).
+    \item \textbf{Provenance:} Every extracted rule must be linked back to its source (document page, paragraph) and the reasoning trace used to derive it.
 \end{itemize}
 
 \section{Online Machine Learning \& Stream Processing}\label{online-machine-learning-stream-processing}
 
-\begin{itemize}
+Traditional ML often operates in \textbf{batch} mode (processing all historical data at once). Industrial monitoring requires \textbf{stream} processing, where data is processed item-by-item in real-time as it arrives from sensors.
 
-\item
-  Batch vs.~Stream processing
-\item
-  The concept of Incremental Statistics
-\item
-  Introduction to River (Python library for online ML)
-\item
-  Why \(O(1)\) complexity matters for Edge Computing
-\end{itemize}
+To execute rules like ``average over the last 24 hours'' on a high-frequency stream without storing all data points in memory, we utilize \textbf{\textit{incremental learning}}. Libraries like \textbf{\textit{River}} provide algorithms to update statistics (mean, variance, drift) with $O(1)$ time and memory complexity.
+\[
+\mu_n = \mu_{n-1} + \frac{x_n - \mu_{n-1}}{n}
+\]
 
+This allows the monitoring system to run efficiently on edge devices with limited resources.
+
+\vfill
+% Figure placeholder:
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{img/placeholder.png}
+%     \caption{Conceptual architecture combining LLMs, RAG, and Stream Processing.}
+%     \label{fig:foundations_architecture}
+% \end{figure}
+% Comment: A figure showing the intersection of these three fields (LLMs for understanding, RAG for context, Stream Processing for execution) would be beneficial here to visually summarize the foundations.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.5cm and 1.5cm,
+        box/.style={rectangle, draw=black, thick, fill=blue!5, rounded corners, minimum width=3cm, minimum height=1.5cm, align=center},
+        io/.style={trapezium, trapezium left angle=70, trapezium right angle=110, draw=black, fill=green!5, minimum width=2cm, align=center},
+        arrow/.style={-Stealth, thick}
+    ]
+
+    % Nodes
+    \node[io] (docs) {Industrial \\ Docs};
+    \node[box, right=of docs] (rag) {\textbf{RAG System} \\ \small (Context Retrieval)};
+    \node[box, right=of rag] (llm) {\textbf{LLM} \\ \small (Semantic Reasoning)};
+    \node[box, below=of llm] (stream) {\textbf{Stream Processing} \\ \small (Rule Execution)};
+    \node[io, right=of stream] (output) {Alerts};
+    \node[io, left=of stream] (sensors) {Sensor \\ Data};
+
+    % Edges
+    \draw[arrow] (docs) -- node[above, font=\footnotesize] {Indexing} (rag);
+    \draw[arrow] (rag) -- node[above, font=\footnotesize] {Context} (llm);
+    \draw[arrow] (llm) -- node[right, font=\footnotesize] {Rules} (stream);
+    \draw[arrow] (sensors) -- (stream);
+    \draw[arrow] (stream) -- (output);
+    
+    % Feedback/Grounding
+    \draw[arrow, dashed] (llm) to[bend right=30] node[above, font=\footnotesize] {Grounding} (rag);
+
+    \end{tikzpicture}
+    \caption{Conceptual architecture combining LLMs for reasoning, RAG for context, and Stream Processing for real-time execution.}
+    \label{fig:foundations_architecture}
+\end{figure}
+
+\vfill

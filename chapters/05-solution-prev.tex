@@ -1,0 +1,165 @@
+
+\section{High-Throughput Architecture \& Performance
+Optimization}\label{high-throughput-architecture-performance-optimization}
+
+\textbf{Research-based Hypothesis:}
+
+\begin{itemize}
+
+\item
+  \textbf{I/O Bound Latency:} The extraction pipeline is dominated by
+  \textbf{Network I/O} (waiting for LLM token generation, Vector DB
+  retrieval, and Web Search), not CPU computation.
+\item
+  \textbf{Concurrency vs.~Parallelism:} Since the primary bottleneck is
+  waiting for external APIs, \textbf{Asynchronous Concurrency} (Python
+  \texttt{asyncio}) is vastly more efficient than Multiprocessing. It
+  allows the system to process dozens of document chunks while waiting
+  for I/O, maximizing throughput without the overhead of OS-level
+  process forking.
+\item
+  \textbf{Rate-Limit Constraints:} In a high-concurrency environment,
+  the system performance is bounded not by hardware, but by
+  \textbf{Token-Per-Minute (TPM)} quotas of the LLM provider. An
+  effective architecture must implement ``Backpressure'' to handle these
+  limits gracefully.
+\end{itemize}
+
+\textbf{Implementation Options:}
+
+\begin{itemize}
+
+\item
+  \textbf{Option A: Synchronous Sequential Processing.} Processing chunk
+  \(n\) only after chunk \(n-1\) finishes.
+
+  \begin{itemize}
+  
+  \item
+    \emph{Verdict:} \textbf{Discarded.} Processing a 50-page manual took
+    \textgreater45 minutes. Unacceptable for interactive use.
+  \end{itemize}
+\item
+  \textbf{Option B: Multi-Threading/Multi-Processing.} Using
+  \texttt{ThreadPoolExecutor}.
+
+  \begin{itemize}
+  
+  \item
+    \emph{Verdict:} \textbf{Discarded.} Python's Global Interpreter Lock
+    (GIL) limits threading efficiency, and Multiprocessing introduces
+    high memory overhead (loading the Embedding model in every process).
+  \end{itemize}
+\item
+  \textbf{Option C: Asynchronous Event Loop (AsyncIO).} Using
+  \texttt{async/await} patterns to suspend execution during I/O waits.
+
+  \begin{itemize}
+  
+  \item
+    \emph{Verdict:} \textbf{Selected.} Matches perfectly with
+    LangChain/LangGraph's async capabilities. Allows processing
+    \textasciitilde50 chunks concurrently on a single core.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Implementation:} The final architecture utilizes a
+\textbf{Map-Reduce pattern} implemented via \textbf{LangGraph}:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{The Map Step (Extraction):}
+
+  \begin{itemize}
+  
+  \item
+    The document is split into \(N\) chunks.
+  \item
+    We utilize \texttt{asyncio.gather(*tasks)} to spawn \(N\) instances
+    of the \texttt{RuleExtractionWorkflow} (from Section 5.3).
+  \item
+  \item
+    Each instance operates independently: retrieving context (Qdrant),
+    searching web (Tavily), and generating Python code.
+  \item
+    \emph{Semaphore:} A \texttt{asyncio.Semaphore(limit=5)} is
+    implemented to control the ``Blast Radius''---preventing us from
+    hitting OpenAI/Anthropic rate limits by ensuring only 5 chunks
+    trigger LLM calls simultaneously.
+  \end{itemize}
+\item
+  \textbf{The Reduce Step (Consolidation):}
+
+  \begin{itemize}
+  
+  \item
+    Once all extraction tasks complete, results are aggregated.
+  \item
+    The \texttt{RuleConsolidationWorkflow} (Section 5.8) takes over.
+  \item
+    It utilizes \textbf{Batch Processing} rather than full parallelism
+    here, grouping rules by sensor topology to ensure context
+    preservation.
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Code Strategy (Async Orchestration):}
+
+\textbf{Results:}
+
+\begin{itemize}
+
+\item
+  \textbf{Latency Reduction:}
+
+  \begin{itemize}
+  
+  \item
+    \emph{Sequential:} \textasciitilde45 minutes for 50 pages (approx.
+    54s per page).
+  \item
+    \emph{Asynchronous:} \textasciitilde4 minutes for 50 pages (limited
+    only by the Semaphore).
+  \item
+    \textbf{Speedup Factor:} \textasciitilde11x.
+  \end{itemize}
+\item
+  \textbf{Resource Efficiency:} The system runs comfortably on a
+  standard container (2 vCPU, 4GB RAM) because the heavy lifting is
+  offloaded to the API providers. The local embedding model (Ollama) was
+  the only significant CPU consumer.
+\item
+  \textbf{The ``Thundering Herd'' Problem:} Initially, firing 50
+  requests caused Qdrant to timeout. Implementing the Semaphore and
+  exponential backoff retries stabilized the system.
+\end{itemize}
+
+\textbf{Possible Improvements:}
+
+\begin{itemize}
+
+\item
+  \textbf{Streaming:} The current system waits for \emph{all} chunks to
+  finish before consolidation. A \textbf{Streaming Architecture} could
+  begin consolidating ``Flow Control'' rules as soon as the ``Flow''
+  section chunks are processed, progressively updating the user UI.
+\item
+  \textbf{Caching:} Implementing a semantic cache (Redis) for common
+  queries (e.g., resolving ``TIC-101'') to avoid redundant LLM calls
+  across different documents.
+\end{itemize}
+
+\textbf{Literature:}
+
+\begin{itemize}
+
+\item
+  \textbf{Dean, J., \& Ghemawat, S. (2008).} \emph{MapReduce: Simplified
+  Data Processing on Large Clusters.} (The foundational pattern for this
+  architecture).
+\item
+  \textbf{Fowler, M.} \emph{Patterns of Enterprise Application
+  Architecture.} (Reference for the Async/Await and Throttling
+  patterns).
+\end{itemize}

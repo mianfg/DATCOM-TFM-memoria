@@ -32,6 +32,7 @@ At runtime, \texttt{RuleChecker} acts as a controlled execution layer. For every
 
 
 \begin{program}[hbtp]
+\begin{CodeListing}
 \begin{lstlisting}[language=Python]
 from src.streaming import RuleChecker, CheckerConfig, InMemoryEventSink
 
@@ -54,6 +55,7 @@ checker = RuleChecker(
 # Process events (from DataFrame, but can be used with streaming data)
 events_df = checker.check_dataframe(sensor_data, verbose=False)
 \end{lstlisting}
+\end{CodeListing}
 \caption{Initialization and usage of \texttt{RuleChecker}}\label{program:rulechecker-usage}
 \end{program}
 

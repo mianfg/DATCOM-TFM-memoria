@@ -5,6 +5,8 @@
 % This file loads all packages used in the document.
 % Organized by category for clarity.
 
+\usepackage{svg}
+
 % =============================================================================
 % ENCODING AND LANGUAGE
 % =============================================================================
@@ -72,6 +74,7 @@
 \usepackage[table]{xcolor}
 \usepackage{graphicx}
 \usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
 \usepackage{tikz-cd}
 \usepackage{svg}
 \usepackage{pdflscape}
@@ -143,18 +146,29 @@
 }
 
 \newcommand{\usermsg}[1]{%
-  \begin{tcolorbox}[llmstyle=blue,title=\faUser\ User Message]
+  \begin{tcolorbox}[llmstyle=blue,title=\faUser\ Prompt]
   #1
   \end{tcolorbox}
 }
 
 \newtcolorbox{UserMessage}[1][]{%
   enhanced,
-  colback=blue!5,
-  colframe=blue!60,
-  borderline west={3pt}{0pt}{blue!80},
+  colback=purple!5,
+  colframe=purple!60,
+  borderline west={3pt}{0pt}{purple!80},
   fonttitle=\bfseries,
-  title=\faUser\ User Message,
+  title=\faUser\hspace{0.6em}\textsf{User Message (Prompt)},
+  #1
+}
+
+
+\newtcolorbox{ToolMessage}[1][]{%
+  enhanced,
+  colback=cyan!5,
+  colframe=cyan!60,
+  borderline west={3pt}{0pt}{cyan!80},
+  fonttitle=\bfseries,
+  title=\faTools\hspace{0.6em}\textsf{Tool Call},
   #1
 }
 
@@ -178,11 +192,11 @@
 
 \newtcolorbox{AssistantMessage}[1][]{%
   enhanced,
-  colback=green!5,
-  colframe=green!60,
-  borderline west={3pt}{0pt}{green!80},
+  colback=teal!5,
+  colframe=teal!60,
+  borderline west={3pt}{0pt}{teal!80},
   fonttitle=\bfseries,
-  title=\faCommentDots\ AI Message,
+  title=\faRobot\hspace{0.6em}\textsf{AI Message (Response)},
   #1
 }
 
@@ -194,11 +208,17 @@
   colframe=orange!60,
   borderline west={3pt}{0pt}{orange!80},
   fonttitle=\bfseries,
-  title=\faCog\ Rule,
+  title=\faCog\hspace{0.6em}\textsf{Rule},
   #1
 }
 
-
+\newtcolorbox{CodeListing}[1][]{%
+  enhanced,
+  colback=lightgray!5,
+  colframe=lightgray!60,
+  borderline west={3pt}{0pt}{lightgray!80},
+  #1
+}
 
 
 

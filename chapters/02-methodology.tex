@@ -4,49 +4,79 @@
 
 \chapter{Methodology}\label{methodology}
 
+This thesis follows a structured methodological framework designed to bridge the gap between theoretical research in Large Language Models (LLMs) and practical application in industrial process monitoring. The methodology is divided into three distinct phases, each with its own objectives and approach:
 
-
-\section{Phase 1: Analytical Foundation \& Capability Assessment}
-
-\emph{This phase establishes the theoretical boundaries of the work before any engineering begins.}
-
-\begin{itemize}
-    \item \textbf{State of the Art Analysis:} We conduct a systematic review of existing literature to determine why current non-generative approaches (e.g., traditional Information Extraction, Ontology Learning) fail to capture the logical complexity of industrial rules.
-    \item \textbf{Technological Suitability Analysis:} We assess the theoretical capabilities of Large Language Models (LLMs) against the identified research gaps, specifically evaluating their potential as reasoning engines versus their limitations in factual accuracy (hallucination).
-    \item \textbf{Requirement Definition:} Deriving the functional and non-functional requirements (traceability, determinism, latency) that the artifact must satisfy to be viable in a real-world setting.
-\end{itemize}
-
-\section{Phase 2: Iterative Design Strategy}
-
-\emph{The core development follows a hypothesis-driven iterative strategy. For each component of the pipeline, we apply a specific "Micro-Cycle" of research.}
-
-Instead of a linear development path, the methodology for constructing the artifact consists of:
 \begin{enumerate}
-    \item \textbf{Problem Decomposition:} Breaking down the "Semantic Bridge" problem into isolated sub-problems (e.g., extraction, resolution, verification).
-    \item \textbf{Comparative Ablation:} For each sub-problem, we define multiple potential implementation strategies based on the literature.
-    \item \textbf{Selection Criteria:} Choosing the optimal strategy based on specific industrial constraints (e.g., prioritizing safety over speed, or privacy over performance).
-    \item \textbf{Incremental Refinement:} Improving the component based on the failure modes observed during preliminary testing.
+    \item \textbf{Feasibility Analysis:} Establishing the viability of LLMs for this domain.
+    \item \textbf{System Implementation:} A hybrid phase combining research-driven design for the extraction engine and engineering-driven development for the runtime environment.
+    \item \textbf{Evaluation:} A synthetic testing strategy necessitated by data constraints.
 \end{enumerate}
 
-\section{Phase 3: Operational \& Runtime Design Strategy}
+\section{Phase 1: State of the Art and Feasibility Analysis}
 
-\emph{This phase defines the approach for ensuring the extracted knowledge is practically usable, moving from static definition to dynamic execution.}
+The initial phase of this work focused on a comprehensive review of the state of the art in industrial event detection and monitoring. We analyzed traditional approaches, such as rigid expert systems and purely statistical anomaly detection, identifying their limitations in handling the unstructured, variable nature of technical documentation.
 
+Based on this background study (detailed in \cref{background-and-state-of-the-art}), we concluded that Large Language Models (LLMs) possess the necessary semantic understanding to bridge the gap between human-written specifications and machine-executable logic. This conclusion served as the foundation for the decision to implement an LLM-based rule extraction system.
+
+\section{Phase 2: Iterative Design of the Rule Extractor}\label{methodology-extraction}
+
+The development of the rule extractor (\cref{ch:5-solution-design-and-implementation}) follows a \textbf{research-driven, iterative design methodology}. Unlike standard software development, where requirements are fixed, this phase treats the capabilities of the LLM as the primary variable.
+
+\subsection*{The Iterative Cycle}
+
+We adopted a ``baseline-improvement'' cycle to systematically solve the challenges of extraction:
+
+\begin{enumerate}
+    \item \textbf{Baseline Implementation:} We start with a naive, research-based approach (e.g., Zero-Shot extraction on raw text).
+    \item \textbf{Qualitative Evaluation:} We test this baseline against \textbf{real Repsol technical documentation} (specifically, the C3/C4 Splitter Functional Description).
+    \item \textbf{Failure Analysis:} We identify specific caveats and failure modes (e.g., hallucination, context loss, lack of determinism).
+    \item \textbf{Hypothesis Formulation:} We formulate a research-backed hypothesis to address these failures (e.g., ``chunking will improve recall,'' ``constrained decoding will ensure validity'').
+    \item \textbf{Option Analysis:} We evaluate multiple implementation options (e.g., different retrieval strategies, different parsing libraries).
+    \item \textbf{Selection and Implementation:} We select the most promising option based on theoretical fit and practical constraints, implementing it as the new standard.
+\end{enumerate}
+
+This cycle repeats throughout \cref{ch:5-solution-design-and-implementation}, evolving the system from a simple script into a sophisticated agentic pipeline.
+
+\subsection*{Data Source for Development}
+
+It is important to note that the \textbf{development and design} of the rule extractor were performed using \textbf{actual industrial documentation provided by Repsol} (see \cref{sec:use-case}). The rules, examples, and edge cases discussed in \cref{ch:5-solution-design-and-implementation} are derived from this real-world material, ensuring the system is grounded in the complexity of actual plant operations.
+
+\section{Phase 3: Engineering the Streaming Runtime}\label{methodology-runtime}
+
+In contrast to the research-heavy extraction phase, the development of the runtime engine (\cref{ch:6-operational-runtime-dynamic-verification}) follows a \textbf{pure engineering methodology}.
+
+Once the rules are extracted, the problem shifts from ``understanding'' (AI) to ``execution'' (computer engineering). There is no research hypothesis here regarding \textit{if} it works; the focus is entirely on \textit{how efficiently} it works.
+
+The methodology prioritizes:
 \begin{itemize}
-    \item \textbf{Streaming Architecture Approach:} We adopt a methodology that prioritizes \textbf{computational efficiency} and \textbf{temporal consistency}. The design strategy focuses on translating static logic into a format compatible with online learning or stream processing paradigms, aiming to decouple computational cost from the complexity of the temporal window.
-    \item \textbf{Fault-Tolerance Strategy:} Given the stochastic nature of the extraction source (LLMs), the execution environment is designed with a "Defense in Depth" approach, establishing isolation layers to ensure that individual rule failures cannot compromise the integrity of the overall monitoring system.
+    \item \textbf{Performance:} Achieving $O(1)$ time complexity for rule evaluation to handle high-frequency data streams.
+    \item \textbf{Reliability:} Ensuring the system is fault-tolerant and memory-safe.
+    \item \textbf{Correctness:} Using standard algorithms (e.g., Welford's algorithm) using production implementations (e.g., River) to guarantee mathematical precision.
 \end{itemize}
 
-\section{Phase 4: Evaluation Methodology}
+This phase treats the extracted rules as a specification and builds a robust ``virtual machine'' to execute them.
 
-\emph{To address the challenge of validating a system in a "Cold Start" environment (no valid tagged data), we define a multi-faceted evaluation strategy.}
+\section{Phase 4: Synthetic Evaluation Strategy}\label{methodology-evaluation}
 
-\begin{itemize}
-    \item \textbf{Synthetic Ground Truth Strategy:} To overcome the lack of labeled industrial data, we define a \textbf{Reverse Engineering} approach. This involves generating controlled, synthetic test artifacts where the "correct answer" is mathematically known a priori, enabling precise quantification of extraction performance.
-    \item \textbf{Component-Wise Assessment:} The artifact is evaluated via a stratified approach:
-    \begin{itemize}
-        \item \textbf{Semantic Validity:} Assessing the fidelity of the extracted logic against the source intent.
-        \item \textbf{Ontological Accuracy:} Measuring the ability to correctly link vague natural language terms to specific system entities.
-        \item \textbf{Operational Integrity:} Validating the mathematical correctness of the runtime engine against established baselines to ensure trust.
-    \end{itemize}
-\end{itemize}
+The final phase addresses the validation of the complete system. A significant constraint in this project was the unavailability of labeled historical anomaly logs or a ``golden dataset'' of verified rules from the Repsol pilot plant.
+
+To overcome this, we adopted a \textbf{synthetic evaluation methodology} (\cref{evaluation-and-results}).
+
+\subsection{Evaluating the Rule Extractor (The "Twin" Approach)}
+Since we cannot mathematically verify extraction against the real Repsol documentation (as no ground truth exists), we inverted the problem:
+\begin{enumerate}
+    \item We generated a set of known ``ground truth'' rules.
+    \item We used an LLM to ``reverse engineer'' these rules into a \textbf{synthetic technical manual}.
+    \item We ran our extraction pipeline on this synthetic manual.
+    \item We compared the extracted output against the original ground truth to calculate quantitative metrics (precision, recall).
+\end{enumerate}
+
+\subsection{Evaluating the Runtime Engine}
+To validate the streaming engine without live plant data:
+\begin{enumerate}
+    \item We generated \textbf{synthetic sensor data} with known statistical properties.
+    \item We performed a ``shadow test,'' comparing the output of our streaming engine against a reference batch implementation (Pandas) to prove mathematical equivalence.
+    \item We performed ``fault injection,'' deliberately introducing anomalies into the synthetic stream to verify the system's detection capabilities.
+\end{enumerate}
+
+This approach allows us to rigorously test the system's logic and performance despite the absence of proprietary operational data.

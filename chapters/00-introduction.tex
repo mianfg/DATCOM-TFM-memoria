@@ -1,15 +1,84 @@
 % =============================================================================
-% CHAPTER 0: INTRODUCTION
+% CHAPTER 1: INTRODUCTION
 % =============================================================================
 
-\chapter{Introduction}\label{introduction}
+\chapter{Introduction}\label{ch:introduction}
+
+The advent of Industry 4.0 has transformed industrial operations into data-rich environments, where constant monitoring is paramount for ensuring safety, efficiency, and reliability. Modern processing plants (refineries, chemical complexes, and power stations) generate terabytes of sensor data daily. To harness this data, the industry has invested heavily in data-driven anomaly detection systems, primarily relying on Machine Learning to identify deviations from ``normal'' behavior.
+
+In industrial monitoring, \textit{anomaly detection} traditionally refers to identifying statistical deviations from normal operating behavior using historical data, whereas \textit{anomaly definition} focuses on explicitly specifying the conditions under which equipment or processes are considered unsafe or abnormal, based on engineering knowledge rather than data patterns. However, this data-driven paradigm faces a fundamental limitation in safety-critical environments: the \textit{``zero-shot'' reality}. Industrial plants are designed to be safe; catastrophic failures are, by definition, extremely rare events. Consequently, there is often no historical data available to train supervised models to detect specific failures or failure types. Furthermore, when unsupervised models flag an anomaly, they often act as “black boxes,” failing to provide the explainability required for operators to trust the system and take immediate corrective action.
+
+This limitation necessitates a shift from pure anomaly detection toward anomaly definition. We know what can go wrong because it is rigorously described in engineering specifications, operating manuals, and safety standards. Yet, this shift reveals a secondary, more pervasive challenge: the \textbf{definition bottleneck}. While the knowledge required to define these safety rules exists, it is trapped in unstructured technical documentation: PDF manuals, diagrams, textual process descriptions, and many other forms of unstructured information. Currently, unlocking this knowledge requires highly skilled domain experts to manually read, interpret, and translate thousands of pages of documentation into executable logic. This process is slow, expensive, unscalable, and prone to human error, leaving vast amounts of critical operational knowledge dormant.
+
+This work proposes a framework for \textbf{automated anomaly definition}. We posit that LLMs, when integrated into a robust, retrieval-augmented architecture, can bridge this gap. By treating technical documentation not just as text, but as a source of latent logic, we can automatically ``compile'' unstructured specifications into deterministic, executable monitoring rules, thereby removing the expert bottleneck and enabling a new generation of knowledge-driven industrial monitoring systems.
+
+% =============================================================================
+% SECTION: MOTIVATION
+% =============================================================================
+
+\section{Motivation and Problem Statement}\label{sec:motivation}
+
+Process industries, such as oil \& gas and chemical manufacturing, prioritize Process Safety Management above all else. The central conflict in modern reliability engineering lies between the capabilities of detection algorithms and the necessities of definition.
+
+While the industry has successfully deployed anomaly detection algorithms to identify when a process deviates from its historical baseline, detection alone is insufficient. Detection requires a reference state, and in the context of safety, relying on history is dangerous. We cannot wait for a reactor to overheat to learn what ``overheating'' looks like. Reliability must start with \textbf{anomaly definition}: the proactive generation of rules based on first principles, engineering constraints, and design limitations (e.g., ``if pressure exceeds 15 bar while temperature is rising, trigger alarm''). Unlike statistical outliers, these rules are inherently explainable, traceable to physical laws, and valid even if the event has never occurred before.
+
+However, the current workflow for defining these rules is fundamentally broken. It relies on an expert bottleneck. Domain experts--process engineers with decades of experience--must manually review vast repositories of technical documentation, recall external physics knowledge, and translate these insights into boolean control logic. These experts are a scarce and expensive resource. Relying on them for manual rule generation creates a massive backlog; thousands of potential safety checks are never implemented simply because the engineering bandwidth does not exist.
+
+This situation presents a \textbf{hidden knowledge opportunity}. The rules for safe operation are not missing; they are simply hidden. They are embedded in the ``Dark Data'' of operating manuals, diagrams, and process narratives. If we can automate the extraction of this hidden knowledge, we can move from a paradigm of ``creating'' rules to ``extracting'' them, effectively digitizing the plant's operational manual into an active, real-time monitoring system.
+
+While the operational knowledge required to define process anomalies exists--embedded in unstructured industrial documentation and established engineering principles--it remains inaccessible to automated systems.
+
+Currently, there is no automated framework capable of extracting this ``hidden knowledge'' and formalizing it into executable monitoring rules. This forces the industry to rely on a manual, expert-dependent workflow that is:
 
 \begin{itemize}
-    \item \textbf{Context:} Industry 4.0 requires constant monitoring for safety and efficiency
-    \item \textbf{Limits of Data-Driven Detection (Anomaly Detection):} standard anomaly detection usually relies on historical data (ML), but in critical industries that data might not exist because we stop machines because they break, also they are ``black box'' models that lack explainability/trust.
-    \item \textbf{Shift to Definition}: previous point orients us towards relying on rule based systems (definition) rather than pure statistical / ML detection.
-    \item \textbf{Definition Bottleneck:} we can define anomalies using expert rules, but this process is manual and unascalable.
-    \item \textbf{Dark Data:} knowledge exists in manuals, but it's inaccessible to automated systems
-    \item \textbf{The Core Thesis:} we propose automated definition via ``Semantic Compilation'' -- translating unstructured technical documents into executable monitoring rules.
-    \item \textbf{Roadmap of Thesis:} brief roadmap of the chapters to follow.
+    \item \textbf{Unscalable:} unable to process the thousands of pages of existing technical specifications for large-scale assets.
+    \item \textbf{Incomplete:} leaving vast amounts of operational constraints trapped in static documents rather than actively monitoring the process.
+    \item \textbf{Static:} failing to integrate external real-world knowledge (physics, regulations) into the anomaly definition process dynamically.
 \end{itemize}
+
+The core problem is the lack of a \textbf{semantic bridge} to convert unstructured ``hidden'' knowledge into structured, executable anomaly definitions without continuous expert intervention.
+
+\section{Research Questions}
+
+To address this problem, this thesis explores the following research questions:
+
+\begin{enumerate}[label={(}RQ\arabic*{)},wide = 0pt,widest={100}, leftmargin =*]
+    \item \textbf{Extraction:} How can the operational knowledge "hidden" in unstructured data be automatically identified and formalized into executable logic?
+    \item \textbf{Ambiguity:} How can we resolve the gap between generic natural language descriptions found in the documents (e.g., "the reflux pump") and specific plant sensors found in the control system (e.g., \texttt{P-101A})?
+    \item \textbf{Reasoning:} To what extent can we leverage external "world knowledge" (physics, regulations, etc.) to validate or enhance the rules extracted from this unstructured data?
+    \item \textbf{Explainability and Trust:} Since we are removing the human from the definition of anomalies, what mechanisms can ensure the automatically extracted rules are trustworthy and can be easily assessed?
+    \item \textbf{Quality:} How can we assess and improve the quality of these extracted rules, merging redundant or fragmented logic into concise definitions?
+    \item \textbf{Complexity:} How can the computationally expensive logic inherent to these generated rules (e.g., sliding windows, statistical aggregations) be executed efficiently in real-time industrial environments?
+\end{enumerate}
+
+\section{Objectives}\label{sec:objectives}
+
+\textbf{Primary Objective:} Propose and validate a methodological framework for unlocking "hidden" operational knowledge, capable of automatically transforming unstructured industrial specifications into executable anomaly definitions (rules) with a level of reliability and efficiency suitable for safety-critical environments.
+
+\textbf{Specific Objectives:}
+
+\begin{enumerate}[label={(}O\arabic*{)},wide = 0pt,widest={100}, leftmargin =*]
+    \item \textbf{Formalization:} Define a strategy to translate the ambiguity of operational constraints defined in unstructured data into precise, deterministic logic structures.
+    \item \textbf{Ontological Bridging:} Investigate methods to resolve the semantic gap between generic equipment descriptions found in documentation and the specific, coded instrumentation tags used in control systems.
+    \item \textbf{External Grounding:} Investigate the integration of external world knowledge (such as physics principles and regulatory standards) into the extraction pipeline to augment rules and validate their physical plausibility.
+    \item \textbf{Verification:} Ensure the trustworthiness of the automated system through explainability and traceability, establishing a clear lineage between the generated code and the source documentation.
+    \item \textbf{Quality Assurance \& Consolidation:} Define a set of metrics to assess rule quality and implement an optimization mechanism to improve output by merging redundant logic.
+    \item \textbf{Operational Efficiency:} Design a stream processing architecture capable of handling the computationally expensive logic inherent to natural language rules in real-time, industrial edge environments.
+\end{enumerate}
+
+\section{Operational Use Case: The C3/C4 Splitter}\label{sec:use-case}
+
+To validate the proposed framework, this thesis utilizes a real-world industrial unit as an experimental ground: the \textbf{C3/C4 splitter}.
+
+The C3/C4 splitter is a fractionation unit designed to separate Liquefied Petroleum Gas (LPG) into its propane (C3) and butane (C4) components. This process is critical for producing on-spec commercial products. The unit consists of a main fractionation column, a reboiler that supplies heat using Light Gas Oil (LGO) or steam, and an overhead condenser system.
+
+The control strategy for this unit involves a delicate balance between \textbf{quality objectives} (regarding concentrations of C3 and C4) and \textbf{energy O¡objectives} (minimizing reboiler duty). The system is monitored by a network of sensors, including temperature controllers, pressure transmitters, and flow indicators.
+
+This use case was selected because it represents a ``goldilocks'' problem for rule extraction:
+\begin{enumerate}
+    \item \textbf{Complexity:} it involves complex thermodynamic interactions (pressure-temperature relationships) and split-range control strategies that cannot be captured by simple thresholding.
+    \item \textbf{Documentation:} we utilize a comprehensive set of unstructured documentation, including a detailed \textbf{process description} (in Markdown syntax) and a \textbf{process flow diagram} (a picture). These documents contain the ``hidden knowledge''--operating recommendations, troubleshooting guides, and safety limits--that our system aims to extract.
+    \item \textbf{Ambiguity:} the documentation refers to equipment by functional names (``the reboiler,'' ``the accumulator''), while the control system uses specific tags (\texttt{E-1407}, \texttt{D-1406}), providing a realistic testbed for our entity resolution objectives.
+\end{enumerate}
+
+By applying our framework to the C3/C4 splitter, we aim to demonstrate how static operating manuals can be transformed into a dynamic safety net that actively monitors the separation process for quality excursions and safety risks.

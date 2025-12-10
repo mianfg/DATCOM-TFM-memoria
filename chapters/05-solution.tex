@@ -4,19 +4,44 @@
 
 \chapter{Solution Design and Implementation}\label{ch:5-solution-design-and-implementation}
 
+In this chapter, we will incrementally build the main object of this thesis: the \textbf{rule extractor}. As detailed in \cref{methodology}, we will follow an incremental approach, iterating through different versions, always guided by research and results.
+
+\begin{enumerate}[]
+    \setcounter{enumi}{-1}
+    \item \hyperref[sec:implementation-0]{\textbf{Baseline: Naive Single-Document Extraction:}} extracting rules in natural language providing the document content directly as context, in a ``zero-shot'' fashion.
+    \item \hyperref[sec:implementation-1]{\textbf{Chunking:}} chunking the provided documents and execute the ``zero-shot'' approach with each of the chunks.
+    \item \hyperref[sec:implementation-2-structured]{\textbf{Structured output:}} forcing rules to be output with a certain schema.
+    \item \hyperref[sec:implementation-3-rag]{\textbf{Context Gathering via RAG:}} increasing the context of each of the chunks using a RAG approach with similarity search from a vector database.
+    \item \hyperref[sec:implementation-4-python-functions]{\textbf{Executable Python Rules:}} breaking free from a schema-oriented output into executable Python functions.
+    \item \hyperref[sec:implementation-5-sensors]{\textbf{Sensor Resolution:}} parsing sensor information from the generated Python rules using an agent.
+    \item \hyperref[sec:implementation-6-time]{\textbf{Time Expression Resolution:}} parsing time expressions from the generated Python rules using an agent.
+    \item \hyperref[sec:implementation-7-grounding]{\textbf{External Knowledge Grounding:}} connecting to the external world to gather additional data for rule generation.
+    \item \hyperref[sec:implementation-8-verification]{\textbf{Rule Verification:}} verifying correctness of the generated rules.
+    \item \hyperref[sec:implementation-9-consolidation]{\textbf{Rule Consolidation:}} unifying rules generated across different chunks, removing redundancies and inconsistencies.
+\end{enumerate}
+
+\newpage
+
 \setcounter{section}{-1}
 
-\section{Baseline: Naive Single-Document Extraction}\label{sec:implementation-0-baseline}
+\section{Baseline: Naive Single-Document Extraction}\label{sec:implementation-0}
+
+\begin{figure}[ht]
+    \centering
+    \includesvg{diagram-0.svg}
+    \caption{Naive Single-Document Extraction}
+    \label{fig:diagram-0}
+\end{figure}
 
 This baseline approach is grounded in the hypothesis that a zero-shot prompting strategy, devoid of external retrieval mechanisms, should be capable of extracting and synthesizing operational monitoring rules directly from raw text. This premise rests on three technical pillars.
 
-First, \textbf{contextual capacity} has been dramatically expanded in recent foundational model architectures. Specifically, the scaling of RoPE (\textit{Rotary Positional Embeddings}) \cite{su_roformer_2023, chen_extending_2023}, has significantly extended context windows (see \cref{tab:context_windows}). Theoretically, these models now possess the capacity to ingest entire industrial manuals--typically ranging from 50 to 200 pages--in a single inference pass without requiring truncation.
+First, \textbf{contextual capacity} has been dramatically expanded in recent foundational model architectures. Specifically, the scaling of RoPE (\textit{Rotary Positional Embeddings}) \cite{su_roformer_2024, chen_extending_2023}, has significantly extended context windows (see \cref{tab:context_windows}). Theoretically, these models now possess the capacity to ingest entire industrial manuals--typically ranging from 50 to 200 pages--in a single inference pass without requiring truncation.
 
-Additionally, LLMs have demonstrated ``emergent'' capabilities in \textbf{zero-shot information extraction}\cite{wei_chatie_2024}. Current literature suggests that for stand-alone documents, modern LLMs can perform relation extraction (e.g., mapping a rule to a sensor) without task-specific fine-tuning, relying solely on their ability to follow complex instructions \cite{kojima_large_2023}.
+Additionally, LLMs have demonstrated ``emergent'' capabilities in \textbf{zero-shot information extraction}\cite{wei_chatie_2024}. Current literature suggests that for stand-alone documents, modern LLMs can perform relation extraction (e.g., mapping a rule to a sensor) without task-specific fine-tuning, relying solely on their ability to follow complex instructions \cite{kojima_large_2022}.
 
 Most importantly, this approach closely explores the \textbf{``death of RAG'' assumption}, which posits that massive context windows may render Retrieval-Augmented Generation obsolete for certain tasks. This argument highlights that self-attention is \textit{lossless}--the model attends to the actual tokens--whereas vector retrieval is \textit{lossy}, as it relies on a compressed numerical shadow of the text \cite{kuratov_cramming_2025}. Furthermore, RAG introduces boundary issues where answers spanning multiple chunks are often missed. In contrast, long-context processing allows the model to reason across the entire text simultaneously, comparing multiple sections without arbitrary boundaries \cite{li_long_2024}.
 
-\begin{table}%[h!]
+\begin{table}[htbp]
     \centering
     \begin{tabular}{l l l l l}
         \toprule
@@ -46,23 +71,23 @@ Two primary implementation strategies were considered for this baseline.
 \item \textbf{Summarization-then-extraction:} Asking the model to summarize the document first, then extract rules from the summary.
 \end{enumerate}
 
-The second option was scrapped because summarization processes tend to lose specific numeric thresholds (e.g., distinct temperature or pressure values) which are critical for accurate industrial rules. Consequently, the full-context extraction method (option A) was selected.
+The second option was scrapped because summarization processes tend to lose specific numeric thresholds (e.g., distinct temperature or pressure values) which are critical for accurate industrial rules. Consequently, the full-context extraction method (option A) was selected (see \cref{fig:diagram-0}).
 
 The \textit{DeepSeek-R1} model was selected due to its status as a state-of-the-art foundation model with a significant context window and the ability to run locally via \textit{Ollama}. The input data consisted of technical documentation converted into plain text.
 
-The prompting strategy utilized a zero-shot approach. The prompt simply establishes a persona: \textit{``You are an expert industrial engineer.''} This is immediately followed by instructing the model to \textit{``Read the following document and extract ALL operational and safety rules.''} Also, we specify a bit the formatting, by eliciting the model to \textit{``Return them [the rules] as a list.''} The document is injected directly into the prompt afterwards. The full prompt is shown in \cref{thread:0-baseline}.
+The prompting strategy utilized a zero-shot approach. We just specify the formatting a bit, by eliciting the model to \textit{``Return them [the rules] as a list.''} The document is injected directly into the prompt. The full prompt is shown in \cref{thread:0-baseline}.
 
 This is the simplest, most straight-forward way to use LLMs when extracting rules, and we establish it as a baseline for future iterations.
 
 
-\begin{thread}[htbp]
+\begin{figure}[htbp]
 
 \begin{UserMessage}
 You are an expert industrial engineer.\\
 Read the following document and extract ALL operational and safety rules.\\
 Return them as a list.\\[6pt]
 DOCUMENT:\\
-\textcolor{red}{\{document\}}
+\textcolor{purple}{\{document\}}
 \end{UserMessage}
 
 
@@ -108,9 +133,9 @@ Based on a thorough review of the provided C3/C4 Splitter document, the followin
 ...
 \end{AssistantMessage}
 
-\caption{Directly extract all operational and safety rules}
+\caption{Message thread showcasing naive single-document extraction}
 \label{thread:0-baseline}
-\end{thread}
+\end{figure}
 
 \subsection*{Results}
 
@@ -118,15 +143,24 @@ Implementing this basic approach yielded mixed results. An example output is sho
 
 It is also important to note that, even if these rules are correct, they cannot be used immediately in the industrial context: the \textbf{lack of structure} makes these only useful for reading, but not for actual automated system.
 
-Regarding LLM processing, we can also observe a \textbf{lost in the middle} phenomenon, where the LLM prioritized the information at the very beginning and at the very end of the document, often ignoring content located in the middle sections of the provided document. In the case of larger documents, or in some instances in the provided documents, the model suffered from \textbf{context overflow}, where the token count exceeded the model's efficient processing limit, leading to truncation, excessive latencies or outright refusal to process.
+Regarding LLM processing, we can also observe a \textbf{lost in the middle} phenomenon, where the LLM prioritized the information at the very beginning or end of the document, often ignoring content located in the middle sections. In the case of larger documents, the model suffered from \textbf{context overflow}, where the token count exceeded the model's efficient processing limit, leading to truncation, excessive latencies or outright refusal to process.
 
-There are mutliple limitations to address from this baseline. We will prioritize in \cref{sec:implementation-1-chunking} a \textbf{chunking strategy} to break the document into manageable segments, ensuring the LLM focuses on specific details and returns a more consistent set of rules. However, we must not forget about the utility and parsing issues, which we will resolve later with \textbf{structured output} in \cref{sec:implementation-2-structured}.
+There are mutliple limitations to address from this baseline. We will prioritize in \cref{sec:implementation-1} a \textbf{chunking strategy} to break the document into manageable segments, ensuring the LLM focuses on specific details and returns a more consistent set of rules. However, we must not forget about the utility and parsing issues, which we will resolve later with \textbf{structured output} in \cref{sec:implementation-2-structured}.
 
-\section{Document Segmentation Strategies (Chunking)}\label{sec:implementation-1-chunking}
+\newpage
+
+\section{Document Segmentation Strategies (Chunking)}\label{sec:implementation-1}
+
+\begin{figure}[ht]
+    \centering
+    \includesvg{diagram-1.svg}
+    \caption{Naive Single-Document Extraction with Chunking}
+    \label{fig:diagram-1}
+\end{figure}
 
 As a first iteration, we will explore the hypothesis that by decomposing the document into smaller segments (\textbf{\textit{``chunks''}}), the LLM's attention mechanism can focus on local details without the degradation observed in long-context windows, thereby improving the model's efficiency and scalability.
 
-This approach addresses several critical limitations of full-context processing. First, regarding \textbf{scalability}, industrial corpora may exceed any state-of-the-art context window size, making segmentation a practical necessity. Second, it mitigates \textbf{attention dilution and positional bias}. Transformer performance is not uniform across the context window, as research demonstrates that LLMs are highly sensitive to irrelevant context (\textit{noise}), which significantly degrades reasoning accuracy \cite{shi_large_2023}. Furthermore, the \textbf{\textit{``lost in the middle''}} phenomenon has been widely studied and identified, where models fail to attend to details buried in the center of long inputs \cite{liu_lost_2023}.
+This approach addresses several critical limitations of full-context processing. First, regarding \textbf{scalability}, industrial corpora may exceed any state-of-the-art context window size, making segmentation a practical necessity. Second, it mitigates \textbf{attention dilution and positional bias}. Transformer performance is not uniform across the context window, as research demonstrates that LLMs are highly sensitive to irrelevant context (\textit{noise}), which significantly degrades reasoning accuracy \cite{shi_large_2023}. Furthermore, the \textbf{\textit{``lost in the middle''}} phenomenon has been widely studied and identified, where models fail to attend to details buried in the center of long inputs \cite{liu_lost_2024}.
 
 Additionally, this strategy alleviates the \textbf{generation bottleneck}. While modern LLMs support massive input contexts (e.g., 128k tokens), their output generation is often severely limited (see \Cref{tab:context_windows}). Attempting to generate hundreds of rules in a single pass frequently results in output truncation. Finally, \textbf{segmentation} has been shown to be incredibly efficient, as processing smaller, focused segments (chunk-based retrieval) consistently yields higher recall for specific details compared to ingesting full long-context documents \cite{xu_retrieval_2024}.
 
@@ -135,38 +169,32 @@ Additionally, this strategy alleviates the \textbf{generation bottleneck}. While
 There are many ways to perform document chunking. We can highlight three:
 
 \begin{enumerate}[label=\textbf{\Alph*.}]
-\item \textbf{Fixed size fragmentation:} divide the documents into even chunks, based on number of characters.
+\item \textbf{Fixed size fragmentation:} divide the documents into even chunks.
 \item \textbf{Divide document by hierarchy:} parse the sections and/or subsections of the document, and chunk the document into those divisions.
 \item \textbf{Recursive character splitting with overlap:} splitting by characters while respecting sentence boundaries, with a rolling overlap.
 \end{enumerate}
 
-Among these options, the latter was selected, as it is robust against formatting errors and ensures boundary continuity, preventing sentences from being severed mid-thought (something that could easily happen with option A). Also, it addresses the difficulty of finding sections of a document (option B) --if it even has them--, which is a difficult problem on its own.
+Among these options, the latter was selected, as it is robust against formatting errors and ensures boundary continuity, preventing sentences from being severed mid-thought.
 
-This splitting can be implemented easily with LangChain's \texttt{RecursiveCharacterTextSplitter}, a text splitting algorithm designed to keep semantically related text together. Unlike simple splitters that break text at fixed intervals, this splitter operates recursively using a specific hierarchy of separators (e.g., paragraphs, newlines, spaces).
-
-It attempts to split text using the ``largest'' separator first. If the resulting chunk is still too large, it moves to the next separator in the hierarchy until the chunk satisfies the length constraint.
-
-This splitter is initialized with two constraints:
+We use LangChain's \texttt{RecursiveCharacterTextSplitter}, a text splitting algorithm designed to keep semantically related text together. It operates recursively using a specific hierarchy of separators (e.g., paragraphs, newlines, spaces), attempting to split text using the ``largest'' separator first. If the resulting chunk is still too large, it moves to the next separator in the hierarchy until the chunk satisfies some constraints:
 
 \begin{itemize}
     \item \textbf{\texttt{chunk\_size}:} the splitter ensures that for every generated chunk $c_i$ in the output set $C$, $\text{length}(c_i)\leq L$, with $L=\text{\texttt{chunk\_size}}$. The algorithm creates a new chunk $c_i$ and populates it until $\text{length}(c_i)$ approaches $L$. If adding the next piece of text exceeds $L$, the chunk is closed, and a new chunk $c_{i+1}$ begins.
-    \item \textbf{\texttt{chunk\_overlap}:} the relationship between two consecutive chunks $c_i$ and $c_{i+1}$ is defined such that the end of $c_i$ is identical to the beginning of $c_{i+1}$ for length $O =\text{\texttt{chunk\_overlap}}$:$$c_{i+1}[\text{start} : O] = c_i[\text{end} - O : \text{end}]$$. This preserves context between splits. Without overlap, a split might occur in the middle of a sentence or idea, severing the semantic link.
+    \item \textbf{\texttt{chunk\_overlap}:} the relationship between two consecutive chunks $c_i$ and $c_{i+1}$ is defined such that the end of $c_i$ is identical to the beginning of $c_{i+1}$ for length $O =\text{\texttt{chunk\_overlap}}$:$$c_{i+1}[\text{start} : O] = c_i[\text{end} - O : \text{end}]$$ This preserves context between splits. Without overlap, a split might occur in the middle of a sentence or idea, severing the semantic link.
 \end{itemize}
 
-We enforce \texttt{chunk\_size = 1000}, \texttt{chunk\_overlap = 200}. This size works well because it separates documents into a manageable amount of chunks. Each of the chunk will generate rules: having too low chunks considerably lowers throughput, while a big chunk size comes back to the approach of \cref{sec:implementation-0-baseline} and its limitations.
+We enforce \texttt{chunk\_size = 1000}, \texttt{chunk\_overlap = 200}. This works well because it separates documents into a manageable amount of chunks. Each of the chunk will generate rules: having too low chunks considerably lowers throughput, while a big chunk size comes back to the approach of \cref{sec:implementation-0} and its limitations.
 
 \subsection*{Results}
 
-Thanks to this chunking mechanism, we achieve \textbf{higher throughput}: the ``generation bottleneck'' is effectively eliminated, with more rules being generated per chunk. In our experiments, the number of generated rules increased by approximately 6 times. This, however, is a double-edged sword: generating independent rules per chunk introduces \textbf{redundancies} and unnecessary rules, with rules that could collide with each other. We will explore synthesizing these rules later on, in \cref{sec:implementation-9-consolidation}.
+Thanks to this chunking mechanism, we achieve \textbf{higher throughput}. In our experiments, the number of generated rules increased by approximately 6 times. This, however, is a double-edged sword: generating independent rules per chunk introduces \textbf{redundancies} and unnecessary rules, with rules that could collide with each other. We will explore synthesizing these rules later on, in \cref{sec:implementation-9-consolidation}.
 
-Doing this increases \textbf{recall}, making it capable to detect more nuances and concrete rules.
-
-However, while recall improved, \textbf{context} was lost. Some rules might need information from other parts of the document, or the chunk split might cause parts of the ideas to be spread, effectively avoiding those rules not to be created. We will address this limitation in \cref{sec:implementation-3-rag}.
+However, while \textbf{recall} improved, detecting more nuances and concrete rules, \textbf{context} was lost. Some rules might need information from other parts of the document, or the chunk split might cause parts of the ideas to be spread, effectively avoiding those rules not to be created. We will address this limitation in \cref{sec:implementation-3-rag}.
 
 It's also important to note that the \textbf{parsing} problem still persists, and is more visible when chunking. Some of the chunks returned rules in one format, and some in the other (see \cref{thread:1-chunking}).
 
 
-\begin{thread}[htbp]
+\begin{figure}[htbp]
 
 \begin{AssistantMessage}
 Based on the provided document, here is a list of extracted operational and safety rules:\\[6pt]
@@ -213,10 +241,18 @@ Based on the provided document excerpt, no explicit operational or safety rules 
 
 \caption{Multiple outputs from different chunks}
 \label{thread:1-chunking}
-\end{thread}
+\end{figure}
 
+\newpage
 
 \section{Constrained Decoding \& Schema Enforcement}\label{sec:implementation-2-structured}
+
+\begin{figure}[ht]
+    \centering
+    \includesvg{diagram-2.svg}
+    \caption{Naive Single-Document Extraction with Structured Output}
+    \label{fig:diagram-2}
+\end{figure}
 
 While document segmentation enhances the precision of retrieval by focusing on local details, it introduces a trade-off between this gained precision and the coherence lost due to fragmentation. To mitigate the variability in generation within these segments and ensure downstream usability, this section explores \textbf{constrained decoding}. The core hypothesis is that forcing the LLM to output according to a strict schema will reduce generation variability and enable programmatic parsing of the extracted rules.
 
@@ -252,6 +288,7 @@ For this iteration, we define a strict \lstinline{ExtractedRules} schema. We all
 \end{enumerate}
 
 \begin{program}[hbtp]
+\begin{CodeListing}
 \begin{lstlisting}[language=Python]
 from typing import Literal
 from pydantic import BaseModel, Field
@@ -294,6 +331,7 @@ RuleUnion = Union[
 class ExtractedRules(BaseModel):
     rules: List[RuleUnion]  # Union of all Rule implementations
 \end{lstlisting}
+\end{CodeListing}
 \caption{Pydantic model for \lstinline{ExtractedRules}}\label{program:operationalrule}
 \end{program}
 
@@ -302,13 +340,13 @@ We show how these models are implemented in  \cref{program:operationalrule}. Not
 Once we define our model, the workflow proceeds as follows:
 
 \begin{enumerate}
-    \item A text chunk is sent to the LLM with the same zero-shot prompt as \cref{sec:implementation-0-baseline,,sec:implementation-1-chunking}.
+    \item A text chunk is sent to the LLM with the same zero-shot prompt as \cref{sec:implementation-0,,sec:implementation-1}.
     \item The inference engine applies \textit{logit bias} based on the current FSM state (e.g., if the cursor is inside a boolean field, only \texttt{true} or \texttt{false} tokens are valid).
     \item The resulting response is deserialized directly into a Python object without additional parsing logic.
 \end{enumerate}
 
 
-\begin{thread}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
@@ -360,9 +398,9 @@ ExtractedRules(
 
 \end{minipage}
 
-\caption{Directly extract all operational and safety rules}
+\caption{Message thread showcasing structured output extraction}
 \label{thread:2-schema}
-\end{thread}
+\end{figure}
 
 
 
@@ -397,13 +435,28 @@ Most importantly, we still see some issues we identified earlier. The model is s
     \label{tab:2-extracted}
 \end{table}
 
+\newpage
 
 \section{Contextual Augmentation via Retrieval Augmented Generation
 (RAG)}\label{sec:implementation-3-rag}
 
+\begin{figure}[ht]
+    \centering
+    \hspace*{-2.3cm}\includesvg{diagram-3.svg}
+    \caption{Processing of provided collection of documents and ingestion into each database}
+    \label{fig:diagram-3}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includesvg{diagram-4.svg}
+    \caption{Rule retrieval workflow with context gathering (RAG)}
+    \label{fig:diagram-4}
+\end{figure}
+
 We will investigate the integration of Retrieval Augmented Generation (RAG) to resolve context lost during document fragmentation and to accurately process complex visual structures. The hypothesis centers on the critical need for \textbf{layout-aware semantics}. Technical documentation is rarely unstructured text; it relies heavily on spatial layouts--including tables, headers, and indentation--to encode meaning. Traditional OCR and text extraction methods ``flatten'' this two-dimensional structure into a one-dimensional sequence, destroying relational data (e.g., that cell $i,j$ relates to header $j$). Research indicates that layout-aware parsing significantly improves information extraction recall by preserving the ``visual semantics'' of the document \cite{xu_layoutlm_2020, auer_docling_2024}.
 
-Furthermore, this approach provides a \textbf{semantic bridge} over the ``keyhole problem'' identified in \cref{sec:implementation-1-chunking}. The ``lost in the middle'' phenomenon persists even in chunked approaches if critical definitions reside in chunk $c_i$ while the rule resides in chunk $c_j$. Dense Vector Retrieval (RAG) bridges this gap by retrieving semantically relevant chunks based on meaning rather than physical proximity, effectively creating a dynamic context window \cite{lewis_retrieval-augmented_2021}. Finally, to satisfy industrial constraints, we leverage \textbf{data sovereignty \& compression} principles. Matryoshka Representation Learning (MRL) enables high-performance embeddings that can be truncated (compressed) with minimal accuracy loss, optimizing local storage without sacrificing retrieval quality \cite{kusupati_matryoshka_2024}.
+Furthermore, this approach provides a \textbf{semantic bridge} over the ``keyhole problem'' identified in \cref{sec:implementation-1}. The ``lost in the middle'' phenomenon persists even in chunked approaches if critical definitions reside in chunk $c_i$ while the rule resides in chunk $c_j$. Dense Vector Retrieval (RAG) bridges this gap by retrieving semantically relevant chunks based on meaning rather than physical proximity, effectively creating a dynamic context window \cite{lewis_retrieval-augmented_2020}. Finally, to satisfy industrial constraints, we leverage \textbf{data sovereignty \& compression} principles. Matryoshka Representation Learning (MRL) enables high-performance embeddings that can be truncated (compressed) with minimal accuracy loss, optimizing local storage without sacrificing retrieval quality \cite{kusupati_matryoshka_2024}.
 
 \subsection*{Implementation}
 
@@ -437,7 +490,7 @@ To perform the retrieval stage, we need to store the embeddings somewhere for la
 
 \begin{enumerate}[label=\textbf{\Alph*.}]
 \item \textbf{In-memory indexing} (e.g., FAISS/Chroma)\textbf{:} ephemeral storage that completely runs in the Python process memory.
-\item \textbf{Dedicated vector database} (e.g., \textit{Qdrant})\textbf{:} there are multiple dedicated vector databases, in which we highlight Qdrant, an open source database that can be run entirely on-premise, and that implements the Hirearchical Naviable Small World (HNSW) algorithm \cite{malkov_efficient_2018} for logaritmic time complexity search ($O(\log N)$).
+\item \textbf{Dedicated vector database} (e.g., \textit{Qdrant})\textbf{:} there are multiple dedicated vector databases, in which we highlight Qdrant, an open source database that can be run entirely on-premise, and that implements the Hirearchical Naviable Small World (HNSW) algorithm \cite{malkov_efficient_2020} for logaritmic time complexity search ($O(\log N)$).
 \end{enumerate}
 
 We also selected the latter option. While option A is the most straight-forward for testing, and is incredibly useful for low-performance scenarios, it lacks the ability to scale and, most importantly, to persist the data. Restarting the Python process would mean recalculating all the embeddings. This does not happen with Qdrant (option B), as a dedicated vector store provides the necessary persistence and speed, among other perks like metadata filtering.
@@ -446,7 +499,7 @@ We also selected the latter option. While option A is the most straight-forward 
 
 In order to create a fully traceable process, we will also introduce a relational database (PostgreSQL) to keep track of the documents, chunks and where their embeddings are stored in the vector store (Qdrant). Inserting a relational database allows us to introduce more complex logic (something we cannot do in vector stores), and to store and persist the generated rules.
 
-Taking this into account, we explain how documents are processed and stored into the relational database (PostgreSQL) and the vector store (Qdrant).
+Taking this into account, we explain how documents are processed and stored into the relational database (PostgreSQL) and the vector store (Qdrant). A visual representation can be seen in \cref{fig:diagram-3}.
 
 \begin{enumerate}
     \item \textbf{Ingestion (Docling):} the documents are processed with Docling, which serializes them into Markdown while strictly preserving table structures and hierarchy.
@@ -455,9 +508,9 @@ Taking this into account, we explain how documents are processed and stored into
     \item \textbf{Retrieval workflow:} when a query is received, the system embeds it using the local model and calculates cosine similarity ($S_C(u, v) = \frac{u \cdot v}{\|u\|\|v\|}$). The top-$k$ most relevant chunks are retrieved and injected into the LLM context.
 \end{enumerate}
 
-The rule generation workflow is now slightly changed to accommodate this new RAG stage. The idea is simple: we use both the chunking from \cref{sec:implementation-1-chunking} and the structured output from \cref{sec:implementation-2-structured}. However, we introduce an additional step before rule generation: \textbf{gathering context}. We get the $k$ most relevant chunks (the ones most related to the chunk we're processing at a certain stage) to obtain relevant contextual information. This way, we extend the context shared to the LLM, effectively solving the ``lost in the middle'' phenomenon, and leading to more precise, grounded results.
+The rule generation workflow is now fundamentally altered to accommodate this new RAG stage. From now on, we use LangGraph to be able to properly implement more complex flows (see \cref{llm-orchestration-and-workflows}). We use both the chunking from \cref{sec:implementation-1} and the structured output from \cref{sec:implementation-2-structured}. However, we introduce an additional step before rule generation: \textbf{gathering context}. We get the $k$ most relevant chunks (the ones most related to the chunk we're processing at a certain stage) to obtain relevant contextual information. This way, we extend the context shared to the LLM, effectively solving the ``lost in the middle'' phenomenon, and leading to more precise, grounded results.
 
-In order to do this, we implement the following process for each of the chunks:
+In order to do this, we implement the following process for each of the chunks (see \cref{fig:diagram-4}):
 
 \begin{enumerate}
     \item \textbf{Retrieval:} using Qdrant's HNSW we get the $k=5$ chunks that are closest to the current chunk via cosine similarity.
@@ -468,16 +521,16 @@ In order to do this, we implement the following process for each of the chunks:
 
 
 
-\begin{thread}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
 You are an expert industrial engineer.\\
 Read the following document chunk and extract ALL operational and safety rules. Use the context provided, if relevant.\\[6pt]
 CURRENT CHUNK TO ANALYZE:\\
-\textcolor{red}{\{chunk $c_i$\}}\\[6pt]
+\textcolor{purple}{\{chunk $c_i$\}}\\[6pt]
 ADDITIONAL CONTEXT FROM ALL DOCUMENTS:\\
-\textcolor{red}{\{chunks related to chunk $c_i$\}}
+\textcolor{purple}{\{chunks related to chunk $c_i$\}}
 \end{UserMessage}
 
 \begin{AssistantMessage}
@@ -513,11 +566,9 @@ ExtractedRules(
 
 \end{minipage}
 
-\caption{Directly extract all operational and safety rules}
+\caption{Message thread showcasing RAG workflow for extraction}
 \label{thread:4-rag}
-\end{thread}
-
-
+\end{figure}
 
 \subsection*{Results}
 
@@ -527,16 +578,26 @@ However, we see significant \textbf{retrieval noise}: occasionally, the embeddin
 
 Still, there's plenty of room for improvement in the retrieval stage. The system lacks \textbf{external validation}, as it only retrieves internal document data but has no context regarding physics or regulation that might be necessary. In the end, we're obtaining the real-world knowledge from the foundational model's training data. In \cref{sec:implementation-7-grounding} we'll discuss some approaches to enchance this.
 
+\newpage
+
 \section{Extraction of Executable Logic (Python
 Functions)}\label{sec:implementation-4-python-functions}
 
-In this section, we propose framing industrial rule extraction as a \textit{Program-of-Thougts} (PoT) task. The core approach is that disentangling logic from computation--via \textbf{Abstract API Grounding} in a high-resource language like Python--leverages the \textit{Chain-of-Code} (CoC) reasoning capabilities of LLMs. We hypothesize this minimizes hallucination and captures complex executable logic more effectively than low-resource Domain Specific Languages (DSLs) or static schemas.
 
-The necessity for this approach stems from the \textbf{expressiveness gap} inherent in standard extraction targets. Static data structures like JSON or XML fail to adequately capture the logical complexity of industrial operations, which frequently involve arithmetic calculations (e.g., differential pressure $\Delta P$), conditional branching, and temporal aggregation. Attempting to encode these dynamic behaviors into static schemas inevitably results in semantic loss. To bridge this gap, we adopt the \textit{Program of Thoughts} (PoT) methodology. Research demonstrates that disentangling the reasoning process (performed by the LLM) from the computation process (delegated to a Python Interpreter) reduces calculation errors by over 12\% compared to standard Chain-of-Thought prompting \cite{chen_program_2023}. We apply this principle to industrial rules, positing that deterministic operations such as averaging or thresholding are best handled by an external interpreter rather than the probabilistic forward pass of the model.
+\begin{figure}[ht]
+    \centering
+    \includesvg{diagram-5.svg}
+    \caption{Rule retrieval workflow with context gathering (RAG) and Python function-based rule output}
+    \label{fig:diagram-5}
+\end{figure}
+
+In this section, we propose framing industrial rule extraction as a \textit{Program-of-Thougts} (PoT) task. The core approach is that disentangling logic from computation via an \textbf{abstract API} in a high-resource language like Python leverages the \textit{Chain-of-Code} (CoC) reasoning capabilities of LLMs. We hypothesize this minimizes hallucination and captures complex executable logic more effectively than low-resource Domain Specific Languages (DSLs) or static schemas.
+
+The necessity for this approach stems from the \textbf{expressiveness gap} inherent in standard extraction targets. Static data structures like JSON or XML fail to adequately capture the logical complexity of industrial operations, which frequently involve arithmetic calculations (e.g., differential pressure $\Delta P$), conditional branching, and temporal aggregation. Attempting to encode these dynamic behaviors into static schemas inevitably results in semantic loss. To bridge this gap, we adopt the \textit{Program of Thoughts} (PoT) methodology. Research demonstrates that disentangling the reasoning process (performed by the LLM) from the computation process (delegated to a Python Interpreter) reduces calculation errors by over 12\% compared to standard CoT prompting \cite{chen_program_2023}. We apply this principle to industrial rules, positing that deterministic operations such as averaging or thresholding are best handled by an external interpreter rather than the probabilistic forward pass of the model.
 
 Beyond simple arithmetic correctness, the act of ``thinking in code'' unlocks reasoning paths inaccessible to pure natural language models. The strict syntax of programming languages forces the model to structure semantic ambiguities into explicit logical control flows, such as \texttt{if/else} blocks. This structure effectively acts as a ``formalizer'' for ambiguous industrial text, resolving vagueness that natural language processing might overlook \cite{li_chain_2024}.
 
-The choice of the target language is equally critical. While Domain Specific Languages (DSLs) theoretically offer conciseness, LLMs exhibit significant performance degradation when generating low-resource languages. This struggle arises from scarcity in pre-training data \cite{joel_survey_2025}. Consequently, by targeting standard Python, this implementation leverages the model's extensive pre-training on billions of tokens of code (e.g., GitHub), avoiding the need for the expensive fine-tuning typically required to teach a model a custom JSON-logic DSL. Finally, to mitigate the primary risk of code generation--hallucination of non-existent functions--we employ \textbf{Abstract API Grounding}. Constraining the LLM to a pre-defined set of high-level APIs (e.g., \lstinline{robot.grasp()}) drastically improves reliability \cite{liang_code_2023}. We hypothesize that exposing a semantic Abstract API (e.g., \lstinline{sensor.get_status()}) similarly grounds the LLM, forcing it to focus on logic structure rather than entity existence.
+The choice of the target language is equally critical. While DSLs theoretically offer conciseness, LLMs exhibit significant performance degradation when generating low-resource languages. This struggle arises from scarcity in pre-training data \cite{joel_survey_2025}. Consequently, by targeting standard Python, this implementation leverages the model's extensive pre-training on billions of tokens of code (e.g., GitHub), avoiding the need for the expensive fine-tuning typically required to teach a model a custom JSON-logic DSL. Finally, to mitigate the primary risk of code generation (hallucination of non-existent functions) we employ an \textbf{abstract API}. Constraining the LLM to a pre-defined set of high-level APIs (e.g., \lstinline{robot.grasp()}) drastically improves reliability \cite{liang_code_2023}. We hypothesize that exposing a semantic abstract API (with the \lstinline{sensor.get_status()} interface) similarly grounds the LLM, forcing it to focus on logic structure rather than entity existence.
 
 \subsection*{Implementation}
 
@@ -544,7 +605,7 @@ As expressed before, the main decision of this section is to decide which langua
 
 
 \begin{enumerate}[label=\textbf{\Alph*.}]
-\item \textbf{Custom Domain Specific Language (DSL).} Creating a custom grammar for rules, requiring training an LLM on the new syntax.
+\item \textbf{Custom DSL.} Creating a custom grammar for rules, requiring training an LLM on the new syntax.
 \item \textbf{Direct SQL Generation.} Creating SQL queries.
 \item \textbf{General Purpose Code (Python) with Abstract APIs.} Generating Python functions that call a ``mock API.''
 \end{enumerate}
@@ -575,10 +636,10 @@ The output schema is specified in \cref{program:python-structured-output}. For e
     \item \textbf{\texttt{rule\_reasoning}:} the reasoning behind why this rule was generated. This is extremely important as LLMs can be instructed to show their reasoning, increasing visibility and explainability.
     \item \textbf{\texttt{rule\_source}:} section or location in the documentation where the rule came from. This is apart from other observability, we instruct the LLM to say which part of the chunk provided was used to generate the rule. This is also used to increase visibility and explainability.
     \item \textbf{\texttt{rule\_body}:} actual Python function using the \lstinline{status.get()} abstract API.
-    \item \textbf{\texttt{rule\_type}:} we define four rule types: \textit{safety}, \textit{operational}, \textit{maintenance} and \textit{optimization}. We do this for categorization and for usefulness.
 \end{itemize}
 
 \begin{program}[hbtp]
+\begin{CodeListing}
 \begin{lstlisting}[language=Python]
 from pydantic import BaseModel, Field
 
@@ -606,22 +667,18 @@ class PythonRule(BaseModel):
     rule_body: str = Field(
         ..., description="Complete Python function code using status.get() with natural language time expressions"
     )
-    rule_type: str | None = Field(
-        None, description="Category of rule: 'safety', 'operational', 'maintenance', or 'optimization'"
-    )
 
 
 class ExtractedRules(BaseModel):
     """
     Container for all rules extracted from a document chunk.
-
-    This is the top-level schema that the LLM returns using structured output.
     """
 
     rules: list[PythonRule] = Field(
         default_factory=list, description="List of all operational rules extracted from the document chunk"
     )
 \end{lstlisting}
+\end{CodeListing}
 \caption{Pydantic model for \lstinline{ExtractedRules} outputting Python methods using the abstract API}\label{program:python-structured-output}
 \end{program}
 
@@ -633,7 +690,7 @@ After defining the output with proper documentation (remember this will also be 
 The prompt will be similar to the previous ones, including Python-related instructions. This prompt is displayed in \cref{thread:5-python}.
 
 
-\begin{thread}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
@@ -679,20 +736,20 @@ CRITICAL REQUIREMENTS:
 \end{enumerate}\vspace{6pt}
 
 CURRENT CHUNK TO ANALYZE:\\
-\textcolor{red}{\{chunk $c_i$\}}\\[6pt]
+\textcolor{purple}{\{chunk $c_i$\}}\\[6pt]
 ADDITIONAL CONTEXT FROM ALL DOCUMENTS:\\
-\textcolor{red}{\{chunks related to chunk $c_i$\}}
+\textcolor{purple}{\{chunks related to chunk $c_i$\}}
 \end{UserMessage}
 
 \end{minipage}
 
-\caption{Directly extract all operational and safety rules}
+\caption{Python function-based rule extraction prompt}
 \label{thread:5-python}
-\end{thread}
+\end{figure}
 
 \subsection*{Results}
 
-The results are promising. We attach two sample generated rules in \cref{generatedrule:4-inferential-control-deviation,,generatedrule:4-reboiler-temperature-trend-high}. We see that the system successfully extracts complex rules involving \textbf{arithmetic} (e.g., use of \lstinline{abs}, as seen in \cref{generatedrule:4-inferential-control-deviation}) which were impossible in the schema-oriented implementation of \cref{sec:implementation-2-structured}.
+The results are promising. We attach two sample generated rules in \cref{generatedrule:5-inferential-control-deviation,,generatedrule:4-reboiler-temperature-trend-high}. We see that the system successfully extracts complex rules involving \textbf{arithmetic} (e.g., use of \lstinline{abs}, as seen in \cref{generatedrule:5-inferential-control-deviation}) which were impossible in the schema-oriented implementation of \cref{sec:implementation-2-structured}.
 
 Allowing the LLM to use natural language for sensors (e.g., ``column pressure'') and time expressions allowed it to generate rules properly instead of forcing it to guess a sensor ID during this stage. This greatly \textbf{decreases hallucination}.
 
@@ -752,18 +809,34 @@ def reboiler_temperature_trend_high(status) -> str:
 \label{generatedrule:4-reboiler-temperature-trend-high}
 \end{generatedrule}
 
+\newpage
+
 \section{Context-Aware Sensor Resolution (Entity
 Linking)}\label{sec:implementation-5-sensors}
 
+\begin{figure}[ht]
+    \centering
+    \hspace*{-2.3cm}\includesvg{diagram-6.svg}
+    \caption{Processing and ingesting including sensors CSV}
+    \label{fig:diagram-6}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \hspace*{-0.6cm}\includesvg{diagram-7.svg}
+    \caption{Rule retrieval workflow including sensor parsing}
+    \label{fig:diagram-7}
+\end{figure}
+
 In \cref{sec:implementation-4-python-functions} we discuss two main issues that need to be addressed: \textit{sensor resolution} and \textit{resolving temporal expressions}. In this section, we will focus on the first one.
 
-We hypothesize that \textit{decomposed prompting}--separating logic extraction from entity linking--combined with \textit{listwise generative reranking}--injecting the candidate list directly into the context--allows Large Language Models to resolve \textit{tail entity} industrial sensors with higher precision than discriminative vector retrieval by leveraging the model's ability to reason about functional constraints (units, physics) rather than mere semantic similarity.
+We hypothesize that \textit{decomposed prompting} (separating logic extraction from entity linking) combined with \textit{listwise generative reranking} (injecting the candidate list directly into the context) allows LLMs to resolve \textit{tail entity} industrial sensors with higher precision than discriminative vector retrieval by leveraging the model's ability to reason about functional constraints (units, physics) rather than mere semantic similarity.
 
 Attempting to extract complex Python logic and perform database lookups simultaneously splits the LLM's attention, leading to performance degradation \cite{khot_decomposed_2023}. Decoupling the task into \textit{logic extraction} (\cref{sec:implementation-4-python-functions}) and \textit{entity linking} (this section) reduces the cognitive load per step, ensuring the model focuses solely on disambiguation during the resolution phase.
 
-Standard dense retrieval (Vector RAG) is discriminative--it calculates geometric distance. However, industrial sensors often have high semantic overlap (e.g., \texttt{TIC-101} ``Column Top Temp'' vs. \texttt{TIC-102} ``Column Bottom Temp''), which creates ``hard negatives'' for vector models. Research in Generative Entity Linking (GEL) demonstrates that autoregressive models (LLMs) outperform vector retrievers on these tasks because they can reason about the functional context (e.g., ``this rule implies a control loop, so use the Controller tag, not the Indicator'') \cite{cao_autoregressive_2021}.
+Standard dense retrieval (RAG) is discriminative: it calculates geometric distance. However, industrial sensors often have high semantic overlap (e.g., \texttt{TIC-101} ``Column Top Temp'' vs. \texttt{TIC-102} ``Column Bottom Temp''), which creates ``hard negatives'' for vector models. Research in Generative Entity Linking (GEL) demonstrates that autoregressive models (LLMs) outperform vector retrievers on these tasks because they can reason about the functional context (e.g., ``this rule implies a control loop, so use the Controller tag, not the Indicator'') \cite{cao_autoregressive_2021}.
 
-Industrial sensors are \textit{tail entities}--they do not appear in the LLM's pre-training data \cite{orr_bootleg_2020}. While retrieval-augmented generation (RAG) is common, it is shown that \textit{listwise reranking} --injecting the candidate list directly into the context--significantly outperforms vector retrieval when the candidate set fits in the context window \cite{qin_large_2024}. This approach allows the LLM to perform joint inference, comparing candidates against each other rather than scoring them in isolation.
+Industrial sensors are \textit{tail entities}: they do not appear in the LLM's pre-training data \cite{orr_bootleg_2020}. While retrieval-augmented generation (RAG) is common, it is shown that \textit{listwise reranking} (injecting the candidate list directly into the context) significantly outperforms vector retrieval when the candidate set fits in the context window \cite{qin_large_2024}. This approach allows the LLM to perform joint inference, comparing candidates against each other rather than scoring them in isolation.
 
 \subsection*{Implementation}
 
@@ -775,11 +848,21 @@ There are many possible ways to implement this sensor retrieval.
 \item \textbf{LLM-Based Contextual Resolution.} Passing the natural language term \emph{along with the surrounding code logic} to an LLM to select the correct ID from a candidate list.
 \end{enumerate}
 
-However, the most natural way to proceed according to our research was option C, as it leverages the foundational models' reasoning capabilities regarding units, location and physics, amongst other knowledge. Making fuzzy string retrieval (option A) would fail on synonyms or when the search query is different from the actual sensor name. Making a vector retrieval (option B) would lack the reasoning capacities of the latter option, not being able to distinguish between redundant sensors or physically close but operationally distinct tags.
+The most natural way to proceed according to our research was option C, as it leverages the foundational models' reasoning capabilities regarding units, location and physics, amongst other knowledge. Making fuzzy string retrieval (option A) would fail on synonyms or when the search query is different from the actual sensor name. Making a vector retrieval (option B) would lack the reasoning capacities of the latter option, not being able to distinguish between redundant sensors or physically close but operationally distinct tags.
 
 In order to proceed with the implementation, we start with \textbf{regex extraction}, leveraging the Python Abstract API we created in \cref{sec:implementation-4-python-functions}. The problem boils down to ``replacing'' the text inside \lstinline{status.get("sensor_description", ...)} into the actual sensor ID.
 
 Then, we get this description and inject it into a prompt, that includes the entire sensor list with its properties (ID, name, description, unit).\footnote{This approach prioritizes precision over scalability. However, most LLMs would have more than enough context to inject thousands of sensors, as shown in \cref{tab:context_windows}, making this a simple but effective and realistic, production-ready approach.} This prompt effectively describes the \textit{\textbf{sensor mapping agent}} and is shown in \cref{thread:6-sensor-mapping}.
+
+To include the list of sensors, we introduce a new object: the \textbf{sensors CSV}. This CSV is composed of a series of rows, one per sensor, with the following columns:
+
+\begin{itemize}
+    \item \textbf{\texttt{id}:} the unique identifier of the sensor and the main topic of this section. In order to properly automate rules, we need to be able to map them into entities automated workflows can use.
+    \item \textbf{\texttt{name}:} the name of the sensor, in natural language (e.g., ``valve pressure'').
+    \item \textbf{\texttt{description}:} a description of the sensor, as detailed as possible (while keeping it succint). It allows the LLM to know what the sensor is measuring.
+    \item \textbf{\texttt{unit}:} the unit of measurement of the sensor (e.g., ``\textmu mol/$\text{m}^2$/s''). This is extremely relevant, as the LLM can interpret differences in units provided in the context and the ones read by the sensor, and act accordingly.
+    \item \textbf{\texttt{example}:} an example sensor reading.
+\end{itemize}
 
 In order to be able to properly parse the agent responses, we enforce structured output (see \cref{sec:implementation-2-structured}) with the model shown in \cref{program:sensor-mapping-agent-output}.
 
@@ -787,7 +870,17 @@ Afterwards, we rewrite the code by replacing the string (for example, transformi
 
 We tag rules with a \lstinline{SensorParsingStatus}. If a rule has all of the sensors properly resolved, the rule is marked as \texttt{OK}. Otherwise, it is marked as \lstinline{SENSORS_NOT_FOUND} and excluded from later processing stages.
 
-\begin{thread}[hbtp]
+We integrate this seemlessly into the rule extraction workflow from the previous section by having it as an additional stage, as can be seen in \cref{fig:diagram-7}.
+
+
+\subsection*{Results}
+
+The system successfully \textbf{resolved ambiguous terms} that could have baffled the vector search, correctly using units to filter candidates, and ensuring \textbf{code integrity} after sensor resolution. Of all the generated rules, only 10\% had sensor resolution issues.
+
+An example of this mapping process can be found in \cref{generatedrule:5-inferential-control-deviation,,generatedrule:5-reboiler-temperature-trend-high} (which correspond to \cref{generatedrule:5-inferential-control-deviation,,generatedrule:4-reboiler-temperature-trend-high}, respectively).
+
+
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
@@ -795,13 +888,13 @@ We tag rules with a \lstinline{SensorParsingStatus}. If a rule has all of the se
 You are a sensor mapping expert. Your task is to map natural language sensor references to their correct sensor IDs.\\[6pt]
 
 AVAILABLE SENSORS:\\
-\textcolor{red}{\{sensors list with all attributes\}}\\[6pt]
+\textcolor{purple}{\{sensors list with all attributes\}}\\[6pt]
 
 RULE BODY (for context):\\
-\textcolor{red}{\{rule body\}}\\[6pt]
+\textcolor{purple}{\{rule body\}}\\[6pt]
 
 SENSOR REFERENCES TO RESOLVE:\\
-\textcolor{red}{\{list of extracted sensor references in natural language\}}\\[6pt]
+\textcolor{purple}{\{list of extracted sensor references in natural language\}}\\[6pt]
 
 For each sensor reference, identify the matching sensor ID from the available sensors list. Consider the sensor name, description, and unit to find the best match.
 
@@ -812,9 +905,10 @@ If a sensor cannot be matched, use null as the value.
 
 \caption{Sensor mapping agent prompt}
 \label{thread:6-sensor-mapping}
-\end{thread}
+\end{figure}
 
 \begin{program}[hbtp]
+\begin{CodeListing}
 \begin{lstlisting}[language=Python]
 from pydantic import BaseModel, Field
 
@@ -832,14 +926,9 @@ class SensorMappings(BaseModel):
     mappings: list[SensorMapping]
     
 \end{lstlisting}
+\end{CodeListing}
 \caption{Structured output schema of sensor mapping agent}\label{program:sensor-mapping-agent-output}
 \end{program}
-
-\subsection*{Results}
-
-The system successfully \textbf{resolved ambiguous terms} that could have baffled the vector search, correctly using units to filter candidates, and ensuring \textbf{code integrity} after sensor resolution. Of all the generated rules, only 10\% had sensor resolution issues.
-
-An example of this mapping process can be found in \cref{generatedrule:5-inferential-control-deviation,,generatedrule:5-reboiler-temperature-trend-high} (which correspond to \cref{generatedrule:4-inferential-control-deviation,,generatedrule:4-reboiler-temperature-trend-high}, respectively).
 
 
 \begin{generatedrule}[hbtp]
@@ -894,15 +983,23 @@ def reboiler_temperature_trend_high(status) -> str:
 \label{generatedrule:5-reboiler-temperature-trend-high}
 \end{generatedrule}
 
+\newpage
 
 \section{Semantic Time Parsing \&
 Normalization}\label{sec:implementation-6-time}
 
-Large Language Models exhibit a known weakness in temporal arithmetic and temporal reasoning. Although LLMs excel at linguistic tasks, they struggle to ground temporal concepts (for example, understanding that ``10 minutes'' denotes a duration rather than a mere string) or to perform consistent arithmetic on time deltas (such as determining that ``10 minutes ago'' requires subtracting 600 seconds from $t_{now}$) \cite{chu_timebench_2024}. When the model is asked to directly produce executable time arithmetic--such as \lstinline{now() - timedelta(minutes=10)}--the result frequently contains syntax or semantic hallucinations, leading to high error rates \cite{chang_survey_2023}.
+\begin{figure}[ht]
+    \centering
+    \hspace*{-0.6cm}\includesvg{diagram-8.svg}
+    \caption{Rule retrieval workflow including time expressions parsing}
+    \label{fig:diagram-8}
+\end{figure}
 
-Conventional \textit{Temporal Information Extraction} (TIE) systems such as \textit{SUTime} \cite{chang_sutime_2012} and \textit{HeidelTime} \cite{strotgen_baseline_2015} are optimized for absolute temporal normalization, for example mapping ``next Friday'' to a calendar date like 2023-11-24. Industrial monitoring, however, relies almost exclusively on relative temporal expressions such as ``rolling average over the last 10 minutes.'' Prior work shows that general-purpose tools perform poorly on these domain-specific sliding-window constructions, motivating the need for a custom semantic parser \cite{strotgen_multilingual_2013}.
+LLMs exhibit a known weakness in temporal arithmetic and temporal reasoning. Although they excel at linguistic tasks, they struggle to ground temporal concepts (for example, understanding that ``10 minutes'' denotes a duration rather than a mere string) or to perform consistent arithmetic on time deltas (such as determining that ``10 minutes ago'' requires subtracting 600 seconds from $t_{now}$) \cite{chu_timebench_2024}. When the model is asked to directly produce executable time arithmetic, such as \lstinline{now() - timedelta(minutes=10)}, the result frequently contains syntax or semantic hallucinations, leading to high error rates \cite{chang_survey_2024}.
 
-To bridge this gap, we hypothesize that natural-language interpretation should be decoupled from execution. Mapping language to a constrained intermediate logical form--rather than allowing an LLM to produce direct executable code--has been shown to substantially improve robustness \cite{shin_constrained_2021}. We propose adopting a PromQL-style\footnote{PromQL (Prometheus Query Language) is a functional and declarative query language used to select and aggregate time-series data stored in Prometheus, enabling monitoring, visualization (with tools like Grafana), and alerting on the performance of infrastructure and applications by querying real-time metrics with a powerful and flexible syntax \cite{brazil_prometheus_2018}.} Range Vector grammar (e.g., \lstinline{[10m]}) as this ILF, enabling deterministic translation from fuzzy temporal language into precise TSDB queries.
+Conventional \textit{Temporal Information Extraction} (TIE) systems such as \textit{SUTime} \cite{chang_sutime_2012} and \textit{HeidelTime} \cite{strotgen_baseline_2015} are optimized for absolute temporal normalization, for example mapping ``next Friday'' to a calendar date like ``2023-11-24.'' Industrial monitoring, however, relies almost exclusively on relative temporal expressions such as ``rolling average over the last 10 minutes.'' Prior work shows that general-purpose tools perform poorly on these domain-specific sliding-window constructions, motivating the need for a custom semantic parser \cite{strotgen_multilingual_2013}.
+
+To bridge this gap, we hypothesize that natural-language interpretation should be decoupled from execution. Mapping language to a constrained intermediate logical form--rather than allowing an LLM to produce direct executable code--has been shown to substantially improve robustness \cite{shin_constrained_2021}. We propose adopting a PromQL-style\footnote{PromQL (Prometheus Query Language) is a functional and declarative query language used to select and aggregate time-series data stored in Prometheus, enabling monitoring, visualization (with tools like Grafana), and alerting on the performance of infrastructure and applications by querying real-time metrics with a powerful and flexible syntax \cite{brazil_prometheus_2018}.} range grammar as this ILF, enabling deterministic translation from fuzzy temporal language into precise queries.
 
 \subsection*{Implementation}
 
@@ -911,15 +1008,15 @@ Based on our research, we could implement various time parsing strategies:
 
 \begin{enumerate}[label=\textbf{\Alph*.}]
 \item \textbf{Direct Python Code Generation (\texttt{dateutil} / \texttt{datetime} / \texttt{pandas}):} asking the LLM to write \texttt{pandas} or \texttt{dateutil} methods directly.
-\item \textbf{Standard NLP Taggers:} use \textit{SUTime} or \textit{HeidelTime}. (Discarded: Fails to recognize ``last 10 minutes'' as a quantifiable window; treats it as generic text).
-\item \textbf{Semantic parsing to intermediate grammar:} converting natural language to a strict, PromQL-inspired format (e.g., \lstinline{10m:}, \lstinline{5m:2m}) which is then deterministically compiled. (Selected: Decouples the "understanding" step from the "execution" step).
+\item \textbf{Standard NLP Taggers:} use \textit{SUTime} or \textit{HeidelTime}.
+\item \textbf{Semantic parsing to intermediate grammar:} converting natural language to a strict, PromQL-inspired format (e.g., \lstinline{10m:}, \lstinline{5m:2m}) which is then deterministically compiled.
 \end{enumerate}
 
 While option A is the easiest to implement, it does not deliver good results, with high syntax errors, hallucinations and reduced expressive capacity. While it would make sense to use option B with already implemented libraries, we have already discussed its limitations. That is why we decided to create the time grammar specified in option C, focusing on making it understandeable for LLMs.
 
 \subsubsection*{Formal time grammar}
 
-We define a strict schema inspired by PromQL's range vectors\cite{brazil_prometheus_2018}, which naturally represents the sliding windows used in industrial telemetry. We distinguish between time \textit{points} and \textit{intervals}.
+We define a strict schema inspired by PromQL's range vectors \cite{brazil_prometheus_2018}, which naturally represents the sliding windows used in industrial telemetry. We distinguish between time \textit{points} and \textit{intervals}.
 
 \begin{itemize}
 \item \textbf{Time Point:} A single offset from \emph{now} (e.g., \texttt{0} = current, \texttt{5m} = 5 mins ago).
@@ -927,7 +1024,7 @@ We define a strict schema inspired by PromQL's range vectors\cite{brazil_prometh
 \item \textbf{Statistic Requirement:} Intervals \emph{must} be accompanied by a statistical function (mean, max, std); Points \emph{must not}.
 \end{itemize}
 
-The result is a simple grammar that can be then parsed and used in streaming (see \cref{ch:6 WIP}). The possible units of time are defined in a \texttt{TimeUnit} enum (see \cref{tab:timeunit}).
+The result is a simple grammar that can be then parsed and used in streaming (see \cref{ch:6-operational-runtime-dynamic-verification}). The possible units of time are defined in a \texttt{TimeUnit} enum (see \cref{tab:timeunit}).
 
 \begin{table}[htbp]
     \centering
@@ -954,8 +1051,22 @@ We implement a similar approach to the sensor resolution (\cref{sec:implementati
 
 Finally, we add another tag: \texttt{TimeParsingStatus}. If a rule has all of the time expressions properly parsed, the rule is marked as \texttt{OK}. Otherwise, it is marked as \lstinline{PARSE_ERROR} and excluded from leter processing stages.
 
+\subsection*{Results}
 
-\begin{thread}[hbtp]
+This improvement successfully normalized diverse time expressions, allowing for direct queries to the provided information. It \textbf{correctly standardized} the diverse time expressions, such as:
+
+  \begin{itemize}
+  \item ``average over the last 10 minutes'' \(\to\) \texttt{"10m:",\ "mean"}
+  \item ``current temperature'' \(\to\) \texttt{"0",\ None}
+  \item ``standard deviation over the last hour'' \(\to\) \texttt{"1h:",\ "std"}
+  \end{itemize}
+
+In \cref{generatedrule:6-inferential-control-deviation,,generatedrule:6-reboiler-temperature-trend-high} we see how the rules changed after the processing of this time parsing agent (from \cref{generatedrule:5-inferential-control-deviation,,generatedrule:5-reboiler-temperature-trend-high}, respectively).
+
+Having this format, we are now able to programatically check any of the rules without the need for human intervention. In \cref{ch:6-operational-runtime-dynamic-verification}, we detail how we can dynamically verify rules on runtime thanks to this spec.
+
+
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
@@ -984,17 +1095,18 @@ EXAMPLES:
     \item \lstinline|"last 5 minutes"| $\rightarrow$ \lstinline|{"time": "5m:", "statistic": null}|
 \end{itemize}\vspace{1em}
 
-Input: \textcolor{red}{\texttt{"\{natural\_language\_expr\}"}}
+Input: \textcolor{purple}{\texttt{"\{natural\_language\_expr\}"}}
 \end{UserMessage}
 
 \end{minipage}
 
 \caption{Time parsing agent prompt}
 \label{thread:6-time-parsing}
-\end{thread}
+\end{figure}
 
 
 \begin{program}[hbtp]
+\begin{CodeListing}
 \begin{lstlisting}[language=Python]
 from pydantic import BaseModel, Field
 from src.agent.domain.time.statistic import Statistic
@@ -1019,23 +1131,13 @@ class TimeMapping(BaseModel):
 class TimeMappings(BaseModel):
     mappings: list[TimeMapping]
 \end{lstlisting}
+\end{CodeListing}
 \caption{Structured output schema of time parsing agent}\label{program:time-parsing-output}
 \end{program}
 
-\subsection*{Results}
+\newpage
 
-This improvement successfully normalized diverse time expressions, allowing for direct queries to the provided information. It \textbf{correctly standardized} the diverse time expressions, such as:
-
-  \begin{itemize}
-  \item ``average over the last 10 minutes'' \(\to\) \texttt{"10m:",\ "mean"}
-  \item ``current temperature'' \(\to\) \texttt{"0",\ None}
-  \item ``standard deviation over the last hour'' \(\to\) \texttt{"1h:",\ "std"}
-  \end{itemize}
-
-In \cref{generatedrule:6-inferential-control-deviation,,generatedrule:6-reboiler-temperature-trend-high} we see how the rules changed after the processing of this time parsing agent (from \cref{generatedrule:5-inferential-control-deviation,,generatedrule:5-reboiler-temperature-trend-high}, respectively).
-
-Having this format, we are now able to programatically check any of the rules without the need for human intervention. In WIP, we detail how we can dynamically verify rules on runtime thanks to this spec.
-
+\vfill
 
 \begin{generatedrule}[hbtp]
 \begin{minipage}{\textwidth}
@@ -1089,53 +1191,69 @@ def reboiler_temperature_trend_high(status) -> str:
 \label{generatedrule:6-reboiler-temperature-trend-high}
 \end{generatedrule}
 
+\vfill
+
+\newpage
 
 \section{External Knowledge Grounding \&
 Verification}\label{sec:implementation-7-grounding}
 
-Large Language Models suffer from a static ``knowledge cutoff’’ (e.g., GPT-4o: October 2023 \cite{openai_gpt-4o_2024}). It has been demonstrated that LLMs exhibit severe degradation when asked about post-cutoff factual changes, such as newly issued emission standards \cite{cheng_dated_2024}. Relying solely on pre-trained weights for industrial compliance therefore introduces a critical temporal bias, rendering the system blind to recent regulatory updates.
 
-While retrieval-augmented generation (\cref{sec:implementation-3-rag}) grounds the model in \textit{internal} documentation, it offers no mechanism to detect whether the internal corpus itself is outdated or physically unsound. WebGPT shows that augmenting LLMs with a browsing or search tool substantially reduces hallucination on open-domain questions by allowing the model to cross-validate its generations against authoritative external sources \cite{nakano_webgpt_2022}. This effectively creates a double-verification loop that functions as a factuality layer beyond static pre-training.
+\begin{figure}[ht]
+    \centering
+    \hspace*{-1.3cm}\includesvg{diagram-9.svg}
+    \caption{Rule retrieval workflow including external knowledge grounding}
+    \label{fig:diagram-9}
+\end{figure}
 
-Traditional search engines such as Google return SERPs\footnote{SERP: Search Engine Results Page} optimized for human navigation rather than machine consumption. These require an additional scraping stage that introduces large volumes of noisy HTML, dramatically increasing token usage. Prior work suggests that \textit{Search-Augmented Generation} workflows achieve the greatest gains when relying on ``Answer-First’’ APIs that pre-process and synthesize content before it reaches the model \cite{lazaridou_internet-augmented_2022}. Such APIs maximize the agent’s \textit{Signal-to-Noise Ratio}\footnote{In benchmarking, SNR measures the separation between meaningful model performance (signal) and evaluation variability or irrelevance (noise). High SNR indicates that the system extracts and generates a high proportion of useful information \cite{yuan_signal--noise_2019, heineman_signal_2025}.} and reduce both latency and cost compared to ingesting raw HTML DOM trees.
+
+LLMs suffer from a static ``knowledge cutoff’’ (e.g., GPT-4o: October 2023 \cite{openai_gpt-4o_2024}). It has been demonstrated that they exhibit severe degradation when asked about post-cutoff factual changes, such as newly issued emission standards \cite{cheng_dated_2024}. Relying solely on pre-trained weights for industrial compliance therefore introduces a critical temporal bias, rendering the system blind to recent regulatory updates.
+
+While retrieval-augmented generation (\cref{sec:implementation-3-rag}) grounds the model in \textit{internal} documentation, it offers no mechanism to detect whether the internal corpus itself is outdated or physically unsound. \textit{WebGPT} shows that augmenting LLMs with a browsing or search tool substantially reduces hallucination on open-domain questions by allowing the model to cross-validate its generations against authoritative external sources \cite{nakano_webgpt_2022}. This effectively creates a double-verification loop that functions as a factuality layer beyond static pre-training.
+
+Traditional search engines such as Google return SERPs\footnote{SERP: Search Engine Results Page} optimized for human navigation rather than machine consumption. These require an additional scraping stage that introduces large volumes of noisy HTML, dramatically increasing token usage. Prior work suggests that \textit{Search-Augmented Generation} (SAG) workflows achieve the greatest gains when relying on ``answer-first'' APIs that pre-process and synthesize content before it reaches the model \cite{lazaridou_internet-augmented_2022}. Such APIs maximize the agent’s \textit{Signal-to-Noise Ratio} (SNR)\footnote{In benchmarking, SNR measures the separation between meaningful model performance (signal) and evaluation variability or irrelevance (noise). High SNR indicates that the system extracts and generates a high proportion of useful information \cite{yuan_signal--noise_2019, heineman_signal_2025}.} and reduce both latency and cost compared to ingesting raw HTML DOM trees.
 
 \subsection*{Implementation}
 
-There are many possible options to implement this Search-Agumented Generation, that rank from APIs specific for LLMs to more manual work by scraping websites or using output of general purpose APIs. We include:
+There are many possible options to implement this SAG, spanning from APIs specific for LLMs to more manual work by scraping websites or using output of general purpose APIs:
 
 \begin{enumerate}[label=\textbf{\Alph*.}]
-    \item \textbf{Tavily:} Returns synthesized answers and clean markdown, not just links. Benchmarks show 93.3\% accuracy on SimpleQA tasks, outperforming raw SERP wrappers in zero-shot retrieval \cite{hadar_tavily_2025}.
-    \item \textbf{Serper:} Best for ``Deep Long Tail'' retrieval. Excellent if we needed to find a specific obscure PDF manual but requires building a complex ``Scraper + Parser'' pipeline to extract clean text.
+    \item \textbf{Tavily:} Returns synthesized answers and clean markdown, not just links. Benchmarks show 93.3\% accuracy on \textit{SimpleQA} tasks, outperforming raw SERP wrappers in zero-shot retrieval \cite{hadar_tavily_2025}.
+    \item \textbf{Serper:} Best for ``deep long tail'' retrieval. Excellent if we needed to find a specific obscure manual but requires building a complex ``scraper + parser'' pipeline to extract clean text.
     \item \textbf{DuckDuckGo:} Unreliable (no SLA), aggressive rate limiting, and returns only short snippets (meta descriptions), which lack the detailed technical values needed for verification.
-    \item \textbf{Google Programmable Search Engine (PSE):} High setup complexity, returns noisy JSON full of irrelevant metadata (ads, tracking pixels)
+    \item \textbf{Google Programmable Search Engine (PSE):} High setup complexity, returns noisy JSON full of irrelevant metadata (ads, tracking pixels).
 \end{enumerate}
 
 Due to the ease of use and generous free tier, we decide to go towards option A.
 
-We will implement an additional phase next to the RAG, consisting on a ``grounded loop'' in which we perform another LLM call to decide which search queries to make.
+We will implement an additional phase after the RAG (\cref{sec:implementation-3-rag}) in which we perform another LLM call to decide which search queries to make, perform the search and inject the responses in the extraction prompt as context.
 
  \begin{enumerate}
   \def\labelenumi{\arabic{enumi}.}
   
   \item
     \textbf{Query Synthesis:} The LLM analyzes the extracted rule (e.g.,
-    ``Vent gas must be \textless{} 50 ppm'') and generates a
-    verification query: \emph{``EPA regulation limit for propane vent
-    gas flaring 2024''}. We do this through a prompt (\cref{thread:7-ground-with-search}) and a certain output schema (\cref{program:grounding-agent-output}).
+    ``vent gas must be \textless{} 50 ppm'') and generates a query: \emph{``EPA regulation limit for propane vent
+    gas flaring 2024''}. We do this through a prompt (\cref{thread:7-ground-with-search}) and enforcing \lstinline{list[str]} as output schema.
   \item
     \textbf{Retrieval (Tavily):} The agent calls the search API.
     Crucially, we use:
     \begin{itemize}
-        \item \lstinline{include_raw_content=False}: To get the synthesized answer.
-        \item \lstinline{search_depth="advanced"}: Triggering Tavily's internal ``Deep Search'' agent which aggregates data from 5-10 sources before returning a response.
+        \item \lstinline{include_raw_content=False}: to get the synthesized answer.
+        \item \lstinline{search_depth="advanced"}: triggering Tavily's internal ``deep search'' agent which aggregates data from 5-10 sources before returning a response.
     \end{itemize}
   \item
     \textbf{Injection into prompt:} We modify the rule generation prompt from \cref{sec:implementation-4-python-functions} (see \cref{thread:5-python}) to include the search results (see \cref{thread:implementation-7}).
-
   \end{enumerate}
 
+\subsection*{Results}
 
-\begin{thread}[hbtp]
+Incorporating external grounding yielded promising results. Looking at the traces, we can see that the agent was able to \textbf{introduce valuable information} as context, making appropriate questions and filling out missing information from other sources (see \cref{thread:tavily-calls} for an example of tool call). Additionally, using Tavily's integration enabled the LLM to use text that was processed for \textbf{enhanced understanding}.
+
+However, we need to take into account the \textbf{latency} this process introduces, as well as any possible \textbf{costs}. It is important to notice that grounding might not be suitable for all tasks. Also, we were able to observe that the agent wanted to search regarding proprietary terms, or some that do not exist outside the provided documentation. Further prompt engineering work would be suitable here to improve this behavior.
+
+
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
@@ -1143,9 +1261,9 @@ You are an expert industrial engineer analyzing process documentation.\\
 Your task is to identify what external knowledge would help extract better operational rules from this document chunk.\\[6pt]
 
 DOCUMENT CHUNK:\\
-\textcolor{red}{\{chunk $c_i$\}}\\[6pt]
+\textcolor{purple}{\{chunk $c_i$\}}\\[6pt]
 CONTEXT FROM SIMILAR DOCUMENTS:\\
-\textcolor{red}{\{chunks related to chunk $c_i$\}}\\[6pt]
+\textcolor{purple}{\{chunks related to chunk $c_i$\}}\\[6pt]
 
 CHAIN OF THOUGHT PROCESS:
 \begin{enumerate}
@@ -1154,7 +1272,7 @@ CHAIN OF THOUGHT PROCESS:
     \item What specific information would help extract more accurate operational rules?
 \end{enumerate}\vspace{1em}
 
-Based on your analysis, provide \textcolor{red}{\{\texttt{grounding\_min}\}} to \textcolor{red}{\{\texttt{grounding\_max}\}} focused web search queries that would clarify:
+Based on your analysis, provide \textcolor{purple}{\{\texttt{grounding\_min}\}} to \textcolor{purple}{\{\texttt{grounding\_max}\}} focused web search queries that would clarify:
 \begin{itemize}
     \item Industry standards for mentioned processes
     \item Typical operational ranges or thresholds
@@ -1167,277 +1285,171 @@ Based on your analysis, provide \textcolor{red}{\{\texttt{grounding\_min}\}} to 
 
 \caption{Grounding agent prompt}
 \label{thread:7-ground-with-search}
-\end{thread}
+\end{figure}
 
 
-\begin{program}[hbtp]
-\begin{lstlisting}[language=Python]
-from pydantic import BaseModel, Field
-
-
-class SearchQueries(BaseModel):
-    """
-    Encapsulates search queries.
-    """
-
-    queries: list[str] = Field(
-        ..., description="List of search queries."
-    )
-\end{lstlisting}
-\caption{Structured output schema of grounding agent}\label{program:grounding-agent-output}
-\end{program}
-
-
-
-\begin{thread}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{UserMessage}
-You are an expert industrial engineer and Python programmer specializing in extracting operational rules from documentation. Your task is to analyze industrial process documentation and extract operational rules as Python functions.\\[6pt]
+You are an expert industrial engineer and Python programmer specializing in [...]\\[6pt]
 
-CRITICAL REQUIREMENTS:
-
-...\\[6pt]
+CRITICAL REQUIREMENTS: [...]\\[6pt]
 
 CURRENT CHUNK TO ANALYZE:\\
-\textcolor{red}{\{chunk $c_i$\}}\\[6pt]
+\textcolor{purple}{\{chunk $c_i$\}}\\[6pt]
 ADDITIONAL CONTEXT FROM ALL DOCUMENTS:\\
-\textcolor{red}{\{chunks related to chunk $c_i$\}}\\[6pt]
+\textcolor{purple}{\{chunks related to chunk $c_i$\}}\\[6pt]
 EXTERNAL KNOWLEDGE (from web search):\\
-\textcolor{red}{\{search agent output\}}
+\textcolor{purple}{\{search agent output\}}
 \end{UserMessage}
 
 \end{minipage}
 
-\caption{Directly extract all operational and safety rules}
+\caption{Include external knowledge in rule extraction prompt}
 \label{thread:implementation-7}
-\end{thread}
+\end{figure}
+
+\begin{figure}[hbtp]
+\begin{minipage}{\textwidth}
+
+\begin{ToolMessage}
+\textsf{\textbf{Tavily Search} with query:}
+
+``sour water collection system SWS industry standards operating parameters''\\
+
+\textsf{Results:}
+
+\begin{lstlisting}[language=JSON]
+[{"url": "https://www.sciencedirect.com/...", "title": "Storage stability of FCC light cycle oil - ScienceDirect.com", "content": "The boiling range of diesel fuel is typically 180–360 °C. Hydrotreated ... Another fractions are produced through secondary processing of heavy oils (boiling", "score": 0.7163977, "raw_content": null}, {"url": "https://www.osti.gov/...", "title": "Light cycle oil from the FCC unit (Conference) | SciTech Connect", "content": "LCO is defined in our studies as 430ºF to 640ºF boiling range hydrocarbons. No. 1 (diesel quality) and No. 2 fuel oils generally", "score": 0.7092009, "raw_content": null}, ...]
+\end{lstlisting}
+\end{ToolMessage}
+
+\end{minipage}
+
+\caption{Example of Tavily tool call}
+\label{thread:tavily-calls}
+\end{figure}
 
 
-\subsection*{Results}
-
-\begin{itemize}
-
-\item
-  \textbf{Fact Validation:} The system successfully flagged an obsolete
-  internal rule regarding ``Freon'' refrigerants by retrieving modern
-  environmental bans.
-\item
-  \textbf{Token Efficiency:} Using Tavily's ``answer'' field reduced the
-  context window usage by \textasciitilde60\% compared to scraping top-5
-  Google results and feeding full HTML to the LLM.
-\item
-  \textbf{Latency:} The ``Advanced'' search depth introduced a 2-4
-  second latency per rule, which is acceptable for offline extraction
-  but suggests batching is needed for scale.
-\end{itemize}
-
-\textbf{Possible Improvements:}
-
-\begin{itemize}
-
-\item
-  \textbf{Hybrid Grounding:} Use \textbf{Serper} for finding
-  \emph{documents} (PDFs of regulations) and \textbf{Tavily} for
-  answering \emph{questions}.
-\item
-  \textbf{Domain Whitelisting:} Restrict search scope to trusted domains
-  (e.g., \texttt{*.gov}, \texttt{*.iso.org}) to prevent grounding
-  against low-quality forum answers.
-\end{itemize}
+\newpage 
 
 \section{Multi-Level
 Verification}\label{sec:implementation-8-verification}
 
-\textbf{Research-based Hypothesis:} Neural Self-Correction is insufficient for industrial code generation due to the 'Self-Correction Fallacy' (Huang et al., 2024), where models fail to identify their own logic errors without external signals. Therefore, we propose a Neuro-Symbolic Verification Pipeline that utilizes Static Analysis (AST) as a computationally efficient 'Pre-Filter' (Zhou et al., 2023) to enforce provable Symbolic Constraints (Austin et al., 2021) on the generated code, achieving trustworthiness independent of the model’s probabilistic distribution.
+
+\begin{figure}[ht]
+    \centering
+    \hspace*{-1.3cm}\includegraphics[]{diagram-10.pdf}
+    \caption{Rule retrieval workflow including rule verification}
+    \label{fig:diagram-10}
+\end{figure}
+
+Recent work has challenged the assumption that LLMs are capable of reliably identifying and correcting their own reasoning errors. The phenomenon, formally described as the \textit{\textbf{Self-Correction Fallacy}} \cite{huang_large_2024}, shows that when models are prompted to ``reflect'' or ``debug'' their outputs, they often hallucinate correctness or even degrade in performance, particularly in tasks that involve multi-step logical consistency. This aligns with other findings that demonstrate that self-repair in code generation rarely resolves subtle logic faults unless the model is guided by an external feedback signal such as a compiler diagnostic \cite{olausson_is_2024}. Together, these results suggest that neural self-correction alone cannot satisfy the reliability requirements of industrial environments, where silent logical errors are significantly more harmful than surface-level syntactic issues.
+
+To address this limitation, we propose a \textbf{verification pipeline} designed to impose external structure and correctness constraints on LLM-generated code. The central premise is that trustworthiness cannot emerge solely from probabilistic refinement; instead, it requires the integration of symbolic mechanisms capable of enforcing guarantees independent of the model’s internal distributions. Static analysis plays a crucial role in this architecture. Unlike execution-based validation such as unit testing which, although powerful, is computationally expensive and often infeasible to simulate for complex industrial systems, static methods operate on the \textit{Abstract Syntax Tree} (AST) and provide an efficient way to eliminate entire classes of errors. Grammar-level and AST-level constraints can prevent syntactic violations, type mismatches, and structurally invalid program constructs at negligible computational cost compared to executing every candidate program in a sandbox \cite{poesia_synchromesh_2022}.
+
+Beyond static safety, the pipeline incorporates symbolic constraints to ensure semantic correctness. By interpreting the generated code as an AST, it becomes possible to traverse the structure and apply formal verification principles that enforce domain-specific invariants, such as requiring every temporal interval to include an associated statistical operator. These invariants act as symbolic oracles that restrict the solution space to programs that are provably aligned with the specification. The effectiveness of such symbolic filtering is well supported in the literature: it is shown that constraining neural program synthesis with formally defined oracles significantly improves the functional reliability of the produced code, especially in settings where minor structural deviations can lead to major downstream failures \cite{austin_program_2021}.
+
+In summary, our hypothesis is that neural self-correction must be complemented --not replaced-- by symbolic reasoning layers that provide structural and semantic guarantees at low computational cost. The proposed pipeline operationalizes this idea by combining Static Analysis as a fast, deterministic pre-filter with formal symbolic constraints that enforce correctness invariants. This architecture aims to deliver a level of reliability that is fundamentally unattainable through model self-reflection alone, thereby aligning neural generation with the stringent correctness requirements of industrial rule synthesis.
+
+\subsection*{Implementation}
+
+A range of implementation strategies was evaluated to determine the most effective approach for consolidating and optimizing the set of extracted industrial rules.
 
 \begin{itemize}
-    \item \textbf{The Self-Correction Fallacy:} A common assumption is that LLMs can ``debug'' their own errors when prompted. However, \cite{huang_large_2024} demonstrated that for reasoning tasks, LLMs often hallucinate correctness or degrade performance when asked to self-correct without external feedback (``The Self-Correction Fallacy''). Furthermore, \cite{olausson_is_2024} found that self-repair is not a ``silver bullet'' for code generation and fails to fix subtle logic bugs unless guided by an external oracle (e.g., a compiler error message).
-    \item \textbf{Static Analysis vs. Execution:} While Unit Testing provides the highest confidence, it is computationally expensive and difficult to mock for complex industrial systems. \cite{poesia_synchromesh_2022} demonstrate that enforcing Grammar Constraints (AST) during or post-generation eliminates entire classes of failures (Syntax Errors, Type Mismatches) with negligible computational overhead compared to the full execution sandbox required for Unit Tests.
-    \item \textbf{Symbolic Verification:} To ensure trustworthiness, neural generations must be grounded in symbolic constraints. By treating the LLM output as an \textit{Abstract Syntax Tree} (AST), we can apply \textit{Formal Verification} principles--traversing the tree to enforce invariants (e.g., ``Time Intervals must have a statistic'') that are provably correct. \cite{austin_program_2021} demonstrate that constraining generation with such symbolic oracles significantly improves the functional correctness of synthesized programs. 
+\item \textbf{Option A: Execution/Unit Testing.} Running every rule in a sandboxed environment with mock data.
+\item \textbf{Option B: LLM Self-Correction.} Asking the LLM to ``check its own work.''
+\item \textbf{Option C: Static Analysis via AST (Abstract Syntax Tree).} Parsing the code structure to validate syntax and extracting function calls to validate arguments against constraints.
 \end{itemize}
 
-\textbf{Implementation Options:}
+We decided to go towards the latest option, as it is fast, deterministic and accurate for structure checking. In the case of option A, there's significant computational overhead, and difficulty in generating realistic mock data for complex multi-sensor correlations. In the case of option B, we already discussed how research shows LLMs struggle to correct their own logic errors without external feedback.
 
-\begin{itemize}
-\item \textbf{Option A: Execution/Unit Testing.} Running every rule in a sandboxed environment with mock data. (Discarded: High computational overhead; difficult to generate realistic mock data for complex multi-sensor correlations).
-\item \textbf{Option B: LLM Self-Correction.} Asking the LLM to ``check its own work.'' (Discarded: Research shows LLMs struggle to correct their own logic errors without external feedback signals).
-\item \textbf{Option C: Static Analysis via AST (Abstract Syntax Tree).} Parsing the code structure to validate syntax and extracting function calls to validate arguments against constraints. (Selected: Fast, deterministic, and 100\% accurate for structure checking).
-\end{itemize}
-
-\textbf{Implementation:} The verification pipeline implements a
-three-layer ``Quality Gate'':
+We implement a three-layer process:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 
 \item
-  \textbf{Layer 1: Syntactic Verification (\texttt{ast.parse})}:
-
-  \begin{itemize}
-  
-  \item
-    The raw Python string is parsed into an Abstract Syntax Tree.
-  \item
-    \emph{Check:} If \texttt{ast.parse()} raises a \texttt{SyntaxError},
-    the rule is immediately flagged as \texttt{SYNTAX\_ERROR}.
-  \end{itemize}
+  \textbf{Layer 1: Syntactic Verification (\texttt{ast.parse})}: we parse the raw Python string into an AST. If \lstinline{ast.parse()} raises a \lstinline{SyntaxError}, the rule is immediately flagged.
 \item
-  \textbf{Layer 2: Domain Entity Verification (Sensor Auditing)}:
-
-  \begin{itemize}
-  
-  \item
-    A custom \texttt{StatusCallExtractor} (inheriting from
-    \texttt{ast.NodeVisitor}) traverses the tree to find all
-    \texttt{status.get()} calls.
-  \item
-    \emph{Check:} Extracted Sensor IDs are cross-referenced against the
-    validated \texttt{Sensor\ Collection}. Any ID not present in the
-    database triggers an \texttt{INVALID\_SENSOR} flag.
-  \end{itemize}
+  \textbf{Layer 2: Domain Entity Verification (Sensor Auditing)}: a custom \lstinline{StatusCallExtractor} (inheriting from \texttt{ast.NodeVisitor}) traverses the tree to find all \lstinline{status.get()} calls. We then extract the sensor IDs and cross-reference them against the validated sensor collection. Any ID not present in the database triggers an \lstinline{INVALID_SENSOR} flag.\footnote{This is redundant with the processing of \cref{sec:implementation-5-sensors}. However, we decide to proceed for extra caution and to add an additional layer of verification.}
 \item
-  \textbf{Layer 3: Temporal-Statistical Logic Check}:
-
-  \begin{itemize}
-  
-  \item
-    The system validates the logical consistency of time parameters
-    (derived in Section 5.5).
-  \item
-    \emph{Check:} \textbf{Points vs.~Intervals.} If the time argument
-    implies a point (e.g., ``current''), the system asserts that the
-    \emph{statistic} argument is \texttt{None}. If it implies an
-    interval (e.g., ``10m:''), it asserts that a valid statistic (e.g.,
-    ``mean'') is present. Violations trigger
-    \texttt{INVALID\_STATISTIC}.
-  \end{itemize}
+  \textbf{Layer 3: Temporal-Statistical Logic Check}: we use the extracted call from the previous layer and validate the logical consistency of the time expressions. The implementation already has incorporated a regex validator that raises a \lstinline{ValidationError} if the format is wrong. We also check for points vs. intervals, the statistic can only be shown in the latter. Violations would trigger \lstinline{INVALID_STATISTIC} (if it is part of a point expression or is not an allowed statistic).
 \end{enumerate}
 
-\textbf{Results:}
+\subsection*{Results}
 
-\begin{itemize}
-\item \textbf{Runtime Safety:} The pipeline achieved a 100\% ``Compilation Success Rate'' for verified rules---no rule marked \texttt{VERIFIED} caused a runtime crash during execution.
-\item \textbf{Logic Catching:} The temporal-statistical check successfully caught subtle LLM errors, such as requesting the ``standard deviation of the current value'' (mathematically impossible), which a simple syntax check would have missed.
-\item \textbf{Feedback Loop:} Rules failing verification are not just discarded; their error flags (\texttt{INVALID\_SENSOR}) provide specific metadata that can be used for re-prompting or human review.
-\end{itemize}
+All the generated rules were verified to have \textbf{syntactically valid Python code} via \lstinline{ast}. Out of the rules that were valid (had proper sensor and time parsing), \textbf{100\% of them were verified to be correct}. This shows us our system is robust.
 
-\textbf{Possible Improvements:}
+While we might think this robustness might make this stage unnecessary, that statement is no further from truth: it is extremely important to have a validation layer as we expressed earlier.
 
-\begin{itemize}
-\item \textbf{Type Checking:} Integrate \texttt{mypy} or similar static type checkers to ensure return types are consistently strings or \texttt{None}.
-\item \textbf{Physical Sanity Check:} Implement a ``Physics Engine'' check to validate threshold values (e.g., ensuring a temperature threshold of 5000C is flagged as impossible for a steel vessel).
-\end{itemize}
+In the future, integrating type check mechanisms (using \texttt{mypy} or other static type checkers) would be interesting. Also, we could go beyond and verify more than the Python code, performing \textbf{sanity checks}: ``physic engines'' that check if the values make sense (the comparisons or the units of measurement make sense, for example).
+
+\newpage
 
 \section{Intelligent Rule Consolidation \&
 Optimization}\label{sec:implementation-9-consolidation}
 
-\textbf{Research-based Hypothesis:} rule consolidation in this context is a Type-4 Semantic Clone Detection problem (Svajlenko \& Roy, 2014), where syntactic variability precludes traditional hashing or frequent-itemset mining. We propose that an LLM-based 'Semantic Linker', operating on Topologically Isolated Batches to minimize the 'Distractor Effect' (Shi et al., 2023), provides the necessary reasoning to merge complex Python logic that traditional Symbolic Solvers (SMT) and Association Rule algorithms cannot represent.
 
-\begin{itemize}
-    \item \textbf{Type-4 Semantic Clones vs. Pattern Mining:} In software engineering, duplicates range from Type-1 (exact copy) to Type-4 (Semantic Clones)--code that is syntactically different but functionally identical \cite{svajlenko_evaluating_2015}. Naive chunking produces massive Type-4 redundancy (e.g., ``Keep pressure < 50'' vs. ``Max pressure 50''). While traditional Association Rule Mining (e.g., FP-Growth \cite{han_mining_2000}, Apriori \cite{agrawal_fast_1994}) excels at finding frequent correlations in structured data, it fails here because Python rules are not static ``itemsets'' but executable logic with variable control flow. Other ML approaches (e.g., Random Forests, Jaccard Index) fail here because they rely on token overlap and cannot capture the \textit{semantic intent} of the logic. \cite{svajlenko_evaluating_2015}
-    \item \textbf{The ``Fine-Tuning Bottleneck'':} Specialized Deep Learning models (e.g., CodeBERT, GraphCodeBERT) are the current academic standard for clone detection. However, their performance is heavily dependent on fine-tuning with large-scale labeled datasets. In an industrial ``Cold Start'' scenario (Section 7.1), no such dataset exists.
-    \item \textbf{Zero-Shot Generalization:} \cite{zhang_assessing_2024} conducted a comprehensive evaluation of LLMs for clone detection. They found that while models like GPT-4 may not beat fine-tuned CodeBERT on synthetic benchmarks, they demonstrate superior Generalization to novel code structures and can explain their reasoning, which is critical for the validation required in industrial settings.
-    \item \textbf{Graph-Augmented Refactoring vs. Global Context:} Injecting all extracted rules into a single global context for cleaning creates the ``Distractor Effect.'' \cite{shi_large_2023} demonstrate that unrelated information in the context window exponentially degrades reasoning accuracy. Therefore, consolidation must occur in Topologically Isolated Batches--grouping rules via a dependency graph (e.g., all nodes touching \texttt{TIC-101})--to maintain the high signal-to-noise ratio required for precise merging.
-\end{itemize}
+\begin{figure}[ht]
+    \centering
+    \hspace*{-2.3cm}\includesvg{diagram-11.svg}
+    \caption{Full rule extraction process, including rule extraction and reconciliation workflows}
+    \label{fig:diagram-11}
+\end{figure}
 
-\textbf{Implementation Options:}
+In software engineering, duplicates range from Type-1 (exact copy) to Type-4 (Semantic Clones) -- code that is syntactically different but functionally identical \cite{svajlenko_evaluating_2015}. Naive chunking produces massive Type-4 redundancy (e.g., ``keep pressure < 50'' vs. ``max pressure 50''). While traditional \textit{Association Rule Mining} (e.g., \textit{FP-Growth} \cite{han_mining_2000}, \textit{Apriori} \cite{agrawal_fast_1994}) excels at finding frequent correlations in structured data, it fails here because Python rules are not static ``itemsets'' but executable logic with variable control flow. Other ML approaches (e.g., \textit{Random Forests}, \textit{Jaccard Index}) fail here because they rely on token overlap and cannot capture the \textit{semantic intent} of the logic. \cite{svajlenko_evaluating_2015}
 
-\begin{itemize}
+Instead, specialized DL models (e.g., \textit{CodeBERT}, \textit{GraphCodeBERT}) are the current academic standard for clone detection. However, their performance is heavily dependent on fine-tuning with large-scale labeled datasets. In an industrial ``cold start'' scenario, no such dataset exists.
+
+LLMs can also be used for code detection. However, while models like GPT-4 may not beat fine-tuned \textit{CodeBERT} on synthetic benchmarks, they demonstrate superior generalization to novel code structures and can explain their reasoning, which is critical for the validation required in industrial settings \cite{zhang_assessing_2024}.
+
+However, injecting all extracted rules into a single global context for cleaning creates the \textit{\textbf{``distractor effect.''}} Unrelated information in the context window exponentially degrades reasoning accuracy \cite{shi_large_2023}. Therefore, consolidation must occur in topologically isolated batches, grouping rules via a dependency graph (e.g., all nodes touching \texttt{TIC-101}), to maintain the high SNR required for precise merging.
+
+We hypothesize that an LLM-based ``semantic linker'' will minimize the ``distractor effect'' and provide the necessary reasoning to merge complex Python logic that traditional symbolic solver and association rule algorithms cannot represent.
+
+\subsection*{Implementation}
+
+We reevaluate multiple ways to implement this rule reconciliation:
+
+\begin{enumerate}[label=\textbf{\Alph*.}]
 
 \item
-  \textbf{Option A: Syntactic Code Clone Detection (Traditional).}
-
-  \begin{itemize}
-  
-  \item
-    \emph{Method:} Using Abstract Syntax Tree (AST) fingerprinting or
-    token-based similarity (e.g., Jaccard Index, SourcererCC) to find
-    duplicate rules.
-  \item
-    \emph{Verdict:} \textbf{Discarded.} These algorithms are
-    \textbf{Semantic-Blind}. They can identify exact duplicates
-    (Copy-Paste), but fail to merge logic. For example, they cannot
-    determine that a rule \texttt{temp\ \textgreater{}\ 100} (Safety)
-    and \texttt{temp\ \textgreater{}\ 90} (Warning) should be merged
-    into a single hierarchical rule. They treat them as distinct code
-    blocks.
-  \end{itemize}
+  \textbf{Syntactic Code Clone Detection (Traditional):} {Method:} Using Abstract Syntax Tree (AST) fingerprinting or
+    token-based similarity (e.g., Jaccard Index, SourcererCC) to find duplicate rules.
 \item
-  \textbf{Option B: Symbolic Logic Solvers (SMT/Z3).}
-
-  \begin{itemize}
-  
-  \item
-    \emph{Method:} Converting Python rules into First-Order Logic
+  \textbf{Symbolic Logic Solvers (SMT/Z3):} Converting Python rules into First-Order Logic
     formulas and using an SMT solver (like Z3) to mathematically prove
     equivalence or redundancy (e.g., verifying that
     \texttt{x\ \textgreater{}\ 50} implies
     \texttt{x\ \textgreater{}\ 40}).
-  \item
-    \emph{Verdict:} \textbf{Discarded.} While mathematically rigorous,
-    this requires a \textbf{perfect formal translation} of Python code.
-    The stochastic nature of LLM-generated code (using varied libraries,
-    string formatting, or helper functions) makes automated translation
-    to formal logic brittle and prone to parsing errors.
-  \end{itemize}
 \item
-  \textbf{Option C: Vector-Based Semantic Clustering.}
-
-  \begin{itemize}
-  
-  \item
-    \emph{Method:} Embedding rule bodies using CodeBERT and clustering
+  \textbf{Vector-Based Semantic Clustering:} Embedding rule bodies using CodeBERT and clustering
     centroids.
-  \item
-    \emph{Verdict:} \textbf{Discarded.} Good for grouping, bad for
-    merging. It groups ``High Pressure'' and ``Low Pressure'' together
-    (high similarity), but lacks the \textbf{reasoning} capabilities to
-    synthesize a new, valid Python function that combines them without
-    breaking the logic.
-  \end{itemize}
+
 \item
-  \textbf{Option D: LLM-Based Dependency Batching.}
+  \textbf{LLM-Based Dependency Batching:} Grouping rules by Sensor ID topology and using an LLM
+    as a ``semantic compiler'' to refactor code.
+\end{enumerate}
 
-  \begin{itemize}
-  
-  \item
-    \emph{Method:} Grouping rules by Sensor ID topology and using an LLM
-    as a ``Semantic Compiler'' to refactor code.
-  \item
-    \emph{Verdict:} \textbf{Selected.} It combines the ``grouping''
-    benefit of clustering with the ``code generation'' capability
-    required to write the merged function.
-  \end{itemize}
-\end{itemize}
+In case of option A, traditional algorithms are blind to semantics. While they can identify exact duplicates, they fail to merge the logic. Regarding option B, while mathematically rigorous, it would require a perfect formal translation of Python code, something difficult due to the stochastic nature of LLMs.
 
-\textbf{Implementation:} The workflow functions as a ``Linker'' in a
-compiler toolchain:
+Out of the two last options, option C is interesting and good for grouping rules, but not suitable for merging, as it lacks the reasoning capabilities that option D has. The latter combines the ``grouping'' benefit of clustering with the code generation capabilities required to rewrite and merge Python functions.
+
+We will implement this through an additional workflow. It is important to note that this workflow uses as input the rules generated by the extracted workflow up until now. \Cref{fig:diagram-11} shows how it is integrated into the full process, including the rule extraction workflow.
+
+It consists on three stages:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 
 \item
-  \textbf{Dependency Analysis (\texttt{\_analyze\_rules}):}
-
-  \begin{itemize}
-  
-  \item
-    The system scans the extracted Python code (from Section 5.3) to
-    build a dependency map:
-    \texttt{Rule\ A\ -\textgreater{}\ \{TIC-101,\ PIC-204\}}.
-  \item
-    It creates ``Sensor Groups'' using a clustering strategy. Rules
-    touching the same sensors are grouped into a single batch (capped at
+  \textbf{Dependency Analysis:} The system scans the extracted Python code (see \cref{sec:implementation-4-python-functions}) to
+    build a dependency map (e.g., \texttt{Rule\ 1} $\rightarrow$ \texttt{\{TIC-101,\ PIC-204\}}). It creates sensor groups using a clustering strategy. Rules touching the same sensors are grouped into a single batch (capped at
     \texttt{MAX\_RULES\_PER\_BATCH} to preserve attention).
-  \end{itemize}
 \item
-  \textbf{Semantic Optimization (\texttt{\_consolidate\_with\_llm}):}
-
-  \begin{itemize}
-  
-  \item
-    The LLM acts as an optimizer with three specific operators:
+  \textbf{Semantic Optimization:} The LLM acts as an optimizer with three specific operators:
 
     \begin{itemize}
     
@@ -1453,233 +1465,120 @@ compiler toolchain:
       \texttt{A\ \textgreater{}\ 50\ AND\ A\ \textgreater{}\ 60} \(\to\)
       \texttt{A\ \textgreater{}\ 60}).
     \end{itemize}
-  \end{itemize}
+\item[] This optimization is effectively an LLM call with the prompt specified in \cref{thread:9-consolidation} and the structured output from \cref{program:consolidated-output}.
 \item
-  \textbf{Safety Verification (\texttt{\_verify\_consolidated}):}
-
-  \begin{itemize}
-  
-  \item
-    The \emph{newly generated} consolidated code must pass the same
-    rigorous AST verification (Section 5.7) as the original rules. This
+  \textbf{Safety Verification:} The \emph{newly generated} consolidated code must pass the same
+    rigorous verification as the original rules (see \cref{sec:implementation-8-verification}). This
     prevents the optimizer from introducing syntax errors or
     hallucinating new sensors during the merge.
-  \end{itemize}
 \end{enumerate}
 
-\textbf{Code Strategy (Batching Logic):}
+\subsection*{Results}
 
-\textbf{Results:}
+The system achieved an impressive \textbf{consolidation ratio} of 5:1 (sustained across several tests, on average processing 290 rules resulted in 57 consolidated rules), generating clean, high-value consolidated rules.
 
-\begin{itemize}
+Additionally, the proposed framework allows us to \textbf{explain} how those rules were consolidated, and from which ones they originate, which is critical for further verification.
 
-\item
-  \textbf{Reduction Ratio:} The system achieved a consolidation ratio of
-  \textasciitilde3:1 (processing 150 raw extracted fragments resulted in
-  \textasciitilde50 clean, high-value consolidated rules).
-\item
-  \textbf{Conflict Resolution:} The batching strategy successfully
-  identified conflicting rules (e.g., one chunk saying ``Max 50'' and
-  another ``Max 55''). The LLM prompt forced a resolution based on the
-  \texttt{rule\_source} (preferring the ``Safety Manual'' over the
-  ``General Description'').
-\item
-  \textbf{Output Quality:} The \texttt{SIMPLIFY} action successfully
-  removed redundant intermediate variables, producing cleaner Python
-  code than the initial extraction pass.
-\end{itemize}
+This strategy successfully \textbf{identified conflicting rules} and prompted resolution, generating rules of much \textbf{higher quality}.
 
-\textbf{Possible Improvements:}
+Future implementations could have more sophisticated conciliation mechanisms with cross-batch dependencies (using graph-based clustering algorithms), as well as allowing the system to use RAG (\cref{sec:implementation-3-rag}) and SAG (\cref{sec:implementation-7-grounding}) to clarify conflicts.
 
-\begin{itemize}
+WIP add examples
 
-\item
-  \textbf{Cross-Batch Dependencies:} The current system groups by
-  \emph{exact} sensor sets. It might miss a merge opportunity between
-  \texttt{Rule\ A(TIC-101)} and \texttt{Rule\ B(TIC-101,\ PIC-202)}. A
-  graph-based clustering algorithm (e.g., Louvain) could optimize the
-  batches better.
-\item
-  \textbf{Human-in-the-Loop:} For \texttt{MERGE} actions with low
-  confidence (\textless0.8), the system should pause and request human
-  approval.
-\end{itemize}
 
-\textbf{Literature:}
+\begin{program}[hbtp]
+\begin{CodeListing}
+\begin{lstlisting}[language=Python]
+from enum import StrEnum
+from pydantic import BaseModel, Field
+from src.agent.domain.models import PythonRule
 
-\begin{itemize}
 
-\item
-  \textbf{Zhang, T., et al.~(2023).} \emph{DS-1000: A Natural and Robust
-  Benchmark for Data Science Code Generation.} (Discusses the difficulty
-  of code simplification and merging).
-\item
-  \textbf{Karmakar, A., et al.~(2022).} \emph{Pre-trained Language
-  Models for Code Understanding: A Survey.} (Validates the approach of
-  using LLMs for code refactoring and optimization tasks).
-\end{itemize}
+class RuleConsolidationActionType(StrEnum):
+    REMOVE = "remove"
+    MERGE = "merge"
+    SIMPLIFY = "simplify"
 
-\section{High-Throughput Architecture \& Performance
-Optimization}\label{high-throughput-architecture-performance-optimization}
 
-\textbf{Research-based Hypothesis:}
+class RuleConsolidation(BaseModel):
+    """Encapsulates consolidated rule."""
 
-\begin{itemize}
+    action_type: RuleConsolidationActionType = Field(
+        ..., description="Type of consolidation performed."
+    )
+    input_rule_ids: list[int] = Field(
+        ..., description="IDs of rules used in reconciliation."
+    )
+    output_rule: PythonRule | None = Field(
+        ..., description="Consolidated rule."
+    )
+    confidence: float = Field(
+        ..., description="Confidence coefficient in consolidated rule, in [0, 1]."
+    )
+    reasoning: str = Field(
+        ..., description="Reasoning behind consolidation."
+    )
 
-\item
-  \textbf{I/O Bound Latency:} The extraction pipeline is dominated by
-  \textbf{Network I/O} (waiting for LLM token generation, Vector DB
-  retrieval, and Web Search), not CPU computation.
-\item
-  \textbf{Concurrency vs.~Parallelism:} Since the primary bottleneck is
-  waiting for external APIs, \textbf{Asynchronous Concurrency} (Python
-  \texttt{asyncio}) is vastly more efficient than Multiprocessing. It
-  allows the system to process dozens of document chunks while waiting
-  for I/O, maximizing throughput without the overhead of OS-level
-  process forking.
-\item
-  \textbf{Rate-Limit Constraints:} In a high-concurrency environment,
-  the system performance is bounded not by hardware, but by
-  \textbf{Token-Per-Minute (TPM)} quotas of the LLM provider. An
-  effective architecture must implement ``Backpressure'' to handle these
-  limits gracefully.
-\end{itemize}
 
-\textbf{Implementation Options:}
+class TimeMappings(BaseModel):
+    mappings: list[TimeMapping]
+\end{lstlisting}
+\end{CodeListing}
+\caption{Structured output schema of consolidated rules}\label{program:consolidated-output}
+\end{program}
 
-\begin{itemize}
 
-\item
-  \textbf{Option A: Synchronous Sequential Processing.} Processing chunk
-  \(n\) only after chunk \(n-1\) finishes.
+\begin{figure}[hbtp]
+\begin{minipage}{\textwidth}
 
-  \begin{itemize}
-  
-  \item
-    \emph{Verdict:} \textbf{Discarded.} Processing a 50-page manual took
-    \textgreater45 minutes. Unacceptable for interactive use.
-  \end{itemize}
-\item
-  \textbf{Option B: Multi-Threading/Multi-Processing.} Using
-  \texttt{ThreadPoolExecutor}.
+\begin{UserMessage}
+You are an expert at optimizing Python rule sets for industrial process monitoring.\\[6pt]
 
-  \begin{itemize}
-  
-  \item
-    \emph{Verdict:} \textbf{Discarded.} Python's Global Interpreter Lock
-    (GIL) limits threading efficiency, and Multiprocessing introduces
-    high memory overhead (loading the Embedding model in every process).
-  \end{itemize}
-\item
-  \textbf{Option C: Asynchronous Event Loop (AsyncIO).} Using
-  \texttt{async/await} patterns to suspend execution during I/O waits.
+AVAILABLE SENSORS:\\
+\textcolor{purple}{\{list of sensors\}}\\[6pt]
 
-  \begin{itemize}
-  
-  \item
-    \emph{Verdict:} \textbf{Selected.} Matches perfectly with
-    LangChain/LangGraph's async capabilities. Allows processing
-    \textasciitilde50 chunks concurrently on a single core.
-  \end{itemize}
-\end{itemize}
+AVAILABLE STATISTICS:\\
+\textcolor{purple}{\{list of available statistics\}}\\[6pt]
 
-\textbf{Implementation:} The final architecture utilizes a
-\textbf{Map-Reduce pattern} implemented via \textbf{LangGraph}:
+RULES TO CONSOLIDATE:\\
+\textcolor{purple}{\{list of rules to consolidate\}}\\[6pt]
+
+YOUR TASK:
 
 \begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\item
-  \textbf{The Map Step (Extraction):}
+    \item Identify REDUNDANT rules:
+    \begin{itemize}
+    \item Exact duplicates (same sensor, same threshold, same logic)
+    \item Semantic duplicates (different wording but identical meaning)
+    \item Subset rules (one rule is contained in another)
+    \end{itemize}
+    \item Identify rules that can be MERGED:
+    \begin{itemize}
+        \item Multiple conditions for same alert (combine with AND)
+        \item Same action for different triggers (combine with OR)
+        \item Hierarchical alerts (warning + critical thresholds for same sensor)
+    \end{itemize}
+    \item Identify rules that can be SIMPLIFIED:
 
-  \begin{itemize}
-  
-  \item
-    The document is split into \(N\) chunks.
-  \item
-    We utilize \texttt{asyncio.gather(*tasks)} to spawn \(N\) instances
-    of the \texttt{RuleExtractionWorkflow} (from Section 5.3).
-  \item
-  \item
-    Each instance operates independently: retrieving context (Qdrant),
-    searching web (Tavily), and generating Python code.
-  \item
-    \emph{Semaphore:} A \texttt{asyncio.Semaphore(limit=5)} is
-    implemented to control the ``Blast Radius''---preventing us from
-    hitting OpenAI/Anthropic rate limits by ensuring only 5 chunks
-    trigger LLM calls simultaneously.
-  \end{itemize}
-\item
-  \textbf{The Reduce Step (Consolidation):}
+    \begin{itemize}
+        \item Redundant conditions (e.g., temp > 100 AND temp > 90 $\rightarrow$ temp > 100)
+        \item Overly complex boolean logic that can be simplified
+        \item Constant expressions that can be pre-computed
+    \end{itemize}
+\end{enumerate}\vspace{6pt}
 
-  \begin{itemize}
-  
-  \item
-    Once all extraction tasks complete, results are aggregated.
-  \item
-    The \texttt{RuleConsolidationWorkflow} (Section 5.8) takes over.
-  \item
-    It utilizes \textbf{Batch Processing} rather than full parallelism
-    here, grouping rules by sensor topology to ensure context
-    preservation.
-  \end{itemize}
-\end{enumerate}
-
-\textbf{Code Strategy (Async Orchestration):}
-
-\textbf{Results:}
+IMPORTANT:
 
 \begin{itemize}
-
-\item
-  \textbf{Latency Reduction:}
-
-  \begin{itemize}
-  
-  \item
-    \emph{Sequential:} \textasciitilde45 minutes for 50 pages (approx.
-    54s per page).
-  \item
-    \emph{Asynchronous:} \textasciitilde4 minutes for 50 pages (limited
-    only by the Semaphore).
-  \item
-    \textbf{Speedup Factor:} \textasciitilde11x.
-  \end{itemize}
-\item
-  \textbf{Resource Efficiency:} The system runs comfortably on a
-  standard container (2 vCPU, 4GB RAM) because the heavy lifting is
-  offloaded to the API providers. The local embedding model (Ollama) was
-  the only significant CPU consumer.
-\item
-  \textbf{The ``Thundering Herd'' Problem:} Initially, firing 50
-  requests caused Qdrant to timeout. Implementing the Semaphore and
-  exponential backoff retries stabilized the system.
+    \item Preserve ALL required fields in \lstinline{output_rule}: \lstinline{rule_name}, \lstinline{rule_description}, \lstinline{rule_reasoning}, \lstinline{rule_source}, \lstinline{rule_body}
+    \item Keep sensor IDs and time expressions exactly as they are in \lstinline{rule_body}
+    \item Only suggest changes you're confident about ($\geq 0.5$)
+    \item If merging rules from different sources, combine their \lstinline{rule_source} values
 \end{itemize}
+\end{UserMessage}
 
-\textbf{Possible Improvements:}
+\end{minipage}
 
-\begin{itemize}
-
-\item
-  \textbf{Streaming:} The current system waits for \emph{all} chunks to
-  finish before consolidation. A \textbf{Streaming Architecture} could
-  begin consolidating ``Flow Control'' rules as soon as the ``Flow''
-  section chunks are processed, progressively updating the user UI.
-\item
-  \textbf{Caching:} Implementing a semantic cache (Redis) for common
-  queries (e.g., resolving ``TIC-101'') to avoid redundant LLM calls
-  across different documents.
-\end{itemize}
-
-\textbf{Literature:}
-
-\begin{itemize}
-
-\item
-  \textbf{Dean, J., \& Ghemawat, S. (2008).} \emph{MapReduce: Simplified
-  Data Processing on Large Clusters.} (The foundational pattern for this
-  architecture).
-\item
-  \textbf{Fowler, M.} \emph{Patterns of Enterprise Application
-  Architecture.} (Reference for the Async/Await and Throttling
-  patterns).
-\end{itemize}
+\caption{Rule consolidation prompt}
+\label{thread:9-consolidation}
+\end{figure}
