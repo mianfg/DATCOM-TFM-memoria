@@ -97,7 +97,7 @@ For AI to be trusted in industry, it must be observable.
 
 Traditional ML often operates in \textbf{batch} mode (processing all historical data at once). Industrial monitoring requires \textbf{stream} processing, where data is processed item-by-item in real-time as it arrives from sensors.
 
-To execute rules like ``average over the last 24 hours'' on a high-frequency stream without storing all data points in memory, we utilize \textbf{\textit{incremental learning}}. Libraries like \textbf{\textit{River}} provide algorithms to update statistics (mean, variance, drift) with $O(1)$ time and memory complexity.
+To execute rules like ``average over the last 24 hours'' on a high-frequency stream without storing all data points in memory, we utilize \textbf{\textit{incremental learning}}. Libraries like \textbf{\textit{River}} provide algorithms to update statistics (mean, variance, drift) in an efficient way.
 \[
 \mu_n = \mu_{n-1} + \frac{x_n - \mu_{n-1}}{n}
 \]
