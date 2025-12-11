@@ -4,7 +4,7 @@
 
 \chapter{Operational Runtime \& Dynamic Verification}\label{ch:6-operational-runtime-dynamic-verification}
 
-While the previous chapter focused on the extraction of static Python functions from natural-language rules, the present chapter examines the mechanisms that allow those functions to operate reliably over live industrial data streams. In other words, if \cref{ch:5-solution-design-and-implementation} described how rules are constructed, this chapter explains how they are executed under the constraints of real-time monitoring, limited computational budgets, and strict safety requirements. The central argument is that LLM-generated logic can only become operationally useful once it is grounded in an execution environment that guarantees deterministic behaviour and constant-time performance. To achieve this, we develop a runtime architecture that behaves analogously to a small virtual machine, capable of analysing rule functions, allocating the necessary state, and applying each rule to streaming sensor values with the efficiency and robustness required in industrial contexts.
+While the previous chapter focused on the extraction of static Python functions from natural-language rules, the present chapter examines the mechanisms that allow those functions to operate reliably over live industrial data streams. In other words, if \Cref{ch:5-solution-design-and-implementation} described how rules are constructed, this chapter explains how they are executed under the constraints of real-time monitoring, limited computational budgets, and strict safety requirements. The central argument is that LLM-generated logic can only become operationally useful once it is grounded in an execution environment that guarantees deterministic behaviour and constant-time performance. To achieve this, we develop a runtime architecture that behaves analogously to a small virtual machine, capable of analysing rule functions, allocating the necessary state, and applying each rule to streaming sensor values with the efficiency and robustness required in industrial contexts.
 
 \section{The Execution Challenge}\label{sec:the-execution-challenge}
 
@@ -26,9 +26,9 @@ The runtime is composed of two tightly coupled components. Together, they implem
 
 \subsection{\texttt{RuleChecker}: Orchestration and Fault Isolation}
 
-The \texttt{RuleChecker} is responsible for ingesting the rule definitions produced in \cref{ch:5-solution-design-and-implementation} and turning them into executable functions. During initialization, it compiles each rule body using \texttt{exec} and wraps the resulting callable in a \texttt{RuleMetadata} object. Importantly, compilation errors do not destabilize the system: if a rule cannot be compiled, it is marked as invalid without affecting others.
+The \texttt{RuleChecker} is responsible for ingesting the rule definitions produced in \Cref{ch:5-solution-design-and-implementation} and turning them into executable functions. During initialization, it compiles each rule body using \texttt{exec} and wraps the resulting callable in a \texttt{RuleMetadata} object. Importantly, compilation errors do not destabilize the system: if a rule cannot be compiled, it is marked as invalid without affecting others.
 
-At runtime, \texttt{RuleChecker} acts as a controlled execution layer. For every incoming timestamp, it iterates over all compiled rules, evaluates them against the current sensor state, and captures any exceptions. This mechanism creates a strict isolation boundary—one malfunctioning rule cannot halt the monitoring system. Whenever a rule returns a non-null value, a \texttt{RuleEvent} object is recorded, enriched with explanations suitable for operators and audit processes. An example of how rules are initialized and executed is shown in \cref{program:rulechecker-usage}.
+At runtime, \texttt{RuleChecker} acts as a controlled execution layer. For every incoming timestamp, it iterates over all compiled rules, evaluates them against the current sensor state, and captures any exceptions. This mechanism creates a strict isolation boundary—one malfunctioning rule cannot halt the monitoring system. Whenever a rule returns a non-null value, a \texttt{RuleEvent} object is recorded, enriched with explanations suitable for operators and audit processes. An example of how rules are initialized and executed is shown in \Cref{program:rulechecker-usage}.
 
 
 \begin{program}[hbtp]
@@ -69,12 +69,12 @@ Prior to any streaming execution, the system performs an AST traversal over all 
 The process is as follows:
 
 \begin{enumerate}
-\item \textbf{Static requirement extraction.} Prior to any streaming execution, the system performs an AST traversal over all rule bodies to identify every invocation of \texttt{status.get}, as illustrated in the synthetic rules in \cref{generatedrule:synthetic-simple,generatedrule:synthetic-complex}. From these occurrences it derives a set of \emph{requirements}: which sensors are needed, which temporal windows must be maintained, and which statistics must be computed.
+\item \textbf{Static requirement extraction.} Prior to any streaming execution, the system performs an AST traversal over all rule bodies to identify every invocation of \texttt{status.get}, as illustrated in the synthetic rules in \Cref{generatedrule:synthetic-simple,generatedrule:synthetic-complex}. From these occurrences it derives a set of \emph{requirements}: which sensors are needed, which temporal windows must be maintained, and which statistics must be computed.
 \item \textbf{Memory allocation and River integration.} For each requirement, \texttt{BufferedStatus} allocates an incremental statistic from the River library, such as \texttt{Rolling(Mean())}, \newline \texttt{Rolling(Var())}, or a rolling quantile estimator. These objects maintain constant-time updates using compact window buffers.
 \item \textbf{Semantic mapping of statistics.} Statistics used in rules are translated into specific River objects. In this way, the high-level semantics expressed in natural language become executable, mathematically grounded operations.
 \end{enumerate}
 
-Once initialized, \texttt{BufferedStatus} consumes each row of sensor data, updates the relevant River objects, and exposes the current aggregated values to any rule that requests them. All temporal statistics can therefore be retrieved in constant time, and the cost of evaluation is independent of the length of the requested time interval. A graphical depiction of the streaming sensor values and their corresponding triggers for simple rules is presented in \cref{figure:synthetic-streams,figure:triggers-simple}, and for complex rules in \cref{figure:triggers-complex}.
+Once initialized, \texttt{BufferedStatus} consumes each row of sensor data, updates the relevant River objects, and exposes the current aggregated values to any rule that requests them. All temporal statistics can therefore be retrieved in constant time, and the cost of evaluation is independent of the length of the requested time interval. A graphical depiction of the streaming sensor values and their corresponding triggers for simple rules is presented in \Cref{figure:synthetic-streams,figure:triggers-simple}, and for complex rules in \Cref{figure:triggers-complex}.
 
 \vspace{2em}
 
@@ -88,7 +88,7 @@ The key to practical deployment is the transition from dataframe-based windowing
 \item \textbf{Query-time efficiency.} Retrieving any statistic—mean, variance, max, quantile—requires no recomputation. Values are pre-computed incrementally and available immediately to the rule logic.
 \end{itemize}
 
-Thus, \cref{ch:5-solution-design-and-implementation}’s static rule functions become fully operational: they are executed continuously without violating real-time constraints.
+Thus, \Cref{ch:5-solution-design-and-implementation}’s static rule functions become fully operational: they are executed continuously without violating real-time constraints.
 
 \section{Event Generation and Explainability}\label{event-sinking-and-explanations}
 
@@ -96,7 +96,7 @@ Whenever a rule concludes that a condition has been met, the system emits a stru
 
 Each event captures the timestamp, the rule name, the computed result, and the relevant sensor values at the time of triggering. Events can be streamed into dashboards, alerting systems, or compliance logs without additional post-processing.
 
-It is also relevant to clarify that, although the rule logic is written in Python, the engine produces textual explanations that describe, in simple operational language, why the rule triggered. This forms the transparency layer required for safe deployment. Examples of simple rule definitions are shown in \cref{generatedrule:synthetic-simple}, while more complex, multi-sensor conditions appear in \cref{generatedrule:synthetic-complex}.
+It is also relevant to clarify that, although the rule logic is written in Python, the engine produces textual explanations that describe, in simple operational language, why the rule triggered. This forms the transparency layer required for safe deployment. Examples of simple rule definitions are shown in \Cref{generatedrule:synthetic-simple}, while more complex, multi-sensor conditions appear in \Cref{generatedrule:synthetic-complex}.
 
 
 

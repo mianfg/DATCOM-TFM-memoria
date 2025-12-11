@@ -165,9 +165,9 @@
 
 \newtcolorbox{ToolMessage}[1][]{%
   enhanced,
-  colback=cyan!5,
-  colframe=cyan!60,
-  borderline west={3pt}{0pt}{cyan!80},
+  colback=violet!5,
+  colframe=violet!60,
+  borderline west={3pt}{0pt}{violet!80},
   fonttitle=\bfseries,
   title=\faTools\hspace{0.6em}\textsf{Tool Call},
   #1
@@ -212,6 +212,17 @@
   title=\faCog\hspace{0.6em}\textsf{Rule},
   #1
 }
+
+\newtcolorbox{DocumentMessage}[1][]{%
+  enhanced,
+  colback=cyan!5,
+  colframe=cyan!60,
+  borderline west={3pt}{0pt}{cyan!80},
+  fonttitle=\bfseries,
+  title=\faFile\hspace{0.6em}\textsf{Document},
+  #1
+}
+
 
 \newtcolorbox{CodeListing}[1][]{%
   enhanced,

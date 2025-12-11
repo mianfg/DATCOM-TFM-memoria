@@ -7,7 +7,7 @@ This work has addressed the critical ``definition bottleneck'' in industrial ano
 The primary contributions of this work are:
 
 \begin{itemize}
-    \item \textbf{A Novel ``Program-of-Thoughts'' Extraction Paradigm:} We moved beyond the limitations of static data schemas (JSON/XML) by framing rule extraction as a code generation task. By instructing the Large Language Model to ``think in Python,'' we leveraged its reasoning capabilities to capture complex industrial logic—such as accumulation, rates of change, and arithmetic comparisons—that static schemas failed to represent efficiently.
+    \item \textbf{A Novel ``Program-of-Thoughts'' (PoT) Extraction Paradigm:} We moved beyond the limitations of static data schemas (JSON/XML) by framing rule extraction as a code generation task. By instructing the Large Language Model to ``think in Python,'' we leveraged its reasoning capabilities to capture complex industrial logic—such as accumulation, rates of change, and arithmetic comparisons—that static schemas failed to represent efficiently.
     \item \textbf{Layout-Aware Retrieval Architecture:} We implemented a robust RAG pipeline using \textit{Docling} and \textit{Matryoshka} embeddings. This architecture successfully bridged the gap between visual document layout and semantic understanding, ensuring that rules embedded in tables and diagrams were preserved during the extraction process.
     
     \item \textbf{Privacy-First Local Execution:} We proved the viability of running state-of-the-art reasoning models (such as DeepSeek-R1) entirely on-premise. This ensures that sensitive industrial intellectual property never leaves the air-gapped environment, satisfying a non-negotiable requirement for deployment in the Oil \& Gas sector.
@@ -16,7 +16,7 @@ The primary contributions of this work are:
 
 \section{Addressing Objectives and Research Questions}
 
-Relating back to the research questions posed in \cref{ch:introduction}, this thesis yields the following conclusions:
+Relating back to the research questions posed in \Cref{ch:introduction}, this thesis yields the following conclusions:
 
 \begin{description}
     \item[RQ1: Extraction] \textit{How can hidden knowledge be formalized?} \\
@@ -42,22 +42,22 @@ In answering these questions through research and engineering, we were able to s
 
 \begin{description}
     \item[O1: Formalization] \textit{Strategy to translate ambiguity into deterministic logic.} \\
-    Addressed in \cref{sec:implementation-4-python-functions}. We developed a "Program-of-Thoughts" approach that leverages the code-generation capabilities of LLMs to formalize ambiguous natural language into precise Python functions, using an abstract API to encapsulate complexity.
+    Addressed in \Cref{sec:implementation-4-python-functions}. We developed a "Program-of-Thoughts" approach that leverages the code-generation capabilities of LLMs to formalize ambiguous natural language into precise Python functions, using an abstract API to encapsulate complexity.
 
     \item[O2: Ontological Bridging] \textit{Methods to resolve the semantic gap generic equipment and specific tags.} \\
-    Addressed in \cref{sec:implementation-5-sensors}. We found that a dedicated agentic step (Sensor Resolution Agent) could effectively bridge this gap by querying a "mocked" API interface (\texttt{status.get()}) with natural language parameters, delaying resolution until the intent was clear.
+    Addressed in \Cref{sec:implementation-5-sensors}. We found that a dedicated agentic step (Sensor Resolution Agent) could effectively bridge this gap by querying a "mocked" API interface (\texttt{status.get()}) with natural language parameters, delaying resolution until the intent was clear.
 
     \item[O3: External Grounding] \textit{Integration of external world knowledge.} \\
-    Addressed in \cref{sec:implementation-7-grounding}. By choosing Python as the output medium, we implicitly allowed the model to leverage its pre-trained knowledge of physics equations and unit conversions, grounding the extracted rules in real-world constraints without needing explicit external knowledge bases.
+    Addressed in \Cref{sec:implementation-7-grounding}. By choosing Python as the output medium, we implicitly allowed the model to leverage its pre-trained knowledge of physics equations and unit conversions, grounding the extracted rules in real-world constraints without needing explicit external knowledge bases.
 
     \item[O4: Verification] \textit{Trustworthiness and explainability.} \\
-    Addressed in \cref{sec:implementation-8-verification}. We established a clear lineage by generating independent, readable functions. Explainability is inherent in the code itself and the structured reasoning metadata accompanying every extracted rule.
+    Addressed in \Cref{sec:implementation-8-verification}. We established a clear lineage by generating independent, readable functions. Explainability is inherent in the code itself and the structured reasoning metadata accompanying every extracted rule.
 
     \item[O5: Quality Assurance] \textit{Metrics and consolidation.} \\
-    Addressed in \cref{sec:implementation-9-consolidation} and \cref{evaluation-methodology}. We defined the synthetic evaluation strategy to measure precision and recall, and implemented consolidation logic to de-duplicate rules extracted from overlapping chunks.
+    Addressed in \Cref{sec:implementation-9-consolidation} and \Cref{evaluation-methodology}. We defined the synthetic evaluation strategy to measure precision and recall, and implemented consolidation logic to de-duplicate rules extracted from overlapping chunks.
 
     \item[O6: Operational Efficiency] \textit{Stream processing architecture.} \\
-    Addressed in \cref{ch:6-operational-runtime-dynamic-verification}. We designed and validated the \texttt{RuleChecker} runtime engine, utilizing the \textit{River} library to execute the natural language rules with $O(1)$ time complexity, ensuring suitability for real-time edge environments.
+    Addressed in \Cref{ch:6-operational-runtime-dynamic-verification}. We designed and validated the \texttt{RuleChecker} runtime engine, utilizing the \textit{River} library to execute the natural language rules with $O(1)$ time complexity, ensuring suitability for real-time edge environments.
 \end{description}
 
 
@@ -67,12 +67,12 @@ In answering these questions through research and engineering, we were able to s
         \toprule
         \textbf{Obj.} & \textbf{R.Q.} & \textbf{Focus} & \textbf{Addressed In} \\
         \midrule
-        O1 & RQ1 & Formalization & \cref{sec:implementation-4-python-functions}, \cref{ch:5-solution-design-and-implementation} \\
-        O2 & RQ2 & Ambiguity \& Resolution & \cref{sec:implementation-5-sensors} \\
-        O3 & RQ3 & Reasoning \& Grounding & \cref{sec:implementation-7-grounding} \\
-        O4 & RQ4 & Explainability & \cref{sec:implementation-8-verification}, \cref{llm-orchestration-and-workflows}, \cref{event-sinking-and-explanations} \\
-        O5 & RQ5 & Quality Assurance & \cref{sec:implementation-9-consolidation}, \cref{evaluation-of-rule-extraction-nlp-performance} \\
-        O6 & RQ6 & Complexity \& Efficiency & \cref{ch:6-operational-runtime-dynamic-verification}, \cref{efficient-temporal-resolution-o1-complexity} \\
+        O1 & RQ1 & Formalization & \Cref{sec:implementation-4-python-functions}, \Cref{ch:5-solution-design-and-implementation} \\
+        O2 & RQ2 & Ambiguity \& Resolution & \Cref{sec:implementation-5-sensors} \\
+        O3 & RQ3 & Reasoning \& Grounding & \Cref{sec:implementation-7-grounding} \\
+        O4 & RQ4 & Explainability & \Cref{sec:implementation-8-verification}, \Cref{llm-orchestration-and-workflows}, \Cref{event-sinking-and-explanations} \\
+        O5 & RQ5 & Quality Assurance & \Cref{sec:implementation-9-consolidation}, \Cref{evaluation-of-rule-extraction-nlp-performance} \\
+        O6 & RQ6 & Complexity \& Efficiency & \Cref{ch:6-operational-runtime-dynamic-verification}, \Cref{efficient-temporal-resolution-o1-complexity} \\
         \bottomrule
     \end{tabular}
     \caption{Summary of Objectives, Research Questions, and where they are mainly addressed}
@@ -93,7 +93,7 @@ While this thesis establishes a functional framework for automated anomaly defin
 
 \subsection{Human-in-the-Loop Integration}
 
-Currently, the system operates as an automated extraction engine. However, in safety-critical industrial environments, full automation is rarely the end goal. A critical next step is the formal integration of a \textbf{\textit{Human-in-the-Loop}} (HITL) interface. This would allow domain experts (process engineers) to review, validate, and edit the automatically generated Python rules before they are deployed to the runtime engine. This creates a synergy where AI handles the high-volume ``drudgery'' of reading manuals, while humans provide the final safety certification.
+Currently, the system operates as an automated extraction engine. However, in safety-critical industrial environments, full automation is rarely the end goal. A critical next step is the formal integration of a \textbf{\textit{Human-in-the-Loop}} \textbf{(HITL)} interface. This would allow domain experts (process engineers) to review, validate, and edit the automatically generated Python rules before they are deployed to the runtime engine. This creates a synergy where AI handles the high-volume ``drudgery'' of reading manuals, while humans provide the final safety certification.
 
 \subsection{Extensive Verification on Industrial Data}
 A significant limitation of this study was the inability to use proprietary Repsol sensor data for large-scale verification due to the inexistence of tagged data. Consequently, our testing relied on synthetic and theoretical validation.
