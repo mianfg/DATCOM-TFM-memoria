@@ -8,18 +8,18 @@
 \selectlanguage{english}
 \chapter{Summary}
 
-The digitalization of the process industry has created a data-rich but knowledge-sparse environment, where terabytes of untagged sensor data are generated daily while the critical operational logic required to define safety anomalies remains trapped in unstructured technical documentation. This manual dependency creates a severe bottleneck, as interpreting these complex specifications requires domain engineers, making the process unscalable. Traditional data-driven anomaly detection methods rely on historical patterns, rendering them insufficient for identifying "zero-shot" failure modes in safe-by-design environments where catastrophic events are, by definition, rare and absent from training data. 
+The digitalization of the process industry has created a data-rich but knowledge-sparse environment, where terabytes of untagged sensor data are generated daily while the critical operational logic required to define safety anomalies remains trapped in unstructured technical documentation. This manual dependency creates a severe bottleneck, as interpreting these complex specifications requires domain engineers, making the process unscalable. While the literature is rich in data-driven anomaly detection methods that rely on historical patterns, there is a notable scarcity of frameworks that address the \textit{definition} of anomalies themselves. Traditional methods fail to identify failures that are described in safety manuals but have never occurred in operation, as they are absent from training data.
 
-To address this ``definition bottleneck'', we propose a multi-stage semantic compilation framework that treats natural language specifications as source code, formalized into executable rules and deployed on a lightweight streaming engine. By leveraging a ``Program-of-Thoughts'' paradigm and layout-aware Retrieval-Augmented Generation, we transform ambiguous operating manuals into deterministic Python logic, effectively treating the Large Language Model not as an oracle, but as a compiler for diverse engineering constraints.
+To address this definition gap, we propose a multi-stage semantic compilation framework that treats natural language specifications as source code, formalized into executable rules and deployed on a lightweight streaming engine. By leveraging a Program-of-Thoughts paradigm and layout-aware Retrieval-Augmented Generation, we transform ambiguous operating manuals into deterministic Python logic, effectively treating the Large Language Model not as an oracle, but as a compiler for diverse engineering constraints.
 
-Experimental results on a synthetic ``twin'' dataset demonstrate that this approach achieves 100\% syntactic validity in rule generation through constrained decoding, and significantly improves semantic recall for complex temporal constraints compared to standard zero-shot baselines. Crucially, the architecture explicitly decouples the probabilistic definition layer from the execution layer. We rely on local models solely for the extraction process to guarantee data sovereignty, while the runtime execution remains purely deterministic.
+Experimental results on a synthetic dataset demonstrate that this approach achieves near-perfect validity in rule generation through constrained decoding, and significantly improves semantic recall for complex temporal constraints compared to standard baselines. Crucially, the architecture explicitly decouples the probabilistic definition layer from the execution layer. We rely on local models solely for the extraction process to guarantee data sovereignty, while the runtime execution remains purely deterministic.
 
-Validation on a streaming runtime demonstrates that the extracted rules can be evaluated in $O(1)$ time using incremental statistics, confirming suitability for high-frequency industrial edge deployment.
+Validation on a streaming runtime indicates that the extracted rules can be evaluated efficiently using incremental statistics. These results serve as a proof-of-concept for high-frequency industrial edge deployment, offering a foundation for more autonomous, specification-driven monitoring systems.
 
 \vspace{2em}
 
 \begin{description}
-\item[Keywords:] Anomaly Definition, Large Language Models (LLM), Retrieval-Augmented Generation (RAG), Search-Augmented Generation (SAG), Structured Output, Industrial IoT, Stream Processing, Program-of-Thoughts, Knowledge Extraction, Edge Computing.
+\item[Keywords:] Anomaly Definition, Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), Search-Augmented Generation (SAG), Structured Output, Industrial IoT, Stream Processing, Program-of-Thoughts, Knowledge Extraction, Edge Computing.
 \end{description}
 
 

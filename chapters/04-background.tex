@@ -26,11 +26,11 @@ However, these approaches suffer from critical limitations when applied to proce
 
 To automate rule generation, operational knowledge must be extracted from technical documentation (Standard Operating Procedures, P\&IDs,\footnote{P\&IDs: Piping \& Instrumentation Diagrams} Manuals). This falls under the domain of Information Extraction (IE).
 
-\subsection{Traditional NLP: Fact vs. Logic Extraction} Traditional IE techniques utilizing Named Entity Recognition (NER) and regular expressions have proven effective for extracting \textit{static facts} (e.g., extracting parameter values like "100 psi" or standard codes like "ISO-9001") from industrial specifications \cite{magnini_understanding_2024,tufek_semantic_2023}.
+\textbf{Traditional IE techniques} utilizing Named Entity Recognition (NER) and regular expressions have proven effective for extracting \textit{static facts} (e.g., extracting parameter values like "100 psi" or standard codes like "ISO-9001") from industrial specifications \cite{magnini_understanding_2024,tufek_semantic_2023}.
 
 However, these methods struggle with \textit{procedural logic}. Industrial rules often involve complex conditional dependencies (nested \textit{if-then-else} structures) and temporal constraints (e.g., \textit{"Open valve A only after pump B has run for 10 minutes"}). Traditional pipeline-based NLP (e.g., spaCy chains) often fails to capture the long-range dependencies and implicit causal links required to form executable logic \cite{rula_procedural_2023}.
 
-\subsection{Procedural Text Mining} Recent work in "Procedural Text Mining" attempts to address this by modeling documents as graphs of actions and states. While promising, existing systems often require rigid ontologies or extensive annotation to distinguish between descriptive text and prescriptive instructions \cite{rula_procedural_2023}. They rarely output executable code directly, stopping short at structured text representations.
+Recent work in \textbf{Procedural Text Mining} attempts to address this by modeling documents as graphs of actions and states. While promising, existing systems often require rigid ontologies or extensive annotation to distinguish between descriptive text and prescriptive instructions \cite{rula_procedural_2023}. They rarely output executable code directly, stopping short at structured text representations.
 
 
 

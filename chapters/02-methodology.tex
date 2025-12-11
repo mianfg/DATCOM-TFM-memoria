@@ -25,7 +25,7 @@ This cycle ensures that the final system is not just a collection of features, b
 The methodological work is structured into four distinct phases, executed sequentially but with internal iterative loops.
 
 \subsection*{Phase 1: State of the Art and Feasibility Analysis}
-The initial phase focused on a comprehensive review of existing approaches to industrial event detection. We analyzed traditional methods (expert systems, statistical anomaly detection) to identify their limitations.
+The initial phase focused on a comprehensive review of existing approaches to industrial event detection. We analyzed traditional methods (expert systems, statistical anomaly detection) to identify their limitations. This phase is detailed in \cref{background-and-state-of-the-art}.
 \begin{description}
     \item[Objective:] Determine if LLMs possess the necessary semantic understanding to parse unstructured technical specifications.
     \item[Methodology:] Comparative analysis of traditional methods (expert systems, statistical anomaly) versus State of the Art LLM capabilities.
@@ -33,7 +33,7 @@ The initial phase focused on a comprehensive review of existing approaches to in
 \end{description}
 
 \subsection*{Phase 2: Iterative Design of the Rule Extractor}
-This phase represents the bulk of the investigative work. Following the iterative methodology described above, we evolved the system from a simple script into a multi-stage agentic pipeline.
+This phase represents the bulk of the investigative work. Following the iterative methodology described above, we evolved the system from a simple script into a multi-stage agentic pipeline. The findings of this phase are detailed in \Cref{ch:5-solution-design-and-implementation}.
 \begin{description}
     \item[Objective:] Establish a robust mechanism to extract deterministic rules from non-deterministic natural language.
     \item[Methodology:] \textbf{Iterative cycles} (\cref{sec:iterative-cycle}) using \textbf{actual Repsol technical documentation}. Each iteration addressed a specific limitation (e.g., hallucination) via a hypothesis-test cycle.
@@ -41,7 +41,7 @@ This phase represents the bulk of the investigative work. Following the iterativ
 \end{description}
 
 \subsection*{Phase 3: Engineering the Streaming Runtime}
-In contrast to the research-heavy extraction phase, the development of the runtime engine followed a \textbf{pure engineering methodology}.
+In contrast to the research-heavy extraction phase, the development of the runtime engine followed a \textbf{pure engineering methodology}. This phase is layed out in \Cref{ch:6-operational-runtime-dynamic-verification}.
 \begin{description}
     \item[Objective:] Create a high-performance execution environment for the extracted rules.
     \item[Methodology:] \textbf{Test-Driven Development (TDD)} and strict performance profiling, prioritizing $O(1)$ time complexity and memory safety.
@@ -49,7 +49,7 @@ In contrast to the research-heavy extraction phase, the development of the runti
 \end{description}
 
 \subsection*{Phase 4: Synthetic Evaluation Strategy}
-Due to the unavailability of labeled historical anomaly logs (a common constraint in industrial projects), we developed a \textbf{synthetic evaluation methodology}.
+Due to the unavailability of labeled historical anomaly logs (a common constraint in industrial projects), we developed a \textbf{synthetic evaluation methodology}. More details in \Cref{evaluation-and-results}.
 \begin{description}
     \item[Objective:] Validate the correctness of extraction and the latency of execution without ground-truth plant data.
     \item[Methodology:] \textbf{Synthetic generation} for rule extraction validation.
