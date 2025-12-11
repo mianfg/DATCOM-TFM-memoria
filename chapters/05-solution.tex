@@ -10,7 +10,7 @@ In this chapter, we will incrementally build the main object of this thesis: the
     \setcounter{enumi}{-1}
     \item \hyperref[sec:implementation-0]{\textbf{Baseline: Naive Single-Document Extraction:}} extracting rules in natural language providing the document content directly as context, in a ``zero-shot'' fashion.
     \item \hyperref[sec:implementation-1]{\textbf{Chunking:}} chunking the provided documents and execute the ``zero-shot'' approach with each of the chunks.
-    \item \hyperref[sec:implementation-2-structured]{\textbf{Structured output:}} forcing rules to be output with a certain schema.
+    \item \hyperref[sec:implementation-2-structured]{\textbf{Structured Output:}} forcing rules to be output with a certain schema.
     \item \hyperref[sec:implementation-3-rag]{\textbf{Context Gathering via RAG:}} increasing the context of each of the chunks using a RAG approach with similarity search from a vector database.
     \item \hyperref[sec:implementation-4-python-functions]{\textbf{Executable Python Rules:}} breaking free from a schema-oriented output into executable Python functions.
     \item \hyperref[sec:implementation-5-sensors]{\textbf{Sensor Resolution:}} parsing sensor information from the generated Python rules using an agent.
@@ -20,6 +20,8 @@ In this chapter, we will incrementally build the main object of this thesis: the
     \item \hyperref[sec:implementation-9-consolidation]{\textbf{Rule Consolidation:}} unifying rules generated across different chunks, removing redundancies and inconsistencies.
 \end{enumerate}
 
+Finally, in \cref{llm-orchestration-and-workflows} we put everything together and talk about some relevant implementation details for the final workflow, focusing on traceability and observability.
+
 \newpage
 
 \setcounter{section}{-1}
@@ -28,7 +30,7 @@ In this chapter, we will incrementally build the main object of this thesis: the
 
 \begin{figure}[ht]
     \centering
-    \includesvg{diagram-0.svg}
+    \includegraphics{diagram_00.pdf}
     \caption{Naive Single-Document Extraction}
     \label{fig:diagram-0}
 \end{figure}
@@ -41,27 +43,29 @@ Additionally, LLMs have demonstrated ``emergent'' capabilities in \textbf{zero-s
 
 Most importantly, this approach closely explores the \textbf{``death of RAG'' assumption}, which posits that massive context windows may render Retrieval-Augmented Generation obsolete for certain tasks. This argument highlights that self-attention is \textit{lossless}--the model attends to the actual tokens--whereas vector retrieval is \textit{lossy}, as it relies on a compressed numerical shadow of the text \cite{kuratov_cramming_2025}. Furthermore, RAG introduces boundary issues where answers spanning multiple chunks are often missed. In contrast, long-context processing allows the model to reason across the entire text simultaneously, comparing multiple sections without arbitrary boundaries \cite{li_long_2024}.
 
+\vspace*{2em}
+
 \begin{table}[htbp]
     \centering
-    \begin{tabular}{l l l l l}
+    \begin{tabular}{l l l l}
         \toprule
-        & & \textbf{Max. Input} & \textbf{Max. Output} \\
-        \textbf{Model} & \textbf{Release Date \footnote{Release dates correspond to public API availability or technical report publication}} & \textbf{Tokens (Context)} & \textbf{Tokens} & \textbf{Source} \\
+        & \textbf{Release} & \textbf{Max. Input} & \textbf{Max. Output} \\
+        \textbf{Model} & \textbf{Date} & \textbf{Tokens (Context)} & \textbf{Tokens} \\
         \midrule
-        OpenAI GPT-4o & 2024-05-13 & 128k & 16k & \cite{openai_gpt-4o_2024} \\
-        Google Gemini 1.5 Pro & 2024-06-27 & 2M & 8k & ... \\
-        OpenAI o1 & 2024-12-05 & 200k & 1000k & ... \\
-        DeepSeek-V3 & 2024-12-26 & 128k & 8k & ... \\
-        DeepSeek R1 & 2025-01-20 & 128k & 163k & ... \\
-        OpenAI o3 & 2025-04-24 & 200k & 100k & ... \\
-        Google Gemini 2.5 Pro & 2025-06-17 & 1M+\footnote{Indicates the model architecture supports ring-attention scaling beyond 1M tokens (often up to 10M in private preview), though standard API limits may apply.} & 65k & ... \\
+        OpenAI GPT-4o & 2024-05-13 \hspace{2em} & 128k & 16k \\
+        Anthropic Claude 3.5 Sonnet \hspace{2em} & 2024-06-20 & 200k & 8k \\
+        DeepSeek-R1 & 2025-01-20 & 128k & 64k \\
+        Anthropic Claude 3.7 Sonnet & 2025-02-24 & 200k & 128k \\
+        Google Gemini 2.5 Pro & 2025-03-25 & 1M+ & 65k \\
+        OpenAI GPT-5 & 2025-08-07 & 272k & 128k \\
+        Anthropic Claude Opus 4.5 & 2025-11-24 & 200k & 64k \\
+        Google Gemini 3.0 Pro & 2025-11-18 & 1M+ & 65k \\
         \bottomrule
     \end{tabular}
     \footnotesize
-    \caption{Comparison of Context Windows and Output Sizes for Leading LLMs (OpenAI, Google, DeepSeek) from 2024 to 2025}
+    \caption{Comparison of Context Windows and Output Sizes for Leading LLMs}
     \label{tab:context_windows}
 \end{table}
-
 \subsection*{Implementation}
 
 Two primary implementation strategies were considered for this baseline.
@@ -149,11 +153,11 @@ There are mutliple limitations to address from this baseline. We will prioritize
 
 \newpage
 
-\section{Document Segmentation Strategies (Chunking)}\label{sec:implementation-1}
+\section{Document Chunking}\label{sec:implementation-1}
 
 \begin{figure}[ht]
     \centering
-    \includesvg{diagram-1.svg}
+    \includegraphics{diagram_01.pdf}
     \caption{Naive Single-Document Extraction with Chunking}
     \label{fig:diagram-1}
 \end{figure}
@@ -245,11 +249,11 @@ Based on the provided document excerpt, no explicit operational or safety rules 
 
 \newpage
 
-\section{Constrained Decoding \& Schema Enforcement}\label{sec:implementation-2-structured}
+\section{Structured Output}\label{sec:implementation-2-structured}
 
 \begin{figure}[ht]
     \centering
-    \includesvg{diagram-2.svg}
+    \includegraphics{diagram_02.pdf}
     \caption{Naive Single-Document Extraction with Structured Output}
     \label{fig:diagram-2}
 \end{figure}
@@ -437,26 +441,25 @@ Most importantly, we still see some issues we identified earlier. The model is s
 
 \newpage
 
-\section{Contextual Augmentation via Retrieval Augmented Generation
-(RAG)}\label{sec:implementation-3-rag}
+\section{Context Gathering via RAG}\label{sec:implementation-3-rag}
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-2.3cm}\includesvg{diagram-3.svg}
+    \hspace*{-2.3cm}\includegraphics{diagram_03.pdf}
     \caption{Processing of provided collection of documents and ingestion into each database}
     \label{fig:diagram-3}
 \end{figure}
 
 \begin{figure}[ht]
     \centering
-    \includesvg{diagram-4.svg}
+    \includegraphics{diagram_04.pdf}
     \caption{Rule retrieval workflow with context gathering (RAG)}
     \label{fig:diagram-4}
 \end{figure}
 
 We will investigate the integration of Retrieval Augmented Generation (RAG) to resolve context lost during document fragmentation and to accurately process complex visual structures. The hypothesis centers on the critical need for \textbf{layout-aware semantics}. Technical documentation is rarely unstructured text; it relies heavily on spatial layouts--including tables, headers, and indentation--to encode meaning. Traditional OCR and text extraction methods ``flatten'' this two-dimensional structure into a one-dimensional sequence, destroying relational data (e.g., that cell $i,j$ relates to header $j$). Research indicates that layout-aware parsing significantly improves information extraction recall by preserving the ``visual semantics'' of the document \cite{xu_layoutlm_2020, auer_docling_2024}.
 
-Furthermore, this approach provides a \textbf{semantic bridge} over the ``keyhole problem'' identified in \cref{sec:implementation-1}. The ``lost in the middle'' phenomenon persists even in chunked approaches if critical definitions reside in chunk $c_i$ while the rule resides in chunk $c_j$. Dense Vector Retrieval (RAG) bridges this gap by retrieving semantically relevant chunks based on meaning rather than physical proximity, effectively creating a dynamic context window \cite{lewis_retrieval-augmented_2020}. Finally, to satisfy industrial constraints, we leverage \textbf{data sovereignty \& compression} principles. Matryoshka Representation Learning (MRL) enables high-performance embeddings that can be truncated (compressed) with minimal accuracy loss, optimizing local storage without sacrificing retrieval quality \cite{kusupati_matryoshka_2024}.
+Furthermore, this approach provides a \textbf{semantic bridge} over the ``keyhole problem'' identified in \cref{sec:implementation-1}. The ``lost in the middle'' phenomenon persists even in chunked approaches if critical definitions reside in chunk $c_i$ while the rule resides in chunk $c_j$. Dense Vector Retrieval (RAG) bridges this gap by retrieving semantically relevant chunks based on meaning rather than physical proximity, effectively creating a dynamic context window \cite{lewis_retrieval-augmented_2020}. Finally, to satisfy industrial constraints, we leverage \textbf{data sovereignty \& compression} principles. Matryoshka Representation Learning (MRL) enables high-performance embeddings that can be truncated (compressed) with minimal accuracy loss, optimizing local storage without sacrificing retrieval quality \cite{kusupati_matryoshka_2022}.
 
 \subsection*{Implementation}
 
@@ -514,7 +517,7 @@ In order to do this, we implement the following process for each of the chunks (
 
 \begin{enumerate}
     \item \textbf{Retrieval:} using Qdrant's HNSW we get the $k=5$ chunks that are closest to the current chunk via cosine similarity.
-    \item \textbf{Prompt:} we modify the prompt from \cref{thread:0-baseline} to clearly specify the chunking strategy, separating the ``current chunk to analyze'' from the ``additional context'' retrieved in the previous step.
+    \item \textbf{Prompt:} we modify the prompt from \cref{thread:0-baseline} to clearly specify the chunking strategy, separating the ``current chunk to analyze'' from the ``additional context'' retrieved in the previous step (\cref{thread:4-rag}).
     \item \textbf{Structured output:} we use the structured output approach from \cref{sec:implementation-2-structured}, making the model output the rules in a certain schema.
     \item \textbf{Storage:} we store the generated rules in the PostgreSQL database
 \end{enumerate}
@@ -536,26 +539,25 @@ ADDITIONAL CONTEXT FROM ALL DOCUMENTS:\\
 \begin{AssistantMessage}
 %\tcblower
 \begin{lstlisting}[language=Python]
-WIP update output!!!
 ExtractedRules(
     rules=[
-        OperationalRule(
-            rule_name="column_inlet_temperature_monitoring",
-            description="Temperature at column inlet must be monitored by TI-0040",
-            parameter="Temperature",
-            limit_value=26.0,
-            unit="ºC",
-            condition="==",
-            action="Monitor via TI-0040",
+        RangeRule(
+            name="tray_7_temperature_normal",
+            description="Maintain tray 7 temperature around 80.2°C for normal operation. This is a target operating temperature for proper separation in the column.",
+            width=2.0,
+            polarity=-1,
+            variable="tray_7_temperature",
+            min_val=78.0,
+            max_val=82.0,
         ),
-        OperationalRule(
-            rule_name="column_pressure_monitoring",
-            description="Column pressure must be monitored by multiple pressure indicators",
-            parameter="Pressure",
-            limit_value=14.03,
-            unit="kg/cm2",
-            condition="==",
-            action="Monitor via multiple pressure indicators",
+        RangeRule(
+            name="reflux_flow_normal",
+            description="Keep reflux flow around 440 units to ensure proper separation. This is the target operating flow rate for normal column operation.",
+            width=20.0,
+            polarity=0,
+            variable='reflux_flow',
+            min_val=420.0,
+            max_val=460.0,
         ),
         ...
     ]
@@ -574,19 +576,18 @@ ExtractedRules(
 
 This RAG-powered strategy yields promising results. It achieved \textbf{contextual resolution}, significantly reducing the number of ambiguous rules and introducing relevant context necessary for generating the rules. Also, we see more consistent results, especially in tables and diagrams. This was all done \textbf{locally} using Ollama: the entire extraction pipeline still operates air-gapped, meeting strict industrial security requirements.
 
-However, we see significant \textbf{retrieval noise}: occasionally, the embeddings retrieved semantically related but contextually irrelevant chunks. At the same time, we still have some of the issues we had before related to how sensors are parsed: this strategy still has difficulty obtaining the proper IDs. We will talk about this later, in \cref{sec:implementation-5-sensors,,sec:implementation-6-time}.
+However, we see significant \textbf{retrieval noise}: occasionally, the embeddings retrieved semantically related but contextually irrelevant chunks. At the same time, we still have some of the issues we had before related to how sensors are parsed: this strategy still has difficulty obtaining the proper IDs (as evident in \cref{thread:4-rag}). We will talk about this later, in \cref{sec:implementation-5-sensors,,sec:implementation-6-time}.
 
 Still, there's plenty of room for improvement in the retrieval stage. The system lacks \textbf{external validation}, as it only retrieves internal document data but has no context regarding physics or regulation that might be necessary. In the end, we're obtaining the real-world knowledge from the foundational model's training data. In \cref{sec:implementation-7-grounding} we'll discuss some approaches to enchance this.
 
 \newpage
 
-\section{Extraction of Executable Logic (Python
-Functions)}\label{sec:implementation-4-python-functions}
+\section{Executable Python Rules}\label{sec:implementation-4-python-functions}
 
 
 \begin{figure}[ht]
     \centering
-    \includesvg{diagram-5.svg}
+    \includegraphics{diagram_05.pdf}
     \caption{Rule retrieval workflow with context gathering (RAG) and Python function-based rule output}
     \label{fig:diagram-5}
 \end{figure}
@@ -758,7 +759,7 @@ Most importantly, the output is \textbf{valid Python syntax}, allowing us to use
 However, there is still work left to do. There are some notable \textbf{gaps for execution}: the generated code is syntactically correct but not yet executable, because the natural language specifications cannot be directly used. We will address this immediately both for sensor resolution (in \cref{sec:implementation-5-sensors}) and resolving the temporal expressions (in \cref{sec:implementation-6-time}).
 
 
-\begin{generatedrule}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{RuleMessage}
@@ -781,9 +782,9 @@ def reflux_flow_rate_optimization(status) -> str:
 
 \caption{\texttt{reflux\_flow\_rate\_optimization} (\cref{sec:implementation-5-sensors})}
 \label{generatedrule:5-inferential-control-deviation}
-\end{generatedrule}
+\end{figure}
 
-\begin{generatedrule}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{RuleMessage}
@@ -807,23 +808,22 @@ def reboiler_temperature_trend_high(status) -> str:
 
 \caption{\texttt{reboiler\_temperature\_trend\_high} (\cref{sec:implementation-4-python-functions})}
 \label{generatedrule:4-reboiler-temperature-trend-high}
-\end{generatedrule}
+\end{figure}
 
 \newpage
 
-\section{Context-Aware Sensor Resolution (Entity
-Linking)}\label{sec:implementation-5-sensors}
+\section{Sensor Resolution}\label{sec:implementation-5-sensors}
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-2.3cm}\includesvg{diagram-6.svg}
+    \hspace*{-2.3cm}\includegraphics{diagram_06.pdf}
     \caption{Processing and ingesting including sensors CSV}
     \label{fig:diagram-6}
 \end{figure}
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-0.6cm}\includesvg{diagram-7.svg}
+    \hspace*{-0.6cm}\includegraphics{diagram_07.pdf}
     \caption{Rule retrieval workflow including sensor parsing}
     \label{fig:diagram-7}
 \end{figure}
@@ -931,7 +931,7 @@ class SensorMappings(BaseModel):
 \end{program}
 
 
-\begin{generatedrule}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{RuleMessage}
@@ -954,10 +954,10 @@ def reflux_flow_rate_optimization(status) -> str:
 
 \caption{\texttt{reflux\_flow\_rate\_optimization} (\cref{sec:implementation-5-sensors})}
 \label{generatedrule:5-inferential-control-deviation}
-\end{generatedrule}
+\end{figure}
 
 
-\begin{generatedrule}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{RuleMessage}
@@ -981,16 +981,15 @@ def reboiler_temperature_trend_high(status) -> str:
 
 \caption{\texttt{reboiler\_temperature\_trend\_high} (\cref{sec:implementation-5-sensors})}
 \label{generatedrule:5-reboiler-temperature-trend-high}
-\end{generatedrule}
+\end{figure}
 
 \newpage
 
-\section{Semantic Time Parsing \&
-Normalization}\label{sec:implementation-6-time}
+\section{Time Expression Resolution}\label{sec:implementation-6-time}
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-0.6cm}\includesvg{diagram-8.svg}
+    \hspace*{-0.6cm}\includegraphics{diagram_08.pdf}
     \caption{Rule retrieval workflow including time expressions parsing}
     \label{fig:diagram-8}
 \end{figure}
@@ -999,7 +998,7 @@ LLMs exhibit a known weakness in temporal arithmetic and temporal reasoning. Alt
 
 Conventional \textit{Temporal Information Extraction} (TIE) systems such as \textit{SUTime} \cite{chang_sutime_2012} and \textit{HeidelTime} \cite{strotgen_baseline_2015} are optimized for absolute temporal normalization, for example mapping ``next Friday'' to a calendar date like ``2023-11-24.'' Industrial monitoring, however, relies almost exclusively on relative temporal expressions such as ``rolling average over the last 10 minutes.'' Prior work shows that general-purpose tools perform poorly on these domain-specific sliding-window constructions, motivating the need for a custom semantic parser \cite{strotgen_multilingual_2013}.
 
-To bridge this gap, we hypothesize that natural-language interpretation should be decoupled from execution. Mapping language to a constrained intermediate logical form--rather than allowing an LLM to produce direct executable code--has been shown to substantially improve robustness \cite{shin_constrained_2021}. We propose adopting a PromQL-style\footnote{PromQL (Prometheus Query Language) is a functional and declarative query language used to select and aggregate time-series data stored in Prometheus, enabling monitoring, visualization (with tools like Grafana), and alerting on the performance of infrastructure and applications by querying real-time metrics with a powerful and flexible syntax \cite{brazil_prometheus_2018}.} range grammar as this ILF, enabling deterministic translation from fuzzy temporal language into precise queries.
+To bridge this gap, we hypothesize that natural-language interpretation should be decoupled from execution. Mapping language to a constrained intermediate logical form--rather than allowing an LLM to produce direct executable code--has been shown to substantially improve robustness \cite{shin_constrained_2021}. We propose adopting a PromQL-style\footnote{PromQL (Prometheus Query Language) is a functional and declarative query language used to select and aggregate time-series data stored in Prometheus, enabling monitoring, visualization, and alerting on the performance of infrastructure and applications by querying real-time metrics with a powerful and flexible syntax \cite{brazil_prometheus_2018}.} range grammar as this ILF, enabling deterministic translation from fuzzy temporal language into precise queries.
 
 \subsection*{Implementation}
 
@@ -1025,6 +1024,8 @@ We define a strict schema inspired by PromQL's range vectors \cite{brazil_promet
 \end{itemize}
 
 The result is a simple grammar that can be then parsed and used in streaming (see \cref{ch:6-operational-runtime-dynamic-verification}). The possible units of time are defined in a \texttt{TimeUnit} enum (see \cref{tab:timeunit}).
+
+\vspace*{2em}
 
 \begin{table}[htbp]
     \centering
@@ -1053,18 +1054,41 @@ Finally, we add another tag: \texttt{TimeParsingStatus}. If a rule has all of th
 
 \subsection*{Results}
 
-This improvement successfully normalized diverse time expressions, allowing for direct queries to the provided information. It \textbf{correctly standardized} the diverse time expressions, such as:
-
-  \begin{itemize}
-  \item ``average over the last 10 minutes'' \(\to\) \texttt{"10m:",\ "mean"}
-  \item ``current temperature'' \(\to\) \texttt{"0",\ None}
-  \item ``standard deviation over the last hour'' \(\to\) \texttt{"1h:",\ "std"}
-  \end{itemize}
+This improvement successfully normalized diverse time expressions, allowing for direct queries to the provided information. It \textbf{correctly standardized} the diverse time expressions, such as ``average over the last 10 minutes'' \(\to\) \texttt{"10m:",\ "mean"}, or ``current temperature'' \(\to\) \texttt{"0",\ None}.
 
 In \cref{generatedrule:6-inferential-control-deviation,,generatedrule:6-reboiler-temperature-trend-high} we see how the rules changed after the processing of this time parsing agent (from \cref{generatedrule:5-inferential-control-deviation,,generatedrule:5-reboiler-temperature-trend-high}, respectively).
 
+
 Having this format, we are now able to programatically check any of the rules without the need for human intervention. In \cref{ch:6-operational-runtime-dynamic-verification}, we detail how we can dynamically verify rules on runtime thanks to this spec.
 
+
+\begin{program}[hbtp]
+\begin{CodeListing}
+\begin{lstlisting}[language=Python]
+from pydantic import BaseModel, Field
+from src.agent.domain.time.statistic import Statistic
+
+
+class TimeMapping(BaseModel):
+    """Encapsulates time parsing mapping."""
+
+    time_description: str = Field(
+        ..., description="Time expression description in natural language."
+    )
+    time_expression: str = Field(
+        ..., description="Time point or interval in custom grammar."
+    )
+    time_statistic: Statistic | None = Field(
+        ..., description="Aggreate statistic, only for time intervals"
+    )
+
+
+class TimeMappings(BaseModel):
+    mappings: list[TimeMapping]
+\end{lstlisting}
+\end{CodeListing}
+\caption{Structured output schema of time parsing agent}\label{program:time-parsing-output}
+\end{program}
 
 \begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
@@ -1105,41 +1129,8 @@ Input: \textcolor{purple}{\texttt{"\{natural\_language\_expr\}"}}
 \end{figure}
 
 
-\begin{program}[hbtp]
-\begin{CodeListing}
-\begin{lstlisting}[language=Python]
-from pydantic import BaseModel, Field
-from src.agent.domain.time.statistic import Statistic
 
-
-class TimeMapping(BaseModel):
-    """
-    Encapsulates time parsing mapping.
-    """
-
-    time_description: str = Field(
-        ..., description="Time expression description in natural language."
-    )
-    time_expression: str = Field(
-        ..., description="Time point or interval in custom grammar."
-    )
-    time_statistic: Statistic | None = Field(
-        ..., description="Aggreate statistic, only for time intervals"
-    )
-
-
-class TimeMappings(BaseModel):
-    mappings: list[TimeMapping]
-\end{lstlisting}
-\end{CodeListing}
-\caption{Structured output schema of time parsing agent}\label{program:time-parsing-output}
-\end{program}
-
-\newpage
-
-\vfill
-
-\begin{generatedrule}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{RuleMessage}
@@ -1162,10 +1153,10 @@ def reflux_flow_rate_optimization(status) -> str:
 
 \caption{\texttt{reflux\_flow\_rate\_optimization}}
 \label{generatedrule:6-inferential-control-deviation}
-\end{generatedrule}
+\end{figure}
 
 
-\begin{generatedrule}[hbtp]
+\begin{figure}[hbtp]
 \begin{minipage}{\textwidth}
 
 \begin{RuleMessage}
@@ -1189,19 +1180,17 @@ def reboiler_temperature_trend_high(status) -> str:
 
 \caption{\texttt{reboiler\_temperature\_trend\_high}}
 \label{generatedrule:6-reboiler-temperature-trend-high}
-\end{generatedrule}
+\end{figure}
 
-\vfill
 
 \newpage
 
-\section{External Knowledge Grounding \&
-Verification}\label{sec:implementation-7-grounding}
+\section{External Knowledge Grounding}\label{sec:implementation-7-grounding}
 
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-1.3cm}\includesvg{diagram-9.svg}
+    \hspace*{-1.3cm}\includegraphics{diagram_09.pdf}
     \caption{Rule retrieval workflow including external knowledge grounding}
     \label{fig:diagram-9}
 \end{figure}
@@ -1334,13 +1323,12 @@ EXTERNAL KNOWLEDGE (from web search):\\
 
 \newpage 
 
-\section{Multi-Level
-Verification}\label{sec:implementation-8-verification}
+\section{Rule Verification}\label{sec:implementation-8-verification}
 
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-1.3cm}\includegraphics[]{diagram-10.pdf}
+    \hspace*{-1.3cm}\includegraphics{diagram_10.pdf}
     \caption{Rule retrieval workflow including rule verification}
     \label{fig:diagram-10}
 \end{figure}
@@ -1388,14 +1376,13 @@ In the future, integrating type check mechanisms (using \texttt{mypy} or other s
 
 \newpage
 
-\section{Intelligent Rule Consolidation \&
-Optimization}\label{sec:implementation-9-consolidation}
+\section{Rule Consolidation}\label{sec:implementation-9-consolidation}
 
 
 \begin{figure}[ht]
     \centering
-    \hspace*{-2.3cm}\includesvg{diagram-11.svg}
-    \caption{Full rule extraction process, including rule extraction and reconciliation workflows}
+    \hspace*{-2.3cm}\includegraphics{diagram_11.pdf}
+    \caption{Full rule extraction process, including rule extraction and consolidation workflows}
     \label{fig:diagram-11}
 \end{figure}
 
@@ -1411,7 +1398,7 @@ We hypothesize that an LLM-based ``semantic linker'' will minimize the ``distrac
 
 \subsection*{Implementation}
 
-We reevaluate multiple ways to implement this rule reconciliation:
+We reevaluate multiple ways to implement this rule consolidation:
 
 \begin{enumerate}[label=\textbf{\Alph*.}]
 
@@ -1479,11 +1466,9 @@ The system achieved an impressive \textbf{consolidation ratio} of 5:1 (sustained
 
 Additionally, the proposed framework allows us to \textbf{explain} how those rules were consolidated, and from which ones they originate, which is critical for further verification.
 
-This strategy successfully \textbf{identified conflicting rules} and prompted resolution, generating rules of much \textbf{higher quality}.
+This strategy successfully \textbf{identified conflicting rules} and prompted resolution, generating rules of much \textbf{higher quality}. An example can be seen in \cref{generatedrule:consolidated}, a rule consolidated from the rules in \cref{generatedrule:consolidated-before}. Notice how the conditions are seamlessly integrated into one single function.
 
 Future implementations could have more sophisticated conciliation mechanisms with cross-batch dependencies (using graph-based clustering algorithms), as well as allowing the system to use RAG (\cref{sec:implementation-3-rag}) and SAG (\cref{sec:implementation-7-grounding}) to clarify conflicts.
-
-WIP add examples
 
 
 \begin{program}[hbtp]
@@ -1507,7 +1492,7 @@ class RuleConsolidation(BaseModel):
         ..., description="Type of consolidation performed."
     )
     input_rule_ids: list[int] = Field(
-        ..., description="IDs of rules used in reconciliation."
+        ..., description="IDs of rules used in consolidation."
     )
     output_rule: PythonRule | None = Field(
         ..., description="Consolidated rule."
@@ -1582,3 +1567,216 @@ IMPORTANT:
 \caption{Rule consolidation prompt}
 \label{thread:9-consolidation}
 \end{figure}
+
+
+
+
+\begin{figure}[hbtp]
+\begin{minipage}{\textwidth}
+
+\begin{RuleMessage}
+\subsection*{\texttt{column\_differential\_pressure\_high}}
+
+\textsf{Description:} Alert when differential pressure across column exceeds normal range\\[-4pt]
+
+\textsf{Reasoning:} High differential pressure indicates potential flooding, fouling, or excessive vapor flow\\
+
+\begin{lstlisting}[language=Python]
+def column_differential_pressure_high(status) -> str:
+    diff_pressure = status.get("14PI1036", "0")
+    if diff_pressure and diff_pressure > 0.3:
+        return "column_differential_pressure_high"
+    return None
+\end{lstlisting}
+
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{pressure\_drop\_tray\_monitoring}}
+
+\textsf{Description:} Monitor pressure drop across column trays for fouling detection\\[-4pt]
+
+\textsf{Reasoning:} Increasing pressure drop indicates potential fouling or maldistribution in column trays requiring maintenance\\
+
+\begin{lstlisting}[language=Python]
+def pressure_drop_tray_monitoring(status) -> str:
+    pressure_drop = status.get("14PI1036", "0")
+    if pressure_drop and pressure_drop > 1.5:
+        return "pressure_drop_tray_monitoring"
+    return None
+\end{lstlisting}
+
+\end{RuleMessage}
+
+\end{minipage}
+
+\caption{Extracted rules that will be consolidated}
+\label{generatedrule:consolidated-before}
+\end{figure}
+
+
+\begin{figure}[hbtp]
+\ContinuedFloat
+\captionsetup{list=off,format=cont}
+
+\begin{minipage}{\textwidth}
+
+\begin{RuleMessage}
+\subsection*{\texttt{column\_pressure\_drop\_monitor}}
+
+\textsf{Description:} Monitor pressure drop across column trays for maldistribution or fouling\\[-4pt]
+
+\textsf{Reasoning:} Pressure drop monitoring helps detect tray fouling, liquid maldistribution, or other internal issues\\
+
+\begin{lstlisting}[language=Python]
+def column_pressure_drop_monitor(status) -> str:
+    # Monitor column pressure drop
+    column_pressure_drop = status.get("14PI1036", "0")
+    
+    if column_pressure_drop:
+        # Check for excessive pressure drop indicating fouling
+        if column_pressure_drop > 1.5:
+            return "column_pressure_drop_monitor"
+        
+        # Check for trending increase in pressure drop
+        avg_pressure_drop = status.get("14PI1036", "7d:", "mean")
+        if avg_pressure_drop and column_pressure_drop > avg_pressure_drop * 1.2:
+            return "column_pressure_drop_monitor"
+    
+    return None
+\end{lstlisting}
+
+\end{RuleMessage}
+
+\begin{RuleMessage}
+\subsection*{\texttt{pressure\_drop\_tray\_monitoring}}
+
+\textsf{Description:} Monitor pressure drop across column trays for fouling detection\\[-4pt]
+
+\textsf{Reasoning:} Increasing pressure drop indicates potential fouling or maldistribution in column trays requiring maintenance\\
+
+\begin{lstlisting}[language=Python]
+def pressure_drop_tray_monitoring(status) -> str:
+    pressure_drop = status.get("14PI1036", "0")
+    if pressure_drop and pressure_drop > 1.5:
+        return "pressure_drop_tray_monitoring"
+    return None
+\end{lstlisting}
+
+\end{RuleMessage}
+
+\end{minipage}
+
+\caption{Extracted rules that will be consolidated}
+\label{generatedrule:consolidated-before}
+\end{figure}
+
+
+\begin{figure}[hbtp]
+\begin{minipage}{\textwidth}
+
+\begin{RuleMessage}
+\subsection*{\texttt{column\_pressure\_drop\_monitoring}}
+
+\textsf{\textbf{Consolidated rule}} \\[-4pt]
+\begin{adjustwidth}{1.5em}{0pt}
+
+\textsf{Consolidated from:} 4 rules
+\begin{adjustwidth}{1.5em}{0pt}
+\lstinline{column_differential_pressure_high}\\
+\lstinline{pressure_drop_tray_monitoring}\\
+\lstinline{column_tray_pressure_drop_monitor}\\
+\lstinline{column_pressure_drop_monitor} \\[-4pt]
+\end{adjustwidth}
+
+\textsf{Consolidation reason:} All four rules monitor the same sensor (\texttt{14PI1036}) with overlapping thresholds and purposes. Merging creates a hierarchical alert system with clear escalation from operational to maintenance alerts.\\
+\end{adjustwidth}
+
+\textsf{Description:} Comprehensive monitoring of column differential pressure for operational and maintenance alerts\\[-4pt]
+
+\textsf{Reasoning:} Differential pressure monitoring detects flooding, fouling, maldistribution, and excessive vapor flow across column trays with hierarchical alert levels\\
+
+\begin{lstlisting}[language=Python]
+def column_pressure_drop_monitoring(status) -> str:
+    current_pressure_drop = status.get("14PI1036", "0")
+    
+    if current_pressure_drop:
+        # Critical maintenance alert - severe fouling or flooding
+        if current_pressure_drop > 1.5:
+            return "column_pressure_drop_maintenance_critical"
+        
+        # Operational alert - potential flooding or excessive vapor flow
+        elif current_pressure_drop > 0.3:
+            return "column_differential_pressure_high"
+        
+        # Early warning - tray maldistribution or fouling onset
+        elif current_pressure_drop > 0.1:
+            # Check for trending increase
+            avg_pressure_drop = status.get("14PI1036", "7d:", "mean")
+            if avg_pressure_drop and current_pressure_drop > avg_pressure_drop * 1.2:
+                return "column_pressure_drop_trending_high"
+    
+    return None
+\end{lstlisting}
+
+\end{RuleMessage}
+
+\end{minipage}
+
+\caption{Consolidated rule: \texttt{column\_pressure\_drop\_monitoring}}
+\label{generatedrule:consolidated}
+\end{figure}
+
+
+
+\newpage
+
+\section{System Orchestration and Observability}\label{llm-orchestration-and-workflows}
+
+The complete solution presented in this chapter is not merely a linear sequence of scripts, but a sophisticated agentic system. To manage the complexity of state transitions, context retention, and multi-step reasoning, we architected the solution using \textbf{LangGraph} for orchestration and \textbf{LangFuse} for observability.
+
+\subsection{Orchestration via LangGraph}
+
+Standard LLM pipelines (chains) are often directed acyclic graphs (DAGs), which limits their ability to handle loops and conditional retries. Our solution, particularly the refinement and validation loops, requires a cyclic graph architecture.
+
+We implemented the system using \textbf{LangGraph}, a library that models the agent workflows as valid \textit{Finite State Machines} (FSM).
+\begin{itemize}
+    \item \textbf{State:} A shared, typed dictionary (using Pydantic) that persists across graph nodes. This state holds the current list of rules, the document chunk being processed, and any validation errors caught during execution.
+    \item \textbf{Nodes:} Each major processing step (Extraction, Sensor Resolution, Time Resolution, Verification) is an independent node that receives the state, modifies it, and passes it forward.
+    \item \textbf{Edges:} Conditional logic determines the next step. For example, if the Verification Agent (\cref{sec:implementation-8-verification}) returns a syntax error, the graph follows a ``feedback edge'' back to the Generation Agent with the error message as new context, effectively implementing a ``self-correction'' loop.
+\end{itemize}
+
+\subsection{Observability via LangFuse}
+
+Developing non-deterministic systems requires rigorous tracing capabilities. Unlike standard software where a breakpoint suffices, LLM agents require visibility into the prompt variations, temperature settings, and intermediate ``thoughts.''
+
+We integrated \textbf{LangFuse} to provide full observability into the runtime execution:
+\begin{itemize}
+    \item \textbf{Tracing:} Every node execution in LangGraph is recorded as a ``trace''. These traces are grouped in ``sessions'', a single session spans a full workflow run. This allows us to visualize the entire lifecycle of a workflow execution.
+    \item \textbf{Cost \& Latency Tracking:} We monitor the token consumption and execution time of each step, allowing us to identify bottlenecks (e.g., discovering that the ``consolidation'' step consumed 40\% of the total latency).
+    \item \textbf{Dataset Management:} Input/Output pairs from successful runs are saved as a dataset within LangFuse.
+\end{itemize}
+
+\subsection{Data Traceability and Persistence}
+
+A core requirement for industrial auditing is lineage: knowing exactly \textit{why} a rule exists. To achieve this, the graph relies on a relational persistence layer (PostgreSQL) co-located with the vector store.
+
+The schema is designed to enforce referential integrity:
+\begin{enumerate}
+    \item \textbf{\texttt{Documents} Table:} meta-data about the original source file.
+    \item \textbf{\texttt{Chunks} Table:} stores the extracted text segments and their Qdrant vector IDs.
+    \item \textbf{\texttt{Rules} Table:} stores the final Python code and metadata. Crucially, this table has a foreign key to the \texttt{Chunks} table.
+\end{enumerate}
+
+This design guarantees \textbf{complete lineage}: for any active rule in the runtime engine, an operator can query the specific paragraph of text (and the source document page) that inspired its creation, providing the ``reasoning source'' demanded by safety standards.
+
+Additionally, we incorporate tables to audit more processes of our workflow:
+
+\begin{enumerate}  \setcounter{enumi}{3}
+
+    \item \textbf{\texttt{RuleContextChunks} Table:} full traceability of the chunks retrieved for each of the chunks processed in the RAG step (\cref{sec:implementation-3-rag}).
+    \item \textbf{\texttt{RuleGroundingSearches} Table:} every search performed in each of the chunks processed is stored in this table (\cref{sec:implementation-7-grounding}).
+\end{enumerate}
+
+We also must not forget that the consolidation process is by itself explainable, as the base rules used in a consolidated rule are also stored in the database (see \cref{sec:implementation-9-consolidation}).
+

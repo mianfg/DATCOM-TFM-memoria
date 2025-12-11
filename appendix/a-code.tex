@@ -1,0 +1,50 @@
+\chapter{Implementation Code \& Repository}\label{ap:code}
+
+This thesis focuses primarily on the theoretical contributions and the architectural design of the automated anomaly definition framework. For the sake of clarity and brevity, most low-level implementation details, such as API endpoints, database schema definitions, and specific Docker configurations, have been omitted from the main text.
+
+However, the validity of a computational thesis rests on its reproducibility. To this end, the complete source code, including the agentic orchestration logic, the web interface, and the evaluation scripts, is available in the accompanying software repository.
+
+\section*{Repository Access}
+
+The full codebase is hosted on GitHub and can be accessed via the following permanent redirection link:
+
+\begin{center}
+    \url{https://go.mianfg.me/datcom-tfm}
+\end{center}
+
+More information on the implementation can be found in the repository's READMEs. We can highlight:
+
+\begin{itemize}
+    \item \textbf{\texttt{src/agent}}: The LangGraph definitions for the extraction, refinement, and verification workflows.
+    \item \textbf{\texttt{src/streaming}}: The implementation of the \texttt{RuleChecker} runtime using the River library.
+    \item \textbf{\texttt{src/api}}: The FastAPI backend that exposes the system as a service.
+    \item \textbf{\texttt{notebooks}}: Jupyter notebooks used for this thesis (iterative design, synthetic evaluation, data generation).
+    \item \textbf{\texttt{docker-compose.yml}}: Infrastructure-as-Code definitions to spin up the entire stack (PostgreSQL, Qdrant, LangGraph Studio, LangFuse).
+\end{itemize}
+
+\section*{Core Implementation Concepts}
+
+While the main text discusses the system in terms of ``phases'' and ``agents,'' the actual code is organized around a set of domain entities that manage the lifecycle of the data. Reviewing these concepts helps bridge the gap between the theoretical design and the practical codebase.
+
+Some main concepts not discussed in this text but crucial for the production deployment of the rule extraction workflow are: \textbf{collections}, \textbf{jobs} and \textbf{tasks}.
+
+\subsection*{Collections}
+A \textbf{collection} is the top-level container in the system. It represents a logical project, typically corresponding to a specific industrial unit (e.g., ``C3/C4 Splitter Unit''). A collection groups together:
+\begin{itemize}
+    \item \textbf{Documents:} The PDF manuals and technical specifications uploaded by the user.
+    \item \textbf{Sensors:} The master list of available instrument tags (IDs) for that unit.
+    \item \textbf{Rules:} The final set of consolidated Python rules extracted for that unit.
+\end{itemize}
+
+\subsection*{Jobs and Tasks}
+To manage the long-running nature of LLM processing, the system distinguishes between \textbf{jobs} and \textbf{tasks}:
+
+\begin{itemize}
+    \item \textbf{Processing Job:} Represents a high-level request to process a collection. When a user triggers an extraction, a job is created. The job is responsible for performing the pre-processing (splitting all documents into chunks and spawning the necessary sub-processes).
+    \item \textbf{Processing Task:} Represents the atomic unit of work. One task corresponds to the processing of exactly \textbf{one document chunk}. Each task runs as an isolated LangGraph thread, independent of others. This allows for massive parallelism: if a document has 100 chunks, 100 tasks are spawned and can be processed concurrently. Having this separation allows incremental execution: more documents can be included and only those chunks could be processed; this effectively detaches the chunks with the processing.
+\end{itemize}
+
+\subsection*{Traceability and Lineage}
+The database schema is designed to enforce strict lineage. Every generated rule is linked via Foreign Key to the specific task that created it, which in turn is linked to the specific chunk.
+
+This data model ensures that every line of Python code in the system can be traced back to the exact paragraph in the uploaded document that motivated it, satisfying the rigorous auditability requirements of the industrial sector.

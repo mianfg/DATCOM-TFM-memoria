@@ -95,10 +95,10 @@
 % =============================================================================
 \usepackage{newfloat}
 \DeclareFloatingEnvironment[listname={Índice de problemas},placement=H]{problema}
-\DeclareFloatingEnvironment[listname={Índice de tablas},placement=H]{tabla}
+\DeclareFloatingEnvironment[listname={Index of Tables},placement=H]{tabla}
 \DeclareFloatingEnvironment[listname={Index of prompts},placement=H]{prompt}
 \DeclareFloatingEnvironment[listname={Index of threads},placement=H]{thread}
-\DeclareFloatingEnvironment[listname={Index of programs},placement=H]{program}
+\DeclareFloatingEnvironment[listname={List of Programs},placement=H]{program}
 \DeclareFloatingEnvironment[listname={Index of rules},name=Rule,placement=H]{generatedrule}
 
 \DeclareCaptionFormat{cont}{#1 (cont.)#2#3\par}
@@ -270,6 +270,13 @@
 
 
 
+\usepackage{draftwatermark}
+\SetWatermarkText{\sffamily DRAFT 3}
+\SetWatermarkColor[gray]{0.9}  % 0 = black, 1 = white → 0.5 = 50% gray
+\SetWatermarkAngle{60}
+\SetWatermarkScale{1.6}
+
+
 
 
 % =============================================================================
@@ -281,7 +288,7 @@
 % =============================================================================
 % BIBLIOGRAPHY
 % =============================================================================
-\usepackage[backend=biber,style=apa,maxbibnames=9,maxcitenames=2,citestyle=numeric]{biblatex}
+\usepackage[backend=biber,style=apa,minbibnames=1,maxbibnames=1,maxcitenames=2,citestyle=numeric]{biblatex}
 \addbibresource{references.bib}
 
 % =============================================================================

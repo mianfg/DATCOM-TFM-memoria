@@ -101,7 +101,8 @@ To execute rules like ``average over the last 24 hours'' on a high-frequency str
 
 This allows the monitoring system to run efficiently on edge devices with limited resources.
 
-\vfill
+\vspace*{2em}
+
 % Figure placeholder:
 % \begin{figure}[htbp]
 %     \centering
@@ -112,34 +113,35 @@ This allows the monitoring system to run efficiently on edge devices with limite
 % Comment: A figure showing the intersection of these three fields (LLMs for understanding, RAG for context, Stream Processing for execution) would be beneficial here to visually summarize the foundations.
 \begin{figure}[htbp]
     \centering
+    {\sffamily
     \begin{tikzpicture}[
         node distance=1.5cm and 1.5cm,
-        box/.style={rectangle, draw=black, thick, fill=blue!5, rounded corners, minimum width=3cm, minimum height=1.5cm, align=center},
-        io/.style={trapezium, trapezium left angle=70, trapezium right angle=110, draw=black, fill=green!5, minimum width=2cm, align=center},
+        box/.style={rectangle, draw=black, thick, rounded corners, minimum width=3cm, minimum height=1.5cm, align=center},
+        io/.style={trapezium, trapezium left angle=70, trapezium right angle=110, draw=black, minimum width=2cm, align=center},
         arrow/.style={-Stealth, thick}
     ]
 
     % Nodes
-    \node[io] (docs) {Industrial \\ Docs};
-    \node[box, right=of docs] (rag) {\textbf{RAG System} \\ \small (Context Retrieval)};
-    \node[box, right=of rag] (llm) {\textbf{LLM} \\ \small (Semantic Reasoning)};
-    \node[box, below=of llm] (stream) {\textbf{Stream Processing} \\ \small (Rule Execution)};
-    \node[io, right=of stream] (output) {Alerts};
-    \node[io, left=of stream] (sensors) {Sensor \\ Data};
+    \node[io] (docs) {industrial \\ docs};
+    \node[box, right=of docs] (rag) {\textbf{RAG system} \\ \small (context retrieval)};
+    \node[box, right=of rag] (llm) {\textbf{LLM} \\ \small (semantic reasoning)};
+    \node[box, below=of llm] (stream) {\textbf{stream processing} \\ \small (rule execution)};
+    \node[io, right=of stream] (output) {alerts};
+    \node[io, left=of stream] (sensors) {sensor \\ data};
 
     % Edges
-    \draw[arrow] (docs) -- node[above, font=\footnotesize] {Indexing} (rag);
-    \draw[arrow] (rag) -- node[above, font=\footnotesize] {Context} (llm);
-    \draw[arrow] (llm) -- node[right, font=\footnotesize] {Rules} (stream);
+    \draw[arrow] (docs) -- node[above, font=\footnotesize] {indexing} (rag);
+    \draw[arrow] (rag) -- node[above, font=\footnotesize] {context} (llm);
+    \draw[arrow] (llm) -- node[right, font=\footnotesize] {rules} (stream);
     \draw[arrow] (sensors) -- (stream);
     \draw[arrow] (stream) -- (output);
     
     % Feedback/Grounding
-    \draw[arrow, dashed] (llm) to[bend right=30] node[above, font=\footnotesize] {Grounding} (rag);
+    \draw[arrow, dashed] (llm) to[bend right=30] node[above, font=\footnotesize] {grounding} (rag);
 
     \end{tikzpicture}
+    }
     \caption{Conceptual architecture combining LLMs for reasoning, RAG for context, and Stream Processing for real-time execution.}
     \label{fig:foundations_architecture}
 \end{figure}
 
-\vfill

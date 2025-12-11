@@ -1,1 +1,106 @@
 \chapter{Conclusions and Future Work}
+
+\section{Summary of Contributions}
+
+This work has addressed the critical ``definition bottleneck'' in industrial anomaly detection by proposing and validating a novel framework for \textbf{automated anomaly definition}. We have successfully demonstrated that the latent operational knowledge trapped in unstructured technical documentation can be systematically extracted and formalized into executable monitoring logic without continuous human intervention.
+
+The primary contributions of this work are:
+
+\begin{itemize}
+    \item \textbf{A Novel ``Program-of-Thoughts'' Extraction Paradigm:} We moved beyond the limitations of static data schemas (JSON/XML) by framing rule extraction as a code generation task. By instructing the Large Language Model to ``think in Python,'' we leveraged its reasoning capabilities to capture complex industrial logic—such as accumulation, rates of change, and arithmetic comparisons—that static schemas failed to represent efficiently.
+    \item \textbf{Layout-Aware Retrieval Architecture:} We implemented a robust RAG pipeline using \textit{Docling} and \textit{Matryoshka} embeddings. This architecture successfully bridged the gap between visual document layout and semantic understanding, ensuring that rules embedded in tables and diagrams were preserved during the extraction process.
+    
+    \item \textbf{Privacy-First Local Execution:} We proved the viability of running state-of-the-art reasoning models (such as DeepSeek-R1) entirely on-premise. This ensures that sensitive industrial intellectual property never leaves the air-gapped environment, satisfying a non-negotiable requirement for deployment in the Oil \& Gas sector.
+    \item \textbf{Decoupling Definition from Runtime:} We established a clear architectural separation between the probabilistic layer (the LLM used for definition) and the deterministic layer (the Python/River engine used for execution). This hybrid approach guarantees that while the \textit{creation} of rules utilizes AI, their \textit{execution} remains deterministic, auditable, and computationally efficient ($O(1)$) suitable for edge deployment.
+\end{itemize}
+
+\section{Addressing Objectives and Research Questions}
+
+Relating back to the research questions posed in \cref{ch:introduction}, this thesis yields the following conclusions:
+
+\begin{description}
+    \item[RQ1: Extraction] \textit{How can hidden knowledge be formalized?} \\
+    We demonstrated that a multi-stage approach—starting with layout-aware parsing and ending with Python code generation—is superior to naive extraction. The \textit{``Program-of-Thoughts''} method proved essential for capturing the nuance of engineering constraints, allowing the system to formalize not just explicit thresholds, but also implicit logic derived from process descriptions.
+
+    \item[RQ2: Ambiguity] \textit{How can we resolve generic descriptions to specific tags?} \\
+    We solved this by decoupling the intent extraction from the entity resolution. While standard RAG struggled with disambiguation, introducing a dedicated \textit{sensor resolution} step (assisted by a mocked API contract) allowed the system to link generic terms to specific tags with higher accuracy, although this remains the most challenging aspect of the pipeline.
+
+    \item[RQ3: Reasoning] \textit{To what extent can we leverage external world knowledge?} \\
+    By moving to a code-based generation format, we implicitly enabled the model to apply \textit{world knowledge} of physics, regulation and other logic. The system successfully generated rules that required additional context or knowledge of the units involved, effectively ``reasoning'' about the physical process rather than just copying text.
+
+    \item[RQ4: Explainability] \textit{How can we ensure trust?} \\
+    Trust was achieved through the generation of \textit{readable Python code} rather than opaque model weights. Every generated rule is a standalone function with comments, reasoning traces, and source citations. This allows process engineers to ``audit the code'' rather than ``audit the neural network,'' significantly lowering the barrier to adoption in safety-critical contexts.
+
+    \item[RQ5: Quality] \textit{How can we assess rule quality?} \\
+    We introduced a synthetic evaluation methodology, creating synthetic ground-truth documents to quantitatively measure precision and recall. This provided a rigorous benchmark for our system, highlighting the specific strengths of the RAG architecture in handling various types of rules with varying degrees of complexity.
+
+    \item[RQ6: Complexity] \textit{How can expensive logic be executed efficiently?} \\
+    The separation of concerns proved successful. By compiling natural language rules into optimized Python functions using the \textit{River} library for streaming analytics, we demonstrated that complex logic could be evaluated in real-time with constant memory capability, suitable for deployment on industrial edge gateways.
+\end{description}
+
+In answering these questions through research and engineering, we were able to successfully complete the main objective of creating a methodological framework to unlock ``hidden'' operational knowledge, capable of automatically transforming unstructured industrial specifications into executable anomaly definitions with a level of reliability and efficiency suitable for safety-critical environments. Regarding the specific objectives, we recall:
+
+\begin{description}
+    \item[O1: Formalization] \textit{Strategy to translate ambiguity into deterministic logic.} \\
+    Addressed in \cref{sec:implementation-4-python-functions}. We developed a "Program-of-Thoughts" approach that leverages the code-generation capabilities of LLMs to formalize ambiguous natural language into precise Python functions, using an abstract API to encapsulate complexity.
+
+    \item[O2: Ontological Bridging] \textit{Methods to resolve the semantic gap generic equipment and specific tags.} \\
+    Addressed in \cref{sec:implementation-5-sensors}. We found that a dedicated agentic step (Sensor Resolution Agent) could effectively bridge this gap by querying a "mocked" API interface (\texttt{status.get()}) with natural language parameters, delaying resolution until the intent was clear.
+
+    \item[O3: External Grounding] \textit{Integration of external world knowledge.} \\
+    Addressed in \cref{sec:implementation-7-grounding}. By choosing Python as the output medium, we implicitly allowed the model to leverage its pre-trained knowledge of physics equations and unit conversions, grounding the extracted rules in real-world constraints without needing explicit external knowledge bases.
+
+    \item[O4: Verification] \textit{Trustworthiness and explainability.} \\
+    Addressed in \cref{sec:implementation-8-verification}. We established a clear lineage by generating independent, readable functions. Explainability is inherent in the code itself and the structured reasoning metadata accompanying every extracted rule.
+
+    \item[O5: Quality Assurance] \textit{Metrics and consolidation.} \\
+    Addressed in \cref{sec:implementation-9-consolidation} and \cref{evaluation-methodology}. We defined the synthetic evaluation strategy to measure precision and recall, and implemented consolidation logic to de-duplicate rules extracted from overlapping chunks.
+
+    \item[O6: Operational Efficiency] \textit{Stream processing architecture.} \\
+    Addressed in \cref{ch:6-operational-runtime-dynamic-verification}. We designed and validated the \texttt{RuleChecker} runtime engine, utilizing the \textit{River} library to execute the natural language rules with $O(1)$ time complexity, ensuring suitability for real-time edge environments.
+\end{description}
+
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{p{0.05\textwidth} p{0.05\textwidth} p{0.3\textwidth} l}
+        \toprule
+        \textbf{Obj.} & \textbf{R.Q.} & \textbf{Focus} & \textbf{Addressed In} \\
+        \midrule
+        O1 & RQ1 & Formalization & \cref{sec:implementation-4-python-functions}, \cref{ch:5-solution-design-and-implementation} \\
+        O2 & RQ2 & Ambiguity \& Resolution & \cref{sec:implementation-5-sensors} \\
+        O3 & RQ3 & Reasoning \& Grounding & \cref{sec:implementation-7-grounding} \\
+        O4 & RQ4 & Explainability & \cref{sec:implementation-8-verification}, \cref{llm-orchestration-and-workflows}, \cref{event-sinking-and-explanations} \\
+        O5 & RQ5 & Quality Assurance & \cref{sec:implementation-9-consolidation}, \cref{evaluation-of-rule-extraction-nlp-performance} \\
+        O6 & RQ6 & Complexity \& Efficiency & \cref{ch:6-operational-runtime-dynamic-verification}, \cref{efficient-temporal-resolution-o1-complexity} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Summary of Objectives, Research Questions, and where they are mainly addressed}
+    \label{tab:objectives-rq-summary}
+
+\end{table}
+
+
+\section{Challenges}
+
+One of the defining characteristics of this research has been the implementation of the solution against a backdrop of unprecedented technological acceleration. It is important to note that many of the core libraries and models utilized in the final iteration of this framework were not available, or were not sufficiently mature, prior to the summer of 2025.
+
+This constant evolution required a highly adaptive research methodology, where the state-of-the-art was shifting on a monthly basis. Tools for native structured output, agentic orchestration, and long-context reasoning have improved dramatically during the timespan of this project. For instance, the release of \textit{DeepSeek-R1} and advancements in local quantization techniques enabled capabilities on consumer hardware that were theoretical at the project's inception. This was also true in the case of the development frameworks, like \textit{LangGraph}, \textit{LangChain} and \textit{LangFuse}. This rapid obsolescence of tools highlights the importance of the \textit{architectural principles} proposed in this thesis (such as the separation of definition and runtime) over the specific tool stack used.
+
+\section{Future Work}
+
+While this thesis establishes a functional framework for automated anomaly definition, several key areas remain for future exploration and improvement.
+
+\subsection{Human-in-the-Loop Integration}
+
+Currently, the system operates as an automated extraction engine. However, in safety-critical industrial environments, full automation is rarely the end goal. A critical next step is the formal integration of a \textbf{\textit{Human-in-the-Loop}} (HITL) interface. This would allow domain experts (process engineers) to review, validate, and edit the automatically generated Python rules before they are deployed to the runtime engine. This creates a synergy where AI handles the high-volume ``drudgery'' of reading manuals, while humans provide the final safety certification.
+
+\subsection{Extensive Verification on Industrial Data}
+A significant limitation of this study was the inability to use proprietary Repsol sensor data for large-scale verification due to the inexistence of tagged data. Consequently, our testing relied on synthetic and theoretical validation.
+
+Future development must prioritize extensive verification using real historical plant data, accompanied by a rigorous human tagging campaign. This would allow for a true assessment of the system's precision and recall in a production environment, quantifying how many real-world critical events are correctly identified versus missed.
+
+\subsection{Contrastive Study of Architectural Iterations}
+The development of this solution followed an agile, maximizing trajectory, moving quickly to superior architectures to achieve a working prototype. However, this left little room for a detailed, quantitative contrastive study of each intermediate stage.
+
+Future research should focus on isolating and benchmarking each architectural decision: quantifying, for example, the exact performance gain provided by RAG over long-context prompting, or the precise reduction in hallucination achieved by the Python programmatic approach versus JSON schemas. A distinct ablation study for each component would provide valuable insights into the ``cost-benefit'' of complexity in industrial AI systems.

@@ -4,79 +4,97 @@
 
 \chapter{Methodology}\label{methodology}
 
-This thesis follows a structured methodological framework designed to bridge the gap between theoretical research in Large Language Models (LLMs) and practical application in industrial process monitoring. The methodology is divided into three distinct phases, each with its own objectives and approach:
+This chapter details the methodological framework adopted for the development of this thesis. We follow a \textbf{hybrid, iterative methodology}. It combines \textbf{agile research practices} for the probabilistic components (LLM-based extraction) with \textbf{rigorous software engineering standards} for the deterministic components (streaming runtime), as well as the implementation. This distinction is necessary because the two subsystems operate under fundamentally different paradigms: one requires exploration and hypothesis testing to manage uncertainty, while the other requires optimization and strict type safety to ensure reliability.
 
+\section{Methodological Approach: The Iterative Cycle}\label{sec:iterative-cycle}
+
+The core of our methodology, particularly for the Rule Extraction engine, is an iterative \textit{``hypothesis -implementation - evaluation''} cycle. Unlike a linear ``waterfall'' approach where requirements are fixed, this project treats the capabilities of the LLM as a variable to be investigated.
+
+The methodological process consists of repeated iterations of the following steps:
 \begin{enumerate}
-    \item \textbf{Feasibility Analysis:} Establishing the viability of LLMs for this domain.
-    \item \textbf{System Implementation:} A hybrid phase combining research-driven design for the extraction engine and engineering-driven development for the runtime environment.
-    \item \textbf{Evaluation:} A synthetic testing strategy necessitated by data constraints.
+    \item \textbf{Baseline Implementation:} Establishing a naive solution (e.g., standard ``zero-shot'' prompting).
+    \item \textbf{Qualitative Failure Analysis:} Testing against real industrial documentation to identify specific failure types (e.g., hallucination, loss of context).
+    \item \textbf{Research-Driven Hypothesis:} Formulating a solution based on current literature (e.g., ``Chain of Thought will improve reasoning,'' ``grammar-constrained decoding will ensure valid output schema'').
+    \item \textbf{Refinement and System Evolution:} Implementing the hypothesis and fundamentally altering the system architecture if successful.
 \end{enumerate}
 
-\section{Phase 1: State of the Art and Feasibility Analysis}
+This cycle ensures that the final system is not just a collection of features, but a derived solution to specific, observed problems in applying LLMs to the industrial domain.
 
-The initial phase of this work focused on a comprehensive review of the state of the art in industrial event detection and monitoring. We analyzed traditional approaches, such as rigid expert systems and purely statistical anomaly detection, identifying their limitations in handling the unstructured, variable nature of technical documentation.
+\section{Phases of Development}
 
-Based on this background study (detailed in \cref{background-and-state-of-the-art}), we concluded that Large Language Models (LLMs) possess the necessary semantic understanding to bridge the gap between human-written specifications and machine-executable logic. This conclusion served as the foundation for the decision to implement an LLM-based rule extraction system.
+The methodological work is structured into four distinct phases, executed sequentially but with internal iterative loops.
 
-\section{Phase 2: Iterative Design of the Rule Extractor}\label{methodology-extraction}
+\subsection*{Phase 1: State of the Art and Feasibility Analysis}
+The initial phase focused on a comprehensive review of existing approaches to industrial event detection. We analyzed traditional methods (expert systems, statistical anomaly detection) to identify their limitations.
+\begin{description}
+    \item[Objective:] Determine if LLMs possess the necessary semantic understanding to parse unstructured technical specifications.
+    \item[Methodology:] Comparative analysis of traditional methods (expert systems, statistical anomaly) versus State of the Art LLM capabilities.
+    \item[Outcome:] Validation of the LLM approach and definition of the system architecture.
+\end{description}
 
-The development of the rule extractor (\cref{ch:5-solution-design-and-implementation}) follows a \textbf{research-driven, iterative design methodology}. Unlike standard software development, where requirements are fixed, this phase treats the capabilities of the LLM as the primary variable.
+\subsection*{Phase 2: Iterative Design of the Rule Extractor}
+This phase represents the bulk of the investigative work. Following the iterative methodology described above, we evolved the system from a simple script into a multi-stage agentic pipeline.
+\begin{description}
+    \item[Objective:] Establish a robust mechanism to extract deterministic rules from non-deterministic natural language.
+    \item[Methodology:] \textbf{Iterative cycles} (\cref{sec:iterative-cycle}) using \textbf{actual Repsol technical documentation}. Each iteration addressed a specific limitation (e.g., hallucination) via a hypothesis-test cycle.
+    \item[Outcome:] A certain architecture for rule extraction.
+\end{description}
 
-\subsection*{The Iterative Cycle}
+\subsection*{Phase 3: Engineering the Streaming Runtime}
+In contrast to the research-heavy extraction phase, the development of the runtime engine followed a \textbf{pure engineering methodology}.
+\begin{description}
+    \item[Objective:] Create a high-performance execution environment for the extracted rules.
+    \item[Methodology:] \textbf{Test-Driven Development (TDD)} and strict performance profiling, prioritizing $O(1)$ time complexity and memory safety.
+    \item[Outcome:] A fault-tolerant, streaming-native runtime engine backed by the River library.
+\end{description}
 
-We adopted a ``baseline-improvement'' cycle to systematically solve the challenges of extraction:
+\subsection*{Phase 4: Synthetic Evaluation Strategy}
+Due to the unavailability of labeled historical anomaly logs (a common constraint in industrial projects), we developed a \textbf{synthetic evaluation methodology}.
+\begin{description}
+    \item[Objective:] Validate the correctness of extraction and the latency of execution without ground-truth plant data.
+    \item[Methodology:] \textbf{Synthetic generation} for rule extraction validation.
+    \item[Outcome:] Quantitative metrics for extraction precision/recall and runtime detection accuracy.
+\end{description}
 
-\begin{enumerate}
-    \item \textbf{Baseline Implementation:} We start with a naive, research-based approach (e.g., Zero-Shot extraction on raw text).
-    \item \textbf{Qualitative Evaluation:} We test this baseline against \textbf{real Repsol technical documentation} (specifically, the C3/C4 Splitter Functional Description).
-    \item \textbf{Failure Analysis:} We identify specific caveats and failure modes (e.g., hallucination, context loss, lack of determinism).
-    \item \textbf{Hypothesis Formulation:} We formulate a research-backed hypothesis to address these failures (e.g., ``chunking will improve recall,'' ``constrained decoding will ensure validity'').
-    \item \textbf{Option Analysis:} We evaluate multiple implementation options (e.g., different retrieval strategies, different parsing libraries).
-    \item \textbf{Selection and Implementation:} We select the most promising option based on theoretical fit and practical constraints, implementing it as the new standard.
-\end{enumerate}
+\section{Temporal Planning}
 
-This cycle repeats throughout \cref{ch:5-solution-design-and-implementation}, evolving the system from a simple script into a sophisticated agentic pipeline.
+The development of this Master's Thesis was planned over a period of approximately 6 months, designed to meet the workload requirements of approx. 300-450 hours. The time distribution specified in \cref{tab:temporal-planning} reflects the high uncertainty and complexity of the LLM research components. 
 
-\subsection*{Data Source for Development}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l l c c }
+        \toprule
+        \textbf{Phase} & \textbf{Description} & \textbf{Est. Hours} & \textbf{\%} \\ \midrule
+        Phase 1 & State of the Art \& Feasibility Study & 50 h & 14\% \\
+        Phase 2 & Rule Extractor Dev. (Research \& Iteration) & 140 h & 39\% \\
+        Phase 3 & Runtime Engine Dev. (Engineering) & 70 h & 19\% \\
+        Phase 4 & Synthetic Evaluation \& Testing & 50 h & 14\% \\
+        Phase 5 & Documentation \& Thesis Writing & 50 h & 14\% \\ \midrule
+        \multicolumn{2}{r}{\textbf{Total}} & \textbf{360 h} & \textbf{100\%} \\ \bottomrule
+    \end{tabular}
+    \caption{Estimated apportionment of work hours per project phase}
+    \label{tab:temporal-planning}
+\end{table}
 
-It is important to note that the \textbf{development and design} of the rule extractor were performed using \textbf{actual industrial documentation provided by Repsol} (see \cref{sec:use-case}). The rules, examples, and edge cases discussed in \cref{ch:5-solution-design-and-implementation} are derived from this real-world material, ensuring the system is grounded in the complexity of actual plant operations.
+\section{Budget and Economic Estimation}
 
-\section{Phase 3: Engineering the Streaming Runtime}\label{methodology-runtime}
+The economic analysis considers the cost of development as if it were a professional engineering project. The budget is primarily driven by personnel costs (Engineering hours) and operational costs (LLM tokens).
 
-In contrast to the research-heavy extraction phase, the development of the runtime engine (\cref{ch:6-operational-runtime-dynamic-verification}) follows a \textbf{pure engineering methodology}.
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l c c c}
+        \toprule
+        \textbf{Concept} & \textbf{Quantity} & \textbf{Unit Cost} & \textbf{Total} \\ \midrule
+        \multicolumn{4}{l}{\textbf{Personnel}} \\
+        AI Engineer & 360 hours & 25.00 €/h & 9,000.00 € \\ \midrule
+        \multicolumn{4}{l}{\textbf{Materials \& Services}} \\
+        LLM calls via Ollama & - & 0.00 € & 0.00 € \\
+        Tavily (free tier) & 6000 credits & 0.00 € & 0.00 € \\
+        \midrule
+        \textbf{Total Estimated Budget} & & & \textbf{9,000.00 €} \\ \bottomrule
+    \end{tabular}
+    \caption{Budgetary estimation for the project development.}
+    \label{tab:budget}
+\end{table}
 
-Once the rules are extracted, the problem shifts from ``understanding'' (AI) to ``execution'' (computer engineering). There is no research hypothesis here regarding \textit{if} it works; the focus is entirely on \textit{how efficiently} it works.
-
-The methodology prioritizes:
-\begin{itemize}
-    \item \textbf{Performance:} Achieving $O(1)$ time complexity for rule evaluation to handle high-frequency data streams.
-    \item \textbf{Reliability:} Ensuring the system is fault-tolerant and memory-safe.
-    \item \textbf{Correctness:} Using standard algorithms (e.g., Welford's algorithm) using production implementations (e.g., River) to guarantee mathematical precision.
-\end{itemize}
-
-This phase treats the extracted rules as a specification and builds a robust ``virtual machine'' to execute them.
-
-\section{Phase 4: Synthetic Evaluation Strategy}\label{methodology-evaluation}
-
-The final phase addresses the validation of the complete system. A significant constraint in this project was the unavailability of labeled historical anomaly logs or a ``golden dataset'' of verified rules from the Repsol pilot plant.
-
-To overcome this, we adopted a \textbf{synthetic evaluation methodology} (\cref{evaluation-and-results}).
-
-\subsection{Evaluating the Rule Extractor (The "Twin" Approach)}
-Since we cannot mathematically verify extraction against the real Repsol documentation (as no ground truth exists), we inverted the problem:
-\begin{enumerate}
-    \item We generated a set of known ``ground truth'' rules.
-    \item We used an LLM to ``reverse engineer'' these rules into a \textbf{synthetic technical manual}.
-    \item We ran our extraction pipeline on this synthetic manual.
-    \item We compared the extracted output against the original ground truth to calculate quantitative metrics (precision, recall).
-\end{enumerate}
-
-\subsection{Evaluating the Runtime Engine}
-To validate the streaming engine without live plant data:
-\begin{enumerate}
-    \item We generated \textbf{synthetic sensor data} with known statistical properties.
-    \item We performed a ``shadow test,'' comparing the output of our streaming engine against a reference batch implementation (Pandas) to prove mathematical equivalence.
-    \item We performed ``fault injection,'' deliberately introducing anomalies into the synthetic stream to verify the system's detection capabilities.
-\end{enumerate}
-
-This approach allows us to rigorously test the system's logic and performance despite the absence of proprietary operational data.
+This budget assumes the mean salary of an AI Engineer in Spain (25€/hour). API costs represent the actual consumption during the iterative testing and evaluation phases. The abscence of material cost highlights the accessibility of modern AI research, where the primary investment is intellectual capital rather than physical infrastructure.

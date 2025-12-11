@@ -8,25 +8,19 @@
 \selectlanguage{english}
 \chapter{Summary}
 
-\emph{Brief summary of problem, approach, contributions, and results}
+The digitalization of the process industry has created a data-rich but knowledge-sparse environment, where terabytes of untagged sensor data are generated daily while the critical operational logic required to define safety anomalies remains trapped in unstructured technical documentation. This manual dependency creates a severe bottleneck, as interpreting these complex specifications requires domain engineers, making the process unscalable. Traditional data-driven anomaly detection methods rely on historical patterns, rendering them insufficient for identifying "zero-shot" failure modes in safe-by-design environments where catastrophic events are, by definition, rare and absent from training data. 
 
-\begin{itemize}
-\item
-  Ensure the abstract follows a strict ``narrative arc'': Context (1
-  sentence) \(\to\) Gap (1 sentence) \(\to\) Hypothesis/Method (2
-  sentences) \(\to\) Results (quantified) \(\to\) Impact.
-\item
-  ``We propose a multi-stage semantic compilation framework that treats
-  natural language specifications as source code, formalized into
-  executable rules and deployed on a lightweight streaming engine.''
-\item
-  Quantify: Mention the exact metric improvement if possible (e.g.,
-  consolidation ratio, \% valid rules)
-\item
-  Application in industrial contexts: ``Validation on a streaming
-  runtime demonstrates that the extracted rules can be evaluated in
-  \(O(1)\) time using incremental statistics, confirming suitability for
-  high-frequency industrial edge deployment''
-\end{itemize}
+To address this ``definition bottleneck'', we propose a multi-stage semantic compilation framework that treats natural language specifications as source code, formalized into executable rules and deployed on a lightweight streaming engine. By leveraging a ``Program-of-Thoughts'' paradigm and layout-aware Retrieval-Augmented Generation, we transform ambiguous operating manuals into deterministic Python logic, effectively treating the Large Language Model not as an oracle, but as a compiler for diverse engineering constraints.
+
+Experimental results on a synthetic ``twin'' dataset demonstrate that this approach achieves 100\% syntactic validity in rule generation through constrained decoding, and significantly improves semantic recall for complex temporal constraints compared to standard zero-shot baselines. Crucially, the architecture explicitly decouples the probabilistic definition layer from the execution layer. We rely on local models solely for the extraction process to guarantee data sovereignty, while the runtime execution remains purely deterministic.
+
+Validation on a streaming runtime demonstrates that the extracted rules can be evaluated in $O(1)$ time using incremental statistics, confirming suitability for high-frequency industrial edge deployment.
+
+\vspace{2em}
+
+\begin{description}
+\item[Keywords:] Anomaly Definition, Large Language Models (LLM), Retrieval-Augmented Generation (RAG), Search-Augmented Generation (SAG), Structured Output, Industrial IoT, Stream Processing, Program-of-Thoughts, Knowledge Extraction, Edge Computing.
+\end{description}
+
 
 \endinput

@@ -2,30 +2,24 @@
 % !TeX encoding = utf8
 %
 %*******************************************************
-% Resumen
+% Summary
 %*******************************************************
 
+\selectlanguage{spanish}
 \chapter{Resumen}
 
-\emph{Brief summary of problem, approach, contributions, and results}
+La digitalización de la industria de procesos ha creado un entorno rico en datos pero pobre en conocimiento, donde diariamente se generan terabytes de datos de sensores sin etiquetar, mientras que la lógica operativa crítica necesaria para definir anomalías de seguridad permanece atrapada en documentación técnica no estructurada. Esta dependencia manual crea un grave cuello de botella, ya que la interpretación de estas especificaciones complejas requiere ingenieros de dominio, haciendo que el proceso sea poco escalable. Los métodos tradicionales de detección de anomalías basados en datos dependen de patrones históricos, lo que los hace insuficientes para identificar modos de fallo ``zero-shot'' en entornos diseñados para la seguridad (\textit{safe-by-design}), donde los eventos catastróficos son, por definición, raros y están ausentes de los datos de entrenamiento.
 
-\begin{itemize}
-\item
-  Ensure the abstract follows a strict ``narrative arc'': Context (1
-  sentence) \(\to\) Gap (1 sentence) \(\to\) Hypothesis/Method (2
-  sentences) \(\to\) Results (quantified) \(\to\) Impact.
-\item
-  ``We propose a multi-stage semantic compilation framework that treats
-  natural language specifications as source code, formalized into
-  executable rules and deployed on a lightweight streaming engine.''
-\item
-  Quantify: Mention the exact metric improvement if possible (e.g.,
-  consolidation ratio, \% valid rules)
-\item
-  Application in industrial contexts: ``Validation on a streaming
-  runtime demonstrates that the extracted rules can be evaluated in
-  \(O(1)\) time using incremental statistics, confirming suitability for
-  high-frequency industrial edge deployment''
-\end{itemize}
+Para abordar este ``cuello de botella de definición'', proponemos un marco de compilación semántica de múltiples etapas que trata las especificaciones en lenguaje natural como código fuente, formalizándolas en reglas ejecutables y desplegándolas en un motor de streaming ligero. Aprovechando el paradigma ``Program-of-Thoughts'' y la Generación Aumentada por Recuperación (RAG) consciente del diseño, transformamos manuales operativos ambiguos en lógica Python determinista, tratando efectivamente al Modelo de Lenguaje Grande (LLM) no como un oráculo, sino como un compilador de diversas restricciones de ingeniería.
+
+Los resultados experimentales en un conjunto de datos ``gemelo'' sintético demuestran que este enfoque logra una validez sintáctica del 100\% en la generación de reglas mediante decodificación restringida, y mejora significativamente la recuperación semántica (\textit{recall}) para restricciones temporales complejas en comparación con las líneas base \textit{zero-shot} estándar. Crucialmente, la arquitectura desacopla explícitamente la capa de definición probabilística de la capa de ejecución. Confiamos en modelos locales únicamente para el proceso de extracción para garantizar la soberanía de los datos, mientras que la ejecución en tiempo de ejecución permanece puramente determinista.
+
+La validación en un entorno de ejecución de streaming demuestra que las reglas extraídas pueden ser evaluadas en tiempo $O(1)$ utilizando estadísticas incrementales, confirmando su idoneidad para el despliegue en entornos industriales de alta frecuencia en el borde (\textit{edge}).
+
+\vspace{2em}
+
+\begin{description}
+\item[Palabras clave:] Definición de Anomalías, Modelos de Lenguaje Grande (LLM), Generación Aumentada por Recuperación (RAG), Generación Aumentada por Búsqueda (SAG), Salida Estructurada, IoT Industrial, Procesamiento de Flujos, Program-of-Thoughts, Extracción de Conocimiento, Computación en el Borde (Edge Computing).
+\end{description}
 
 \endinput
